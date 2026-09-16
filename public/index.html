@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="A measured Rust/wgpu browser viewer for published dynamic Gaussian research data." />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Dynamic Gaussian Lab · Pajama Studio</title>
+  <link rel="icon" href="/pajama-mark.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="https://pajama.studio" aria-label="Pajama Studio home">
+      <img src="/pajama-mark.svg" alt="" />
+      <span><strong>Pajama Studio</strong><small>Dynamic Gaussian Lab</small></span>
+    </a>
+    <div class="topbar-actions">
+      <a class="docs-link" href="/docs/">Read the field guide</a>
+      <div class="runtime"><span class="status-dot"></span><span id="runtime-status">Preparing research model…</span><b>v0.8</b></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">Rust · wgpu · WGSL · published research fixture</p>
+        <h1>A focused viewer for <em>dynamic</em> Gaussian scenes.</h1>
+      </div>
+      <p>Inspect a published STG-Lite scene, compare it with calibrated RGB, and profile the browser render path.</p>
+    </section>
+
+    <section class="workbench" id="workbench" data-scene="stg">
+      <aside class="scene-sidebar" aria-label="Gaussian scene selector">
+        <div class="sidebar-heading"><span>Scenes</span><small>2 fixtures</small></div>
+        <button class="scene-card is-active" type="button" data-scene="stg" aria-pressed="true">
+          <img src="/data/sear-steak-poster.jpg" alt="Sear steak scene" />
+          <span class="scene-card-copy"><span><b>Live 4D</b><i>Active</i></span><strong>Sear steak</strong><small>108,317 learned Gaussians · 10 s</small></span>
+        </button>
+        <button class="scene-card" type="button" data-scene="flames" aria-pressed="false">
+          <img src="/data/flames-stream/poster.jpg" alt="02 Flames source scene" />
+          <span class="scene-card-copy"><span><b>Streamed RGB</b><i>Source only</i></span><strong>02 Flames</strong><small>9 fragments · 16.68 seconds</small></span>
+        </button>
+        <div class="sidebar-note"><span>Renderer focus</span><p>Continuous-time STG rendering with calibrated checks.</p></div>
+        <nav class="baseline-links" aria-label="Documentation">
+          <span>Learn</span>
+          <a href="/docs/">Point Cloud · NeRF · 3DGS <b>→</b></a>
+          <a href="/docs/#this-renderer">This renderer pipeline <b>→</b></a>
+        </nav>
+      </aside>
+
+      <section class="player-column" aria-label="Selected scene player">
+        <header class="player-heading">
+          <div><span id="scene-kicker">Live reconstruction</span><h2 id="scene-title">Sear steak · STG-Lite</h2></div>
+          <p id="scene-summary">Official pretrained model · calibrated camera comparison</p>
+        </header>
+
+        <div class="player-pane" id="stg-pane">
+          <div class="viewer-topline"><span><i class="live-dot"></i>WebGPU renderer</span><span id="adapter">Research asset pending</span></div>
+          <div class="canvas-wrap" id="canvas-wrap">
+            <canvas id="gaussian-canvas" aria-label="Sear steak dynamic multi-view reconstruction rendered as Spacetime Gaussians"></canvas>
+            <video id="reference-video" muted playsinline preload="metadata" loop aria-label="Official Neural 3D Video cam00 RGB reference"><source src="/data/n3d-sear-steak-cam00-reference-960x720.mp4" type="video/mp4" /></video>
+            <div class="compare-divider" aria-hidden="true"></div>
+            <div class="compare-label compare-label-left">RGB reference · cam00</div>
+            <div class="compare-label compare-label-right">STG-Lite render</div>
+            <div id="fallback" class="fallback" hidden><h3>Viewer unavailable</h3><p>Use a current browser with WebGPU and hardware acceleration.</p></div>
+            <div class="scene-badge"><span>STG-Lite · CVPR 2024</span><strong id="view-state">Loading cameras…</strong></div>
+            <div class="metrics-panel" aria-label="Live performance profile">
+              <div><span>FPS</span><strong id="fps">—</strong></div><div><span>Visible</span><strong id="visible">—</strong></div>
+              <div><span>CPU prepare</span><strong id="prepare">—</strong></div><div><span>CPU sort</span><strong id="sort">—</strong></div>
+              <div><span>GPU pass timing</span><strong id="gpu-render">—</strong></div><div><span>Order upload</span><strong id="upload">—</strong></div>
+            </div>
+            <div class="gesture-hint">Drag to orbit · wheel to zoom</div>
+          </div>
+          <div class="transport">
+            <button id="play" class="icon-button" type="button" aria-label="Pause playback">Ⅱ</button><span id="timecode">00:00.000</span>
+            <input id="timeline" type="range" min="0" max="10" step="0.001" value="0" aria-label="Playback time" /><span>00:10.000</span>
+            <label class="rate-control" for="playback-rate"><span>Speed</span><select id="playback-rate" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+            <select id="camera-mode" aria-label="Viewer camera"><option value="orbit">Novel orbit</option></select>
+            <button id="compare-toggle" type="button" aria-pressed="false">Compare RGB</button><button id="reset-camera" type="button">Camera 00</button>
+          </div>
+        </div>
+
+        <div class="player-pane flames-pane" id="flames-pane" hidden>
+          <div class="viewer-topline"><span><i class="source-dot"></i>Segmented source video</span><span id="flames-stream-status" data-state="idle">On-demand · no background download</span></div>
+          <div class="flames-stage">
+            <video id="flames-video" controls muted playsinline loop preload="none" poster="/data/flames-stream/poster.jpg" aria-label="Official 02 Flames camera 0001 source preview"></video>
+            <button id="flames-stream-start" type="button"><span>Load streamed preview</span><small>Starts with 3 of 9 fragments</small></button>
+          </div>
+          <div class="flames-facts"><span><b>Original</b>125 MB · 2560 × 1920</span><span><b>Delivery</b>2.03 MiB · fMP4/MSE</span><span><b>Boundary</b>Source video, not a rendered output</span></div>
+        </div>
+
+        <footer class="player-footer">
+          <div><span>Asset</span><strong id="load-state">Loading…</strong></div><div><span>Scope</span><strong>Non-commercial research evaluation</strong></div>
+          <a href="/data/THIRD_PARTY_NOTICES.md">Provenance ↗</a>
+        </footer>
+      </section>
+    </section>
+
+    <section class="docs-cta">
+      <div><p class="eyebrow">Interview field guide</p><h2>From captured data to pixels.</h2></div>
+      <p>The representation map, file formats, camera math, render pipelines, bottlenecks, evaluation methods, and this viewer's exact evidence boundary now live in one readable document.</p>
+      <a href="/docs/"><span>Open the complete cheatsheet</span><b>Point Cloud · NeRF · 3DGS · 4DGS →</b></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div><img src="/pajama-mark.svg" alt="" /><span><strong>Pajama Studio</strong><small>Interactive 3D &amp; AI prototyping</small></span></div>
+    <p>Non-commercial research/evaluation demo. Third-party models and captures retain their original terms.</p><a href="/docs/">Documentation →</a>
+  </footer>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

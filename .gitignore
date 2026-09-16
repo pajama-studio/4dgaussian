@@ -1,0 +1,8 @@
+node_modules/
+target/
+.wrangler/
+.DS_Store
+*.log
+screenshots/
+artifacts/
+
