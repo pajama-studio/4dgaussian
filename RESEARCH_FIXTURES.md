@@ -10,7 +10,7 @@ Reviewed 2026-09-15. Only author-maintained project pages, papers, code, and mod
 
 ## Why STG was chosen first
 
-The interview target concerns time-varying reconstructed scenes and a viewer spanning delivery, rendering, and UX. STG-Lite exposes its temporal parameters directly in a compact PLY, so the browser can evaluate the representation without embedding a neural runtime. That makes the renderer boundary inspectable while avoiding a false claim that this project trained or inferred the scene.
+The project target concerns time-varying reconstructed scenes and a viewer spanning delivery, rendering, and UX. STG-Lite exposes its temporal parameters directly in a compact PLY, so the browser can evaluate the representation without embedding a neural runtime. That makes the renderer boundary inspectable while avoiding a false claim that this project trained or inferred the scene.
 
 ## Sources
 

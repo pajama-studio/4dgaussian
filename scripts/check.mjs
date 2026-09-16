@@ -45,7 +45,7 @@ const logo = await readFile(new URL("../public/pajama-mark.svg", import.meta.url
 const searPoster = await readFile(new URL("../public/data/sear-steak-poster.jpg", import.meta.url));
 if (logo.length < 2_000 || searPoster.length < 50_000) throw new Error("Brand or scene-selector artwork is missing");
 const page = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
-for (const statement of ["108,317 learned Gaussians", "Non-commercial research/evaluation demo", "Open the complete cheatsheet", "/docs/"]) {
+for (const statement of ["108,317 learned Gaussians", "Non-commercial research/evaluation demo", "Open the complete guide", "https://github.com/pajama-studio/4dgaussian", "/docs/"]) {
   if (!page.includes(statement)) throw new Error(`Required viewer statement is missing: ${statement}`);
 }
 const docs = await readFile(new URL("../public/docs/index.html", import.meta.url), "utf8");
