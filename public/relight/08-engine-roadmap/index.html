@@ -1,0 +1,100 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bring relighting into the engine · Gaussian Relighting</title><meta name="description" content="Learn Gaussian relighting from Lambert and GGX to inverse rendering, SH transfer and deformable assets. Bilingual lessons and a real Rust/wgpu lab."><link rel="stylesheet" href="/math/vendor/katex.min.css"><link rel="stylesheet" href="/relight/relight.css"><script type="module" src="/relight/site.mjs"></script></head><body><a class="skip" href="#main"><span data-copy="en">Skip to content</span><span data-copy="zh" lang="zh-CN" hidden>跳到正文</span></a><header class="topbar"><a class="brand" href="/relight/">PAJAMA <span> / RELIGHT</span></a><nav aria-label="Primary"><a class="" href="/build/"><span data-copy="en">Build</span><span data-copy="zh" lang="zh-CN" hidden>工程</span></a><a class="" href="/learn/"><span data-copy="en">Theory</span><span data-copy="zh" lang="zh-CN" hidden>原理</span></a><a class="" href="/math/"><span data-copy="en">Math</span><span data-copy="zh" lang="zh-CN" hidden>数学</span></a></nav><div class="language" role="group" aria-label="Language / 语言"><button data-language="en" aria-pressed="true">English</button><button data-language="zh" aria-pressed="false">中文</button></div></header><div class="layout"><aside class="syllabus"><details id="relight-syllabus"><summary><span data-copy="en">Light → material → motion</span><span data-copy="zh" lang="zh-CN" hidden>光照 → 材质 → 运动</span></summary><div class="syllabus-body"><a href="/relight/"><span data-copy="en">Overview &amp; learning resources</span><span data-copy="zh" lang="zh-CN" hidden>总览与学习资料</span></a><ol><li><a href="/relight/01-light-and-color/" ><span class="lesson-num">01</span><span><span data-copy="en">A color is not a material</span><span data-copy="zh" lang="zh-CN" hidden>颜色不等于材质</span></span></a></li><li><a href="/relight/02-count-the-light/" ><span class="lesson-num">02</span><span><span data-copy="en">Count the light, one direction at a time</span><span data-copy="zh" lang="zh-CN" hidden>把每个方向的光加起来</span></span></a></li><li><a href="/relight/03-a-moving-highlight/" ><span class="lesson-num">03</span><span><span data-copy="en">Build a moving highlight</span><span data-copy="zh" lang="zh-CN" hidden>做出会移动的高光</span></span></a></li><li><a href="/relight/04-shading-to-splats/" ><span class="lesson-num">04</span><span><span data-copy="en">Send light through the splat pipeline</span><span data-copy="zh" lang="zh-CN" hidden>让反射光走完 splat 管线</span></span></a></li><li><a href="/relight/05-sh-lighting/" ><span class="lesson-num">05</span><span><span data-copy="en">Use SH for light, not just appearance</span><span data-copy="zh" lang="zh-CN" hidden>SH 不只表达外观，也能表达光照</span></span></a></li><li><a href="/relight/06-learn-the-material/" ><span class="lesson-num">06</span><span><span data-copy="en">Learn materials without learning the wrong thing</span><span data-copy="zh" lang="zh-CN" hidden>怎样学习材质，避免把光学错</span></span></a></li><li><a href="/relight/07-moving-normals/" ><span class="lesson-num">07</span><span><span data-copy="en">Add time without breaking the light</span><span data-copy="zh" lang="zh-CN" hidden>加入时间，别让光照出错</span></span></a></li><li><a href="/relight/08-engine-roadmap/" aria-current="page"><span class="lesson-num">08</span><span><span data-copy="en">Bring relighting into the engine</span><span data-copy="zh" lang="zh-CN" hidden>把重打光接进引擎</span></span></a></li></ol><p><a class="run-link" href="/relight/lab/"><span data-copy="en">Open the GPU lab →</span><span data-copy="zh" lang="zh-CN" hidden>打开 GPU 实验 →</span></a></p><a href="/relight/#research"><span data-copy="en">Research map · 2024–2026</span><span data-copy="zh" lang="zh-CN" hidden>研究地图 · 2024–2026</span></a></div></details></aside><main id="main"><article class="build-article"><p class="eyebrow">08 / 08 · RELIGHTING</p><h1><span data-copy="en">Bring relighting into the engine</span><span data-copy="zh" lang="zh-CN" hidden>把重打光接进引擎</span></h1><p class="goal"><span data-copy="en">Separate working capabilities from the next implementation milestones.</span><span data-copy="zh" lang="zh-CN" hidden>区分已实现能力与后续实现里程碑。</span></p><nav class="build-toc" aria-label="On this page"><a class="" href="#step-1"><span data-copy="en">Define the asset contract first</span><span data-copy="zh" lang="zh-CN" hidden>先定义资产契约</span></a><a class="" href="#step-2"><span data-copy="en">Choose where shading happens</span><span data-copy="zh" lang="zh-CN" hidden>选择着色阶段</span></a><a class="" href="#step-3"><span data-copy="en">Five verifiable milestones</span><span data-copy="zh" lang="zh-CN" hidden>五个能验收的里程碑</span></a><a class="" href="#step-4"><span data-copy="en">Prepare a convincing explanation before the 28th</span><span data-copy="zh" lang="zh-CN" hidden>28 日前准备能讲透的闭环</span></a><a class="" href="#source"><span data-copy="en">Running code</span><span data-copy="zh" lang="zh-CN" hidden>运行代码</span></a></nav><section id="step-1"><h2><span data-copy="en">Define the asset contract first</span><span data-copy="zh" lang="zh-CN" hidden>先定义资产契约</span></h2><p><span data-copy="en">Declare version, units, coordinates, center/covariance/opacity, oriented normals, linear material fields, time/deformation binding and visibility convention. State whether color means base color, captured radiance or a learned residual. Never silently reinterpret an old RGB field.</span><span data-copy="zh" lang="zh-CN" hidden>声明版本、单位、坐标、中心／协方差／不透明度、有方向法线、线性材质字段、时间／形变绑定与可见性约定。明确颜色代表 base color、捕获辐亮度还是学习残差。绝不能默默改变旧 RGB 字段的含义。</span></p><p><span data-copy="en">The teaching layout is 96 bytes: six vec4 values. Roughness and metallic are frame uniforms for our single-material object. A real importer validates material attributes, rejects nonfinite values and declares missing capabilities.</span><span data-copy="zh" lang="zh-CN" hidden>教学布局是六个 vec4，共 96 字节。单材质物体的粗糙度与金属度存为逐帧 uniform。真实导入器应验证材质属性、拒绝非有限数并声明缺失能力。</span></p></section><section id="step-2"><h2><span data-copy="en">Choose where shading happens</span><span data-copy="zh" lang="zh-CN" hidden>选择着色阶段</span></h2><p><span data-copy="en">Here we shade each Gaussian then blend radiance. Deferred shading instead splats a G-buffer and shades pixels later. It may reduce repeated BRDF work, but averaging normals/roughness before nonlinear shading is not equivalent to blending shaded surfaces.</span><span data-copy="zh" lang="zh-CN" hidden>这里先着色每颗 Gaussian，再合成辐亮度。Deferred 着色先 splat 到 G-buffer，再逐像素着色，可减少重复 BRDF 计算；但非线性着色前先平均法线／粗糙度，不等于合成已经着色的表面。</span></p><p><span data-copy="en">The host owns the surface, clock and input. RelightPass owns GPU resources and records commands into a host-provided encoder. It runs in browser WebGPU and native offscreen DX12. Separate passes can later handle shadows and environment prefiltering.</span><span data-copy="zh" lang="zh-CN" hidden>宿主拥有 surface、时钟和输入。RelightPass 管理 GPU 资源，向宿主 encoder 记录命令，可用于浏览器 WebGPU 与原生离屏 DX12。后续可用独立 pass 处理阴影和环境预过滤。</span></p></section><section id="step-3"><h2><span data-copy="en">Five verifiable milestones</span><span data-copy="zh" lang="zh-CN" hidden>五个能验收的里程碑</span></h2><p><span data-copy="en">A, implemented: synthetic known materials/normals, direct light, five inspection modes, deformation and HDR composition. B, next: reproduce a released static method, build an explicit asset converter and match its reference renderer under a fixed light.</span><span data-copy="zh" lang="zh-CN" hidden>A，已实现：已知合成材质／法线、直射光、五种观察模式、形变与 HDR 合成。B，下一步：复现已发布静态方法，编写明确资产转换器，在固定光照下对齐参考渲染器。</span></p><p><span data-copy="en">C: environment diffuse SH and specular IBL; compare a white Lambert sphere to numerical integration. D: visibility with a moving blocker. E: deform an imported asset with consistent material/normal binding; measure flicker under a fixed light. B–E are planned, not features of this lab.</span><span data-copy="zh" lang="zh-CN" hidden>C：环境漫反射 SH 与镜面 IBL，用白色 Lambert 球对比数值积分。D：加入可见性并测试运动遮挡物。E：对导入资产做一致的材质／法线绑定和形变，测量固定光照下的闪烁。B–E 是计划，不是当前实验已有功能。</span></p></section><section id="step-4"><h2><span data-copy="en">Prepare a convincing explanation before the 28th</span><span data-copy="zh" lang="zh-CN" hidden>28 日前准备能讲透的闭环</span></h2><p><span data-copy="en">First reproduce the viewer: covariance, sorting and alpha. Then use one session for Lambert/GGX, one for this lab and its two passes, and one comparing inverse rendering with SH transfer. Be ready to explain material-light ambiguity and dynamic normal/visibility updates.</span><span data-copy="zh" lang="zh-CN" hidden>先复现 Viewer，讲清协方差、排序与 alpha。再用一次学习 Lambert／GGX，一次解释本实验两个 pass，一次比较逆渲染与 SH 转移。要能说明材质光照歧义，以及动态法线／可见性更新。</span></p><p><span data-copy="en">Reproducing every recent paper is a much larger project. For this deadline, build evidence: a running core, pixel checks, accurate capability boundaries and a concrete next step.</span><span data-copy="zh" lang="zh-CN" hidden>完整复现所有近期论文是更大的项目。面对截止日期，先建立可验证成果：可运行核心、像素检查、准确能力边界与具体下一步。</span></p></section><section class="milestone"><h2><span data-copy="en">Predict it, then run it</span><span data-copy="zh" lang="zh-CN" hidden>先预测，再运行</span></h2><a class="run-link" href="/relight/lab/?lesson=8"><span data-copy="en">Open this experiment →</span><span data-copy="zh" lang="zh-CN" hidden>打开对应实验 →</span></a></section><section id="source"><h2><span data-copy="en">The formula meets actual code</span><span data-copy="zh" lang="zh-CN" hidden>公式连接真实代码</span></h2><p><span data-copy="en">This excerpt is extracted from the repository during the site build. SH environment lighting and inverse training are future extensions; their chapters point to the current direct-light/data boundary, not an implemented trainer.</span><span data-copy="zh" lang="zh-CN" hidden>此片段在网站构建时从仓库提取。SH 环境光照与逆向训练是未来扩展；对应章节指向当前直射光／数据接口，不代表已实现训练器。</span></p><details class="source-block"><summary>src/relight.rs · L298–397</summary><div class="code-toolbar"><a href="/relight/code/src-relight.rs.html#L298"><span data-copy="en">Full source ↗</span><span data-copy="zh" lang="zh-CN" hidden>完整源码 ↗</span></a><button data-copy-code="actual-code"><span data-copy="en">Copy</span><span data-copy="zh" lang="zh-CN" hidden>复制</span></button></div><pre tabindex="0"><code id="actual-code">    pub fn render(
+        &amp;mut self,
+        device: &amp;wgpu::Device,
+        queue: &amp;wgpu::Queue,
+        encoder: &amp;mut wgpu::CommandEncoder,
+        target: &amp;wgpu::TextureView,
+        size: [u32; 2],
+        frame: RelightFrame,
+    ) -&gt; Result&lt;(), String&gt; {
+        frame.validate()?;
+        if size.contains(&amp;0)
+            || size
+                .iter()
+                .any(|&amp;v| v &gt; device.limits().max_texture_dimension_2d)
+        {
+            return Err(&quot;Invalid relight target size&quot;.into());
+        }
+        if self.hdr.as_ref().is_none_or(|v| v.2 != size) {
+            let texture = device.create_texture(&amp;wgpu::TextureDescriptor {
+                label: Some(&quot;linear-radiance&quot;),
+                size: wgpu::Extent3d {
+                    width: size[0],
+                    height: size[1],
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba16Float,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::TEXTURE_BINDING,
+                view_formats: &amp;[],
+            });
+            let view = texture.create_view(&amp;Default::default());
+            let bind = device.create_bind_group(&amp;wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &amp;self.hdr_layout,
+                entries: &amp;[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&amp;view),
+                }],
+            });
+            self.hdr = Some((view, bind, size));
+        }
+        let view = Mat4::look_at_rh(frame.eye(), Vec3::ZERO, Vec3::Y);
+        let projection = Mat4::perspective_rh(
+            45_f32.to_radians(),
+            size[0] as f32 / size[1] as f32,
+            0.05,
+            50.0,
+        );
+        queue.write_buffer(
+            &amp;self.globals,
+            0,
+            bytemuck::bytes_of(&amp;Globals {
+                vp: (projection * view).to_cols_array_2d(),
+                eye: frame.eye().extend(0.0).to_array(),
+                light: frame.light().extend(frame.intensity).to_array(),
+                material: [frame.roughness, frame.metallic, frame.mode as f32, 0.0],
+                viewport: [
+                    size[0] as f32,
+                    size[1] as f32,
+                    if self.srgb { 1.0 } else { 0.0 },
+                    0.0,
+                ],
+            }),
+        );
+        queue.write_buffer(&amp;self.splats, 0, bytemuck::cast_slice(&amp;scene(frame, view)));
+        let (hdr, texture_binding, _) = self.hdr.as_ref().unwrap();
+        for (view, pipeline, display) in [
+            (hdr, &amp;self.splat_pipeline, false),
+            (target, &amp;self.display_pipeline, true),
+        ] {
+            let mut pass = encoder.begin_render_pass(&amp;wgpu::RenderPassDescriptor {
+                label: Some(&quot;relight-pass&quot;),
+                color_attachments: &amp;[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    resolve_target: None,
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            pass.set_pipeline(pipeline);
+            pass.set_bind_group(0, &amp;self.bindings, &amp;[]);
+            if display {
+                pass.set_bind_group(1, texture_binding, &amp;[]);
+                pass.draw(0..3, 0..1);
+            } else {
+                pass.draw(0..6, 0..COUNT as u32);
+            }
+        }
+        Ok(())
+    }</code></pre></details></section><section class="checkpoint"><h2><span data-copy="en">Check your understanding</span><span data-copy="zh" lang="zh-CN" hidden>检查是否真正理解</span></h2><p><span data-copy="en">What if an imported model has only appearance SH and no materials?</span><span data-copy="zh" lang="zh-CN" hidden>导入模型只有外观 SH，没有材质，该怎么办？</span></p><details><summary><span data-copy="en">Reveal the reasoning</span><span data-copy="zh" lang="zh-CN" hidden>展开推理</span></summary><p><span data-copy="en">Use its original appearance renderer and declare relighting unavailable, or run an explicitly identified offline estimation/transfer pipeline. Arbitrary RGB multiplication is not recovered physical relighting.</span><span data-copy="zh" lang="zh-CN" hidden>使用原外观渲染并声明不可重打光，或运行明确的离线估计／转移管线。随意乘 RGB 不等于恢复了物理重打光。</span></p></details></section><nav class="next-post"><a class="" href="/relight/07-moving-normals/"><span data-copy="en">← Previous</span><span data-copy="zh" lang="zh-CN" hidden>← 上一篇</span></a><a class="" href="/relight/#research"><span data-copy="en">Explore the research →</span><span data-copy="zh" lang="zh-CN" hidden>探索研究 →</span></a></nav></article><footer><span data-copy="en">Known inputs. Predictable pixels. Then learn the unknowns.</span><span data-copy="zh" lang="zh-CN" hidden>先用已知输入验证像素，再学习未知参数。</span></footer></main></div><noscript><p>English articles and source remain readable. Enable JavaScript for language switching and the GPU lab.</p></noscript></body></html>

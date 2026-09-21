@@ -35,6 +35,20 @@ npm run qa:build
 
 The native hidden-window smoke presents all eight stages and exits. Pixel checks write PNGs and a JSON report to `artifacts/workshop/`; these are correctness evidence, not frame-rate benchmarks. Windows/D3D12 and browser/WebGPU are the current validation targets. macOS/Metal and Linux/Vulkan require runtime checks on those platforms; CUDA is not implemented.
 
+## Relighting: light, materials and motion
+
+The [relighting extension](https://4dgaussian.pajama.studio/relight/) adds eight bilingual lessons, a 2024–2026 research map and an [interactive GPU lab](https://4dgaussian.pajama.studio/relight/lab/). It covers Lambert/GGX, linear HDR compositing, lighting SH, inverse-rendering ambiguity and inverse-transpose normals under deformation.
+
+[src/relight.rs](src/relight.rs) and [src/relight.wgsl](src/relight.wgsl) implement a forward, known-material renderer on 1,536 synthetic Gaussian surfels. It shares the browser host and runs headlessly on native wgpu. This is separate from the pretrained STG fixture, which has no verified PBR materials; it is not a reproduction of the linked research training pipelines.
+
+~~~sh
+cargo run --locked --example relight_pixels
+cargo run --locked --example relight_pixels -- --srgb
+npm run qa:relight
+~~~
+
+See [implementation, validation and remaining milestones](docs/preparation/relighting.md).
+
 ## Run
 
 ```sh

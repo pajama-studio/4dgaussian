@@ -8,6 +8,7 @@
   "请复制已选中的 LaTeX": "Copy the selected LaTeX",
   "Zero to Hero · 12 lessons · 从零到实战 →": "Zero to Hero · 12 lessons · Start the guided course →",
   "构建跨平台 Viewer · 12 篇工程博客 + 8 个 GPU 实验 →": "Build a cross-platform viewer · 12 engineering chapters + 8 GPU milestones →",
+  "Gaussian Relighting · 光照、材质与动态形变 →": "Gaussian Relighting · light, materials and deformation →",
   "quad 外：不产生片元": "outside the quad: no fragment",
   "alpha 低于阈值：丢弃": "alpha below threshold: discarded",
   "alpha 上限生效": "alpha cap active",

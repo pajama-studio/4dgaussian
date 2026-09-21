@@ -211,7 +211,7 @@
   "sources": [
     {
       "file": "src/workshop_surface.rs",
-      "sha256": "cfe9ed5c9af3f01ef7f0e98c03e50baf7583ff3bcfaef5cf0f512af7acfac445",
+      "sha256": "275388cd41873a985eee363c7a99393cb74ef417a302698c13a031a174238e6b",
       "slug": "src-workshop_surface.rs"
     },
     {
@@ -231,12 +231,12 @@
     },
     {
       "file": "public/build/lab.mjs",
-      "sha256": "6e609ac774de8d403cb0017157e17b039fc09e5c8ae0686bad73eaebc6a725a4",
+      "sha256": "e6899e195269d3b67da03627d0097630fcce015ac8e3f364a12b373f33b35ff0",
       "slug": "public-build-lab.mjs"
     },
     {
       "file": "src/workshop_web.rs",
-      "sha256": "9aeff6f7397846488549c2e918f13db5b7d9cf99d8dff7a1ba5e1df62fb844ae",
+      "sha256": "aab2a7d00635978d5e24c06cdf6557505e196a47a64ffbe8c3d138492f252c80",
       "slug": "src-workshop_web.rs"
     },
     {
@@ -251,7 +251,7 @@
     },
     {
       "file": "src/lib.rs",
-      "sha256": "b885b040e78b85f2e7fdb39ecdbc472ad474e03a242876517f32d65b43a56b11",
+      "sha256": "10178fc2a837f54c1450e34802ec644e140647a2e11da1ed4924688adcbe395b",
       "slug": "src-lib.rs"
     },
     {

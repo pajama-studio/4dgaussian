@@ -14,7 +14,7 @@ function setLanguage(next) {
   for (const anchor of document.querySelectorAll('a[href]')) {
     if (anchor.getAttribute('href').startsWith('#')) continue;
     const url = new URL(anchor.href, location.href);
-    if (url.origin === location.origin && /^\/(build|learn|math)\//.test(url.pathname)) { url.searchParams.set('lang', next); anchor.href = url.pathname + url.search + url.hash; }
+    if (url.origin === location.origin && /^\/(build|learn|math|relight)\//.test(url.pathname)) { url.searchParams.set('lang', next); anchor.href = url.pathname + url.search + url.hash; }
   }
   const url = new URL(location.href); url.searchParams.set('lang', next); history.replaceState(null, '', url);
   try { localStorage.setItem(languageKey, next); } catch {}

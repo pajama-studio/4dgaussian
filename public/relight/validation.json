@@ -1,0 +1,151 @@
+{
+  "adapter": "NVIDIA GeForce RTX 4090",
+  "backend": "Dx12",
+  "cases": [
+    {
+      "center_rgba": [
+        145,
+        88,
+        58,
+        255
+      ],
+      "colored_pixels": 49073,
+      "name": "combined"
+    },
+    {
+      "center_rgba": [
+        126,
+        72,
+        43,
+        255
+      ],
+      "colored_pixels": 48146,
+      "name": "light-right"
+    },
+    {
+      "center_rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "colored_pixels": 37558,
+      "name": "dark"
+    },
+    {
+      "center_rgba": [
+        143,
+        84,
+        49,
+        255
+      ],
+      "colored_pixels": 49073,
+      "name": "diffuse"
+    },
+    {
+      "center_rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "colored_pixels": 37558,
+      "name": "metal-diffuse"
+    },
+    {
+      "center_rgba": [
+        29,
+        29,
+        29,
+        255
+      ],
+      "colored_pixels": 46180,
+      "name": "specular"
+    },
+    {
+      "center_rgba": [
+        28,
+        28,
+        28,
+        255
+      ],
+      "colored_pixels": 48811,
+      "name": "rough-specular"
+    },
+    {
+      "center_rgba": [
+        195,
+        104,
+        60,
+        255
+      ],
+      "colored_pixels": 49152,
+      "name": "albedo"
+    },
+    {
+      "center_rgba": [
+        195,
+        104,
+        60,
+        255
+      ],
+      "colored_pixels": 49152,
+      "name": "albedo-dark"
+    },
+    {
+      "center_rgba": [
+        146,
+        90,
+        60,
+        255
+      ],
+      "colored_pixels": 48670,
+      "name": "deform"
+    },
+    {
+      "center_rgba": [
+        145,
+        88,
+        57,
+        255
+      ],
+      "colored_pixels": 49152,
+      "name": "bad-normals"
+    },
+    {
+      "center_rgba": [
+        99,
+        54,
+        31,
+        255
+      ],
+      "colored_pixels": 46724,
+      "name": "orbit"
+    },
+    {
+      "center_rgba": [
+        187,
+        194,
+        254,
+        255
+      ],
+      "colored_pixels": 49152,
+      "name": "normals"
+    }
+  ],
+  "claims": [
+    "light changes radiance",
+    "roughness changes highlight",
+    "albedo independent of light",
+    "metal diffuse zero",
+    "normal transform changes shading",
+    "camera changes pixels"
+  ],
+  "note": "Native offscreen checks; not all-platform certification or paper reproduction.",
+  "passed": true,
+  "resolution": [
+    256,
+    192
+  ],
+  "schema": "pajama.relight.pixel-check.v1"
+}

@@ -9,6 +9,7 @@ pub struct WorkshopSurface {
     config: wgpu::SurfaceConfiguration,
     pub pass: WorkshopPass,
     pub adapter_label: String,
+    relight: Option<crate::relight::RelightPass>,
 }
 
 impl WorkshopSurface {
@@ -62,6 +63,7 @@ impl WorkshopSurface {
             config,
             pass,
             adapter_label,
+            relight: None,
         };
         renderer.resize(width.max(1), height.max(1));
         Ok(renderer)
@@ -125,4 +127,38 @@ impl WorkshopSurface {
         Ok(Some(count))
     }
     // END: frame
+
+    pub fn render_relight(&mut self, input: crate::relight::RelightFrame) -> Result<bool, String> {
+        input.validate()?;
+        let frame = match self.surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(frame)
+            | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+            wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost => {
+                self.surface.configure(&self.device, &self.config);
+                return Ok(false);
+            }
+            wgpu::CurrentSurfaceTexture::Timeout | wgpu::CurrentSurfaceTexture::Occluded => {
+                return Ok(false)
+            }
+            wgpu::CurrentSurfaceTexture::Validation => {
+                return Err("Relight surface validation failed; reload the lab".into())
+            }
+        };
+        let renderer = self.relight.get_or_insert_with(|| {
+            crate::relight::RelightPass::new(&self.device, self.config.format)
+        });
+        let target = frame.texture.create_view(&Default::default());
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        renderer.render(
+            &self.device,
+            &self.queue,
+            &mut encoder,
+            &target,
+            [self.config.width, self.config.height],
+            input,
+        )?;
+        self.queue.submit([encoder.finish()]);
+        self.queue.present(frame);
+        Ok(true)
+    }
 }

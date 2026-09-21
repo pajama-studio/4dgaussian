@@ -1,0 +1,249 @@
+{
+  "reviewed": "2026-09-21",
+  "chapters": [
+    {
+      "id": "01-light-and-color",
+      "title": {
+        "en": "A color is not a material",
+        "zh": "颜色不等于材质"
+      }
+    },
+    {
+      "id": "02-count-the-light",
+      "title": {
+        "en": "Count the light, one direction at a time",
+        "zh": "把每个方向的光加起来"
+      }
+    },
+    {
+      "id": "03-a-moving-highlight",
+      "title": {
+        "en": "Build a moving highlight",
+        "zh": "做出会移动的高光"
+      }
+    },
+    {
+      "id": "04-shading-to-splats",
+      "title": {
+        "en": "Send light through the splat pipeline",
+        "zh": "让反射光走完 splat 管线"
+      }
+    },
+    {
+      "id": "05-sh-lighting",
+      "title": {
+        "en": "Use SH for light, not just appearance",
+        "zh": "SH 不只表达外观，也能表达光照"
+      }
+    },
+    {
+      "id": "06-learn-the-material",
+      "title": {
+        "en": "Learn materials without learning the wrong thing",
+        "zh": "怎样学习材质，避免把光学错"
+      }
+    },
+    {
+      "id": "07-moving-normals",
+      "title": {
+        "en": "Add time without breaking the light",
+        "zh": "加入时间，别让光照出错"
+      }
+    },
+    {
+      "id": "08-engine-roadmap",
+      "title": {
+        "en": "Bring relighting into the engine",
+        "zh": "把重打光接进引擎"
+      }
+    }
+  ],
+  "papers": [
+    {
+      "name": "GS-IR · CVPR 2024",
+      "url": "https://github.com/lzhnb/GS-IR",
+      "kind": {
+        "en": "Static inverse rendering",
+        "zh": "静态逆渲染"
+      },
+      "summary": {
+        "en": "Geometry reconstruction, occlusion baking, then material/lighting estimation. A staged training baseline.",
+        "zh": "几何重建、遮挡烘焙，再估计材质／光照，适合学习分阶段训练。"
+      },
+      "status": {
+        "en": "Official code available",
+        "zh": "官方代码已发布"
+      }
+    },
+    {
+      "name": "Relightable 3D Gaussian · ECCV 2024",
+      "url": "https://github.com/NJU-3DV/Relightable3DGaussian",
+      "kind": {
+        "en": "Materials + visibility",
+        "zh": "材质与可见性"
+      },
+      "summary": {
+        "en": "Material/lighting decomposition and ray-based visibility in Gaussian reconstruction.",
+        "zh": "在 Gaussian 重建中进行材质／光照分解，并用光线处理可见性。"
+      },
+      "status": {
+        "en": "Official code available",
+        "zh": "官方代码已发布"
+      }
+    },
+    {
+      "name": "GS-ID · ICCV 2025",
+      "url": "https://github.com/dukang/gs-id",
+      "kind": {
+        "en": "Illumination decomposition",
+        "zh": "光照分解"
+      },
+      "summary": {
+        "en": "Material priors plus environment/local illumination modeling: lighting need not be distant.",
+        "zh": "材质先验结合环境／局部光照建模，光照不一定来自无限远。"
+      },
+      "status": {
+        "en": "Code release pending per repository; README/assets observed",
+        "zh": "仓库说明代码待发布，目前核对到 README／素材"
+      }
+    },
+    {
+      "name": "BEAM · ACM MM 2025",
+      "url": "https://arxiv.org/abs/2502.08297",
+      "kind": {
+        "en": "Volumetric video",
+        "zh": "体积视频"
+      },
+      "summary": {
+        "en": "Tracked Gaussians with PBR attributes, material estimation and visibility for dynamic relighting.",
+        "zh": "将跟踪 Gaussian 与 PBR 属性结合，包含动态重打光的材质估计与可见性。"
+      },
+      "status": {
+        "en": "Paper verified; runnable official release not verified here",
+        "zh": "已核对论文；本站未核实可运行官方发布"
+      }
+    },
+    {
+      "name": "BecomingLit · NeurIPS 2025",
+      "url": "https://github.com/jonathsch/becominglit",
+      "kind": {
+        "en": "Head avatars",
+        "zh": "头部 Avatar"
+      },
+      "summary": {
+        "en": "Hybrid neural shading with FLAME and light-stage capture. Specialized data/model assumptions matter.",
+        "zh": "结合 FLAME 与 light-stage 采集的混合神经着色，需注意其专门的数据／模型假设。"
+      },
+      "status": {
+        "en": "Official code; separate model/data access requirements",
+        "zh": "官方代码已发布；模型／数据另有访问要求"
+      }
+    },
+    {
+      "name": "TranSplat · ICCP 2026",
+      "url": "https://github.com/tonyyu0822/TranSplat",
+      "kind": {
+        "en": "SH radiance transfer",
+        "zh": "SH 辐亮度转移"
+      },
+      "summary": {
+        "en": "Transfers trained 2D Gaussian surfels using source/target HDR lighting and normal-dependent irradiance ratios, with separate specular treatment.",
+        "zh": "利用源／目标 HDR 光照与随法线变化的辐照度比率，转移已训练 2D Gaussian surfel，并单独处理镜面反射。"
+      },
+      "status": {
+        "en": "Official code released July 2026",
+        "zh": "官方代码于 2026 年 7 月发布"
+      }
+    },
+    {
+      "name": "DR-GS · ECCV 2026",
+      "url": "https://jiaxinlia.github.io/DR-GS/",
+      "kind": {
+        "en": "Deformable assets",
+        "zh": "可形变资产"
+      },
+      "summary": {
+        "en": "Decoupled materials/light on 2D Gaussians, driven by simulation/animation deformation; distinct from learning arbitrary video motion.",
+        "zh": "在 2D Gaussians 上分离材质／光照，再由模拟／动画驱动形变，不等于从视频学习任意运动。"
+      },
+      "status": {
+        "en": "Paper/project available; no code link observed on project page",
+        "zh": "论文／项目页可用；项目页未见代码链接"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "file": "src/relight.rs",
+      "slug": "src-relight.rs",
+      "sha256": "10f6ebaa56e373c27cc887e8d5dba2b9b7f11c4812d214ac66e1a82508a72134"
+    },
+    {
+      "file": "src/relight.wgsl",
+      "slug": "src-relight.wgsl",
+      "sha256": "e72308d6e130be38d8f1f193e44f331f50519cda46772641d891a1ff6a2f07a4"
+    },
+    {
+      "file": "src/workshop_surface.rs",
+      "slug": "src-workshop_surface.rs",
+      "sha256": "275388cd41873a985eee363c7a99393cb74ef417a302698c13a031a174238e6b"
+    },
+    {
+      "file": "src/workshop_web.rs",
+      "slug": "src-workshop_web.rs",
+      "sha256": "aab2a7d00635978d5e24c06cdf6557505e196a47a64ffbe8c3d138492f252c80"
+    },
+    {
+      "file": "examples/relight_pixels.rs",
+      "slug": "examples-relight_pixels.rs",
+      "sha256": "011b7cbed49c16edb370f937909880271d014045ef003e89055527f0608761c8"
+    },
+    {
+      "file": "public/relight/lab.mjs",
+      "slug": "public-relight-lab.mjs",
+      "sha256": "f7529d2068d48b881916a3355f457c81a9125992c97f6b36accf996a23f31d8e"
+    }
+  ],
+  "sourceLinks": {
+    "01-light-and-color": {
+      "file": "src/relight.rs",
+      "start": 19,
+      "end": 28
+    },
+    "02-count-the-light": {
+      "file": "src/relight.wgsl",
+      "start": 24,
+      "end": 54
+    },
+    "03-a-moving-highlight": {
+      "file": "src/relight.wgsl",
+      "start": 24,
+      "end": 54
+    },
+    "04-shading-to-splats": {
+      "file": "src/relight.rs",
+      "start": 298,
+      "end": 397
+    },
+    "05-sh-lighting": {
+      "file": "src/relight.wgsl",
+      "start": 24,
+      "end": 54
+    },
+    "06-learn-the-material": {
+      "file": "src/relight.rs",
+      "start": 19,
+      "end": 28
+    },
+    "07-moving-normals": {
+      "file": "src/relight.rs",
+      "start": 106,
+      "end": 139
+    },
+    "08-engine-roadmap": {
+      "file": "src/relight.rs",
+      "start": 298,
+      "end": 397
+    }
+  }
+}

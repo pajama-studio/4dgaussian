@@ -4,20 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:math": "node scripts/build-math.mjs && node scripts/build-learn.mjs && node scripts/build-workshop.mjs",
+    "build:math": "node scripts/build-math.mjs && node scripts/build-learn.mjs && node scripts/build-workshop.mjs && node scripts/build-relight.mjs",
     "qa:build": "node --check public/build/blog.mjs && node --check public/build/lab.mjs && node scripts/check-workshop.mjs",
     "qa:learn": "node --check public/learn/course.mjs && node --check public/learn/labs.mjs && node scripts/check-learn.mjs",
     "qa:math": "node --check public/math/math.js && node --check public/math/trace-ui.mjs && node --check public/math/i18n.mjs && node --check public/math/sh-ui.mjs && node --check public/math/training-ui.mjs && node scripts/check-math.mjs && node scripts/check-math-trace.mjs && node scripts/check-math-sh.mjs && node scripts/check-math-training.mjs && node scripts/check-math-i18n.mjs",
     "build:wasm": "wasm-pack build --target web --release --out-dir public/pkg",
     "qa:inspector": "node --check public/inspector.mjs && node --check public/inspector-data.mjs && node --check public/inspector-viz.mjs && node scripts/check-inspector.mjs",
-    "check": "npm run build:math && npm run qa:math && npm run qa:learn && npm run qa:build && npm run qa:inspector && cargo test && cargo check --examples && cargo check --target wasm32-unknown-unknown && npm run build:wasm && node scripts/check.mjs",
+    "check": "npm run build:math && npm run qa:math && npm run qa:learn && npm run qa:build && npm run qa:relight && npm run qa:inspector && cargo test && cargo check --examples && cargo check --target wasm32-unknown-unknown && npm run build:wasm && node scripts/check.mjs",
     "profile": "node scripts/profile.mjs",
     "qa": "node scripts/qa.mjs",
     "qa:docs": "node scripts/docs-qa.mjs",
     "capture:fidelity": "node scripts/capture-fidelity.mjs",
     "remote-zip": "node scripts/remote-zip.mjs",
     "dev": "npm run build:math && npm run build:wasm && wrangler dev --config wrangler.jsonc",
-    "deploy": "npm run check && wrangler deploy --config wrangler.jsonc"
+    "deploy": "npm run check && wrangler deploy --config wrangler.jsonc",
+    "qa:relight": "node --check public/relight/site.mjs && node --check public/relight/lab.mjs && node scripts/check-relight.mjs"
   },
   "devDependencies": {
     "katex": "0.18.7",

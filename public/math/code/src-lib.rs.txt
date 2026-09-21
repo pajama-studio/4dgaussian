@@ -1,6 +1,7 @@
 #![cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 
 mod inspection;
+pub mod relight;
 pub mod stg_pass;
 pub mod workshop;
 pub mod workshop_surface;

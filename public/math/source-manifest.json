@@ -8,7 +8,7 @@
     },
     {
       "path": "src/lib.rs",
-      "sha256": "b885b040e78b85f2e7fdb39ecdbc472ad474e03a242876517f32d65b43a56b11",
+      "sha256": "10178fc2a837f54c1450e34802ec644e140647a2e11da1ed4924688adcbe395b",
       "href": "code/src-lib.rs.txt"
     },
     {
@@ -111,17 +111,17 @@
     },
     "cpu-sample": {
       "path": "src/lib.rs",
-      "first": 82,
-      "last": 90,
-      "sha256": "b885b040e78b85f2e7fdb39ecdbc472ad474e03a242876517f32d65b43a56b11",
-      "href": "/math/code/src-lib.rs.html#L82"
+      "first": 83,
+      "last": 91,
+      "sha256": "10178fc2a837f54c1450e34802ec644e140647a2e11da1ed4924688adcbe395b",
+      "href": "/math/code/src-lib.rs.html#L83"
     },
     "browser-time": {
       "path": "src/lib.rs",
-      "first": 457,
-      "last": 459,
-      "sha256": "b885b040e78b85f2e7fdb39ecdbc472ad474e03a242876517f32d65b43a56b11",
-      "href": "/math/code/src-lib.rs.html#L457"
+      "first": 458,
+      "last": 460,
+      "sha256": "10178fc2a837f54c1450e34802ec644e140647a2e11da1ed4924688adcbe395b",
+      "href": "/math/code/src-lib.rs.html#L458"
     },
     "host-camera": {
       "path": "src/stg_pass.rs",
