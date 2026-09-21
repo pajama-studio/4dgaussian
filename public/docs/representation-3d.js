@@ -1,4 +1,4 @@
-import initWasm, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=inspector-1";
+import initWasm, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=workshop-1";
 
 const DATA_URL = "/data/n3d-sear-steak-stg-lite.ply.gz";
 const TARGET = [0, 3.5, 14];
@@ -423,7 +423,7 @@ export async function mountRepresentation3D() {
   if (navigator.gpu) {
     try {
       setStatus("Building the WebGPU Gaussian scene…");
-      await initWasm({ module_or_path: "/pkg/pajama_gaussian_lab_bg.wasm?v=inspector-1" });
+      await initWasm({ module_or_path: "/pkg/pajama_gaussian_lab_bg.wasm?v=workshop-1" });
       gaussianRenderer = await GaussianRenderer.create(gaussianCanvas, bytes);
     } catch (error) {
       console.warn("Gaussian lab WebGPU path unavailable", error);

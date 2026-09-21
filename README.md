@@ -19,6 +19,22 @@ Long-form technical material lives at `/docs/` instead of competing with the pla
 
 The bilingual [Gaussian inspector](https://4dgaussian.pajama.studio/?inspect=1#workbench) places a selected primitive beside the live scene. Click a pixel or enter a PLY row ID, inspect all 32 stored fields, track the same ID over time, rotate its magnified ellipsoid and SH plots, and export its record and evaluated state as JSON. Picking ranks CPU-evaluated `T × alpha` contributions in the current renderer's depth order, with the same projected footprint and clipping rules; it is not a GPU ID buffer. The source fixture stores direct RGB, so actual mode displays **derived equivalent DC**, while higher-degree SH edits are **synthetic teaching values** that do not modify the scene. See [the inspector implementation guide](docs/preparation/gaussian-inspector.md).
 
+## Build a viewer, from zero
+
+The bilingual [engineering series](https://4dgaussian.pajama.studio/build/) pairs 12 chapters with [8 live GPU milestones](https://4dgaussian.pajama.studio/build/lab/): clear, triangle, storage-backed quad, Gaussian falloff, alpha ordering, projected 3D covariance, time, and the real STG-Lite fixture.
+
+`src/workshop.rs` and `src/workshop.wgsl` contain the teaching pass. `src/workshop_surface.rs` shares presentation between the WASM host and `examples/workshop.rs` (winit). The existing `StgPass` remains the surface-independent engine integration boundary. Chapters link exact source snapshots and include commands, expected images and debugging exercises.
+
+```sh
+cargo run --locked --example workshop -- 0
+# Native controls: 0–7 stage, arrows orbit, Space pause, Home reset, Escape exit.
+cargo run --locked --example workshop_pixels
+cargo run --locked --example workshop -- --smoke
+npm run qa:build
+```
+
+The native hidden-window smoke presents all eight stages and exits. Pixel checks write PNGs and a JSON report to `artifacts/workshop/`; these are correctness evidence, not frame-rate benchmarks. Windows/D3D12 and browser/WebGPU are the current validation targets. macOS/Metal and Linux/Vulkan require runtime checks on those platforms; CUDA is not implemented.
+
 ## Run
 
 ```sh

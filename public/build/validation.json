@@ -1,0 +1,143 @@
+{
+  "adapter": "NVIDIA GeForce RTX 4090",
+  "backend": "Dx12",
+  "cases": [
+    {
+      "center_rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "colored_pixels": 0,
+      "instances": 0,
+      "name": "stage-0"
+    },
+    {
+      "center_rgba": [
+        68,
+        70,
+        117,
+        255
+      ],
+      "colored_pixels": 11258,
+      "instances": 1,
+      "name": "stage-1"
+    },
+    {
+      "center_rgba": [
+        255,
+        115,
+        20,
+        255
+      ],
+      "colored_pixels": 22080,
+      "instances": 1,
+      "name": "stage-2"
+    },
+    {
+      "center_rgba": [
+        204,
+        92,
+        16,
+        255
+      ],
+      "colored_pixels": 15504,
+      "instances": 1,
+      "name": "stage-3"
+    },
+    {
+      "center_rgba": [
+        127,
+        16,
+        64,
+        255
+      ],
+      "colored_pixels": 13708,
+      "instances": 2,
+      "name": "stage-4"
+    },
+    {
+      "center_rgba": [
+        121,
+        16,
+        66,
+        255
+      ],
+      "colored_pixels": 5528,
+      "instances": 2,
+      "name": "stage-5"
+    },
+    {
+      "center_rgba": [
+        121,
+        16,
+        66,
+        255
+      ],
+      "colored_pixels": 5528,
+      "instances": 2,
+      "name": "stage-6"
+    },
+    {
+      "center_rgba": [
+        64,
+        32,
+        127,
+        255
+      ],
+      "colored_pixels": 13708,
+      "instances": 2,
+      "name": "reverse"
+    },
+    {
+      "center_rgba": [
+        57,
+        5,
+        23,
+        255
+      ],
+      "colored_pixels": 5163,
+      "instances": 2,
+      "name": "orbit"
+    },
+    {
+      "center_rgba": [
+        3,
+        0,
+        2,
+        255
+      ],
+      "colored_pixels": 6519,
+      "instances": 2,
+      "name": "time-early"
+    },
+    {
+      "center_rgba": [
+        4,
+        0,
+        0,
+        255
+      ],
+      "colored_pixels": 6519,
+      "instances": 2,
+      "name": "time-late"
+    }
+  ],
+  "claims": [
+    "clear",
+    "triangle coverage",
+    "storage RGB",
+    "Gaussian falloff",
+    "premultiplied alpha order",
+    "camera changes pixels",
+    "time changes pixels"
+  ],
+  "note": "Offscreen correctness checks, not a throughput benchmark or all-platform validation.",
+  "passed": true,
+  "resolution": [
+    256,
+    192
+  ],
+  "schema": "pajama.workshop.pixel-check.v1"
+}

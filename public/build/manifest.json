@@ -1,0 +1,283 @@
+{
+  "version": 1,
+  "posts": [
+    {
+      "id": "01-start-with-a-pixel",
+      "title": {
+        "en": "Start with your first pixel",
+        "zh": "从一个像素开始搭建"
+      },
+      "phase": 0,
+      "stage": 0
+    },
+    {
+      "id": "02-window-to-gpu",
+      "title": {
+        "en": "Connect a window to the GPU",
+        "zh": "把窗口连接到 GPU"
+      },
+      "phase": 0,
+      "stage": 0
+    },
+    {
+      "id": "03-your-first-triangle",
+      "title": {
+        "en": "Teach the GPU to draw a triangle",
+        "zh": "教 GPU 画出第一个三角形"
+      },
+      "phase": 0,
+      "stage": 1
+    },
+    {
+      "id": "04-numbers-into-gpu-memory",
+      "title": {
+        "en": "Move numbers from Rust into GPU memory",
+        "zh": "把 Rust 中的数字送进 GPU 内存"
+      },
+      "phase": 1,
+      "stage": 2
+    },
+    {
+      "id": "05-soft-splats-and-alpha",
+      "title": {
+        "en": "Turn a rectangle into a soft splat",
+        "zh": "把矩形变成柔软的 Gaussian"
+      },
+      "phase": 1,
+      "stage": 4
+    },
+    {
+      "id": "06-camera-and-ellipses",
+      "title": {
+        "en": "Give the splat a camera and a 3D shape",
+        "zh": "为 splat 加上相机与三维形状"
+      },
+      "phase": 1,
+      "stage": 5
+    },
+    {
+      "id": "07-load-a-real-model",
+      "title": {
+        "en": "Load a real model without guessing its meaning",
+        "zh": "明确数据含义，再加载真实模型"
+      },
+      "phase": 2,
+      "stage": 7
+    },
+    {
+      "id": "08-make-time-explicit",
+      "title": {
+        "en": "Make time an explicit rendering input",
+        "zh": "让时间成为输入"
+      },
+      "phase": 2,
+      "stage": 6
+    },
+    {
+      "id": "09-training-to-runtime",
+      "title": {
+        "en": "Trace one learned number all the way to a pixel",
+        "zh": "追踪一个学到的参数，直到最终像素"
+      },
+      "phase": 2,
+      "stage": 7
+    },
+    {
+      "id": "10-cross-platform-engine-pass",
+      "title": {
+        "en": "Integrate one pass into two hosts—and your engine",
+        "zh": "让同一个 pass 接入两个宿主和自研引擎"
+      },
+      "phase": 3,
+      "stage": 7
+    },
+    {
+      "id": "11-profile-and-compute",
+      "title": {
+        "en": "Measure first, then design a compute rasterizer",
+        "zh": "先测量，再设计 compute 光栅器"
+      },
+      "phase": 3,
+      "stage": 7
+    },
+    {
+      "id": "12-prove-and-ship",
+      "title": {
+        "en": "Prove it works, then ship and explain it",
+        "zh": "验证、交付，并把它讲明白"
+      },
+      "phase": 3,
+      "stage": 7
+    }
+  ],
+  "milestones": [
+    {
+      "title": {
+        "en": "Clear",
+        "zh": "清屏"
+      },
+      "expected": {
+        "en": "A black canvas with a rising presented-frame count; zero draws.",
+        "zh": "黑色画布，显示帧数增长，绘制数为零。"
+      },
+      "post": "01-start-with-a-pixel",
+      "source": "src/workshop_surface.rs"
+    },
+    {
+      "title": {
+        "en": "Triangle",
+        "zh": "三角形"
+      },
+      "expected": {
+        "en": "Three colored corners. The rasterizer interpolates RGB between them.",
+        "zh": "三个角颜色不同，光栅器在它们之间插值 RGB。"
+      },
+      "post": "03-your-first-triangle",
+      "source": "src/workshop.wgsl"
+    },
+    {
+      "title": {
+        "en": "Solid quad",
+        "zh": "实心矩形"
+      },
+      "expected": {
+        "en": "Two triangles form an opaque orange quad. Color comes from a Rust storage record.",
+        "zh": "两个三角形拼成不透明橙色 quad，颜色来自 Rust storage 记录。"
+      },
+      "post": "04-numbers-into-gpu-memory",
+      "source": "src/workshop.rs"
+    },
+    {
+      "title": {
+        "en": "One Gaussian",
+        "zh": "一个 Gaussian"
+      },
+      "expected": {
+        "en": "The same quad has a soft footprint because each fragment evaluates exp(−r²/2).",
+        "zh": "同一个 quad 变成柔软的光斑，因为每个片元计算 exp(−r²/2)。"
+      },
+      "post": "05-soft-splats-and-alpha",
+      "source": "src/workshop.wgsl"
+    },
+    {
+      "title": {
+        "en": "Alpha and ordering",
+        "zh": "透明度与排序"
+      },
+      "expected": {
+        "en": "Far blue then near red. Reverse draw order to see that alpha composition is not commutative.",
+        "zh": "先远蓝、后近红；反转绘制顺序，观察 alpha 合成不满足交换律。"
+      },
+      "post": "05-soft-splats-and-alpha",
+      "source": "src/workshop.wgsl"
+    },
+    {
+      "title": {
+        "en": "3D camera",
+        "zh": "三维相机"
+      },
+      "expected": {
+        "en": "Orbit the anisotropic Gaussians. Projected covariance changes their screen-space ellipses.",
+        "zh": "绕转各向异性 Gaussian，投影协方差改变屏幕椭圆。"
+      },
+      "post": "06-camera-and-ellipses",
+      "source": "src/workshop.wgsl"
+    },
+    {
+      "title": {
+        "en": "Time and motion",
+        "zh": "时间与运动"
+      },
+      "expected": {
+        "en": "Scrub time, pause, then orbit. Motion and temporal opacity are evaluated before projection and sorting.",
+        "zh": "拖动时间、暂停，再绕转。运动和时间透明度在投影排序前求值。"
+      },
+      "post": "08-make-time-explicit",
+      "source": "src/workshop.rs"
+    },
+    {
+      "title": {
+        "en": "Real STG-Lite model",
+        "zh": "真实 STG-Lite 模型"
+      },
+      "expected": {
+        "en": "Load the pretrained research fixture, then scrub time and orbit through the shared StgPass.",
+        "zh": "加载预训练研究数据，通过共享 StgPass 拖动时间并绕转。"
+      },
+      "post": "07-load-a-real-model",
+      "source": "src/stg_pass.rs"
+    }
+  ],
+  "sources": [
+    {
+      "file": "src/workshop_surface.rs",
+      "sha256": "cfe9ed5c9af3f01ef7f0e98c03e50baf7583ff3bcfaef5cf0f512af7acfac445",
+      "slug": "src-workshop_surface.rs"
+    },
+    {
+      "file": "examples/workshop.rs",
+      "sha256": "1eedcbedb04348fddcbb7ac22f2f399fef9c9230a34bf8866043424cdc5b34cd",
+      "slug": "examples-workshop.rs"
+    },
+    {
+      "file": "src/workshop.wgsl",
+      "sha256": "6c8c140e517ce590936bd6318ab7d3fdb4bcf18c345385d32e96fa9f99b96874",
+      "slug": "src-workshop.wgsl"
+    },
+    {
+      "file": "src/workshop.rs",
+      "sha256": "55fc3ee9dcc6c14b03855b6d77e2fe30cb09cb9a29c79e6ea0809f11b91e0a7e",
+      "slug": "src-workshop.rs"
+    },
+    {
+      "file": "public/build/lab.mjs",
+      "sha256": "6e609ac774de8d403cb0017157e17b039fc09e5c8ae0686bad73eaebc6a725a4",
+      "slug": "public-build-lab.mjs"
+    },
+    {
+      "file": "src/workshop_web.rs",
+      "sha256": "9aeff6f7397846488549c2e918f13db5b7d9cf99d8dff7a1ba5e1df62fb844ae",
+      "slug": "src-workshop_web.rs"
+    },
+    {
+      "file": "src/stg_pass.rs",
+      "sha256": "868f3acd53e14e867a65e81ab5e575d4eb65bfad7a9c2c8b72eb14a6abab7a6f",
+      "slug": "src-stg_pass.rs"
+    },
+    {
+      "file": "src/splat.wgsl",
+      "sha256": "0149c74ad549cbc8f716433656055e5ec0b2af705d57478775df0182ee1e8034",
+      "slug": "src-splat.wgsl"
+    },
+    {
+      "file": "src/lib.rs",
+      "sha256": "b885b040e78b85f2e7fdb39ecdbc472ad474e03a242876517f32d65b43a56b11",
+      "slug": "src-lib.rs"
+    },
+    {
+      "file": "examples/mini_compute.rs",
+      "sha256": "bcc964e25178d03b64d59cf2a76167ce05bf234224914a143eb5e3affbfe6df4",
+      "slug": "examples-mini_compute.rs"
+    },
+    {
+      "file": "examples/mini_splat.wgsl",
+      "sha256": "bde29cece5a96de7e33750d110d7f7c3f5d102d5a41ea9614810d8747ea6c33f",
+      "slug": "examples-mini_splat.wgsl"
+    },
+    {
+      "file": "examples/workshop_pixels.rs",
+      "sha256": "20f859f2d7b43990a009f7c8d686c5170bc82df7ced1a708e7d290bac7a68550",
+      "slug": "examples-workshop_pixels.rs"
+    },
+    {
+      "file": "examples/native_smoke.rs",
+      "sha256": "082ac56a54e32cfefd80b9671f359d65c66133b3bf8535099636a591777a28d7",
+      "slug": "examples-native_smoke.rs"
+    },
+    {
+      "file": "Cargo.toml",
+      "sha256": "bb8dc6adcc84c4b0d1a81355aea6555222a49b4b2b51d07795f5d18fc0ac5d49",
+      "slug": "Cargo.toml"
+    }
+  ]
+}

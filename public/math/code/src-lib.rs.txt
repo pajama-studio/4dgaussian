@@ -2,6 +2,10 @@
 
 mod inspection;
 pub mod stg_pass;
+pub mod workshop;
+pub mod workshop_surface;
+#[cfg(target_arch = "wasm32")]
+mod workshop_web;
 
 use bytemuck::{Pod, Zeroable};
 use glam::{Mat4, Vec3};

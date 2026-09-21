@@ -1,0 +1,65 @@
+//! Thin browser host. JavaScript owns fetch, the clock and input events.
+use crate::{workshop::Frame, workshop_surface::WorkshopSurface};
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub struct WorkshopRenderer {
+    inner: WorkshopSurface,
+}
+
+#[wasm_bindgen]
+impl WorkshopRenderer {
+    // ANCHOR: web-create
+    #[wasm_bindgen(js_name = create)]
+    pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<WorkshopRenderer, JsValue> {
+        console_error_panic_hook::set_once();
+        let width = canvas.width();
+        let height = canvas.height();
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
+        let surface = instance
+            .create_surface(wgpu::SurfaceTarget::Canvas(canvas))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let inner = WorkshopSurface::new(instance, surface, width, height)
+            .await
+            .map_err(|e| JsValue::from_str(&e))?;
+        Ok(Self { inner })
+    }
+    // END: web-create
+
+    pub fn resize(&mut self, width: u32, height: u32) {
+        self.inner.resize(width, height);
+    }
+    pub fn adapter(&self) -> String {
+        self.inner.adapter_label.clone()
+    }
+
+    #[wasm_bindgen(js_name = loadModel)]
+    pub fn load_model(&mut self, bytes: &[u8]) -> Result<(), JsValue> {
+        self.inner
+            .pass
+            .load_model(&self.inner.device, bytes)
+            .map_err(|e| JsValue::from_str(&e))
+    }
+
+    pub fn render(
+        &mut self,
+        stage: u32,
+        time: f32,
+        yaw: f32,
+        pitch: f32,
+        distance: f32,
+        reverse_order: bool,
+    ) -> Result<i32, JsValue> {
+        self.inner
+            .render(Frame {
+                stage,
+                time,
+                yaw,
+                pitch,
+                distance,
+                reverse_order,
+            })
+            .map(|count| count.map_or(-1, |n| n as i32))
+            .map_err(|e| JsValue::from_str(&e))
+    }
+}

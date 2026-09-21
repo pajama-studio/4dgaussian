@@ -89,6 +89,7 @@ const html = '<!doctype html>\n<html lang="zh-CN"><head><meta charset="utf-8"><m
   '<section class="math-hero"><p class="eyebrow"><span class="green-dot"></span> FROM FIRST PRINCIPLES TO RUNNING CODE</p><h1>每一步，<br>都能<span class="hero-accent">算出来。</span></h1><p class="hero-en">4D Gaussian Splatting / Mathematics & Implementation</p>' +
   '<p class="hero-lede">从分数、平方和方程开始，走完一颗 Gaussian 的旅程。<br>读懂它如何随时间移动，变成像素，再从误差中学会改变。</p>' +
   '<p class="course-entry"><a href="/learn/">Zero to Hero · 12 lessons · 从零到实战 →</a></p>' +
+  '<p class="course-entry"><a href="/build/">构建跨平台 Viewer · 12 篇工程博客 + 8 个 GPU 实验 →</a></p>' +
   '<div class="hero-meta"><span>39 组公式，逐条推导</span><span>8 个基础工具</span><span>可运行像素实验</span><span>2026.09.18</span></div>' +
   '<div class="hero-flow"><a href="#foundations"><small>01 / 补基础</small><strong>为什么</strong></a><span>→</span><a href="#gaussian"><small>02 / 逐步推</small><strong>怎么算</strong></a><span>→</span><a href="#pixel-lab"><small>03 / 看数字</small><strong>跑一遍</strong></a><span>→</span><a href="#training"><small>04 / 对源码</small><strong>连起来</strong></a></div>' +
   '<p class="lesson-guide">建议第一次按“基础 → 01–05 → 08 → 像素实验”阅读；06–07 用于比较其他表示。每个公式的“从零推导”可展开，源码链接对应本次部署的文件快照。打印会自动包含完整推导与答案。</p>' + controls + '</section>' +

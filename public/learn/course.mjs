@@ -42,7 +42,7 @@ function setLanguage(next,remember=true){
  document.querySelectorAll('[data-copy]').forEach(el=>el.hidden=el.dataset.copy!==language);
  document.querySelectorAll('[data-language]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.language===language));
  if(remember){try{localStorage.setItem(languageKey,language);}catch{}const url=new URL(location.href);url.searchParams.set('lang',language);history.replaceState(null,'',url);}
- document.querySelectorAll('a[href]').forEach(a=>{const u=new URL(a.href,location.href);if(u.origin===location.origin&&/^\/(learn|math)\//.test(u.pathname)){u.searchParams.set('lang',language);a.href=u.pathname+u.search+u.hash;}});
+ document.querySelectorAll('a[href]').forEach(a=>{const u=new URL(a.href,location.href);if(u.origin===location.origin&&/^\/(learn|math|build)\//.test(u.pathname)){u.searchParams.set('lang',language);a.href=u.pathname+u.search+u.hash;}});
  updateProgress();renderSteps();feedback.forEach((_,index)=>paintFeedback(index));
  document.dispatchEvent(new CustomEvent('learn:language',{detail:language}));
  if(remember&&anchor&&top!==undefined)scrollBy({top:anchor.getBoundingClientRect().top-top,behavior:'instant'});

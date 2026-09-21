@@ -1,4 +1,4 @@
-import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=inspector-1";
+import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=workshop-1";
 import { mountSegmentedVideo } from "/stream-player.js";
 import { mountInspector } from "/inspector.mjs";
 
@@ -336,7 +336,7 @@ wrap.addEventListener("wheel", (event) => {
 
 async function start() {
   if (!navigator.gpu) throw new Error("This browser does not expose WebGPU");
-  await init({module_or_path:"/pkg/pajama_gaussian_lab_bg.wasm?v=inspector-1"});
+  await init({module_or_path:"/pkg/pajama_gaussian_lab_bg.wasm?v=workshop-1"});
   resize();
   const [plyData] = await Promise.all([loadResearchAsset(), loadReferenceCameras()]);
   status.textContent = "Building GPU-resident scene…";
