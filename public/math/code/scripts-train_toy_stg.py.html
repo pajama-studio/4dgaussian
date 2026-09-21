@@ -1,0 +1,134 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>scripts/train_toy_stg.py · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>scripts/train_toy_stg.py</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>e838a776c07d595b58a9860601af4711464b425e83cb3037d33f1051af2b02e2</code></p><p><a href="scripts-train_toy_stg.py.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>&quot;&quot;&quot;Small, synthetic inverse-rendering lesson. NOT the official STG trainer.</span>
+<span id="L2"><a href="#L2" aria-label="Line 2">2</a></span>
+<span id="L3"><a href="#L3" aria-label="Line 3">3</a>Fit mean, linear motion, opacity and RGB to synthetic multiview images using</span>
+<span id="L4"><a href="#L4" aria-label="Line 4">4</a>autograd, export the exact STG-Lite record, then render it with native_smoke.</span>
+<span id="L5"><a href="#L5" aria-label="Line 5">5</a>No SfM, densification, learned rotation, feature decoder or real-world claims.</span>
+<span id="L6"><a href="#L6" aria-label="Line 6">6</a>Requires torch and numpy; uses CUDA when present. No downloaded training data.</span>
+<span id="L7"><a href="#L7" aria-label="Line 7">7</a>&quot;&quot;&quot;</span>
+<span id="L8"><a href="#L8" aria-label="Line 8">8</a>import argparse</span>
+<span id="L9"><a href="#L9" aria-label="Line 9">9</a>import json</span>
+<span id="L10"><a href="#L10" aria-label="Line 10">10</a>import math</span>
+<span id="L11"><a href="#L11" aria-label="Line 11">11</a>from pathlib import Path</span>
+<span id="L12"><a href="#L12" aria-label="Line 12">12</a>import time</span>
+<span id="L13"><a href="#L13" aria-label="Line 13">13</a></span>
+<span id="L14"><a href="#L14" aria-label="Line 14">14</a>import numpy as np</span>
+<span id="L15"><a href="#L15" aria-label="Line 15">15</a>import torch</span>
+<span id="L16"><a href="#L16" aria-label="Line 16">16</a></span>
+<span id="L17"><a href="#L17" aria-label="Line 17">17</a>PROPERTIES = (&quot;x y z trbf_center trbf_scale nx ny nz &quot;</span>
+<span id="L18"><a href="#L18" aria-label="Line 18">18</a>              &quot;motion_0 motion_1 motion_2 motion_3 motion_4 motion_5 motion_6 motion_7 motion_8 &quot;</span>
+<span id="L19"><a href="#L19" aria-label="Line 19">19</a>              &quot;f_dc_0 f_dc_1 f_dc_2 opacity scale_0 scale_1 scale_2 &quot;</span>
+<span id="L20"><a href="#L20" aria-label="Line 20">20</a>              &quot;rot_0 rot_1 rot_2 rot_3 omega_0 omega_1 omega_2 omega_3&quot;).split()</span>
+<span id="L21"><a href="#L21" aria-label="Line 21">21</a></span>
+<span id="L22"><a href="#L22" aria-label="Line 22">22</a></span>
+<span id="L23"><a href="#L23" aria-label="Line 23">23</a>def render(mean, motion, rgb_logits, opacity_logits, times, cameras, width=64, height=48):</span>
+<span id="L24"><a href="#L24" aria-label="Line 24">24</a>    # OpenCV camera axes; all cameras point along +Z. Focal length scales with width.</span>
+<span id="L25"><a href="#L25" aria-label="Line 25">25</a>    device = mean.device</span>
+<span id="L26"><a href="#L26" aria-label="Line 26">26</a>    focal = width * 60 / 64</span>
+<span id="L27"><a href="#L27" aria-label="Line 27">27</a>    dt = times[:, None, None] - 0.5</span>
+<span id="L28"><a href="#L28" aria-label="Line 28">28</a>    xyz = mean[None] + motion[None] * dt - cameras[:, None, :]</span>
+<span id="L29"><a href="#L29" aria-label="Line 29">29</a>    x, y, z = xyz.unbind(-1)</span>
+<span id="L30"><a href="#L30" aria-label="Line 30">30</a>    uv = torch.stack((focal*x/z + width/2, focal*y/z + height/2), -1)</span>
+<span id="L31"><a href="#L31" aria-label="Line 31">31</a>    zero = torch.zeros_like(z)</span>
+<span id="L32"><a href="#L32" aria-label="Line 32">32</a>    jacobian = torch.stack((focal/z, zero, -focal*x/z.square(),</span>
+<span id="L33"><a href="#L33" aria-label="Line 33">33</a>                            zero, focal/z, -focal*y/z.square()), -1).reshape(*z.shape, 2, 3)</span>
+<span id="L34"><a href="#L34" aria-label="Line 34">34</a>    covariance = 0.12**2 * (jacobian @ jacobian.transpose(-1, -2))</span>
+<span id="L35"><a href="#L35" aria-label="Line 35">35</a>    covariance = covariance + torch.eye(2, device=device) * 0.3</span>
+<span id="L36"><a href="#L36" aria-label="Line 36">36</a>    ys, xs = torch.meshgrid(torch.arange(height, device=device)+0.5,</span>
+<span id="L37"><a href="#L37" aria-label="Line 37">37</a>                           torch.arange(width, device=device)+0.5, indexing=&quot;ij&quot;)</span>
+<span id="L38"><a href="#L38" aria-label="Line 38">38</a>    delta = torch.stack((xs, ys), -1)[None, None] - uv[:, :, None, None]</span>
+<span id="L39"><a href="#L39" aria-label="Line 39">39</a>    inverse = torch.linalg.inv(covariance)</span>
+<span id="L40"><a href="#L40" aria-label="Line 40">40</a>    power = -0.5 * torch.einsum(&quot;bnhwi,bnij,bnhwj-&gt;bnhw&quot;, delta, inverse, delta)</span>
+<span id="L41"><a href="#L41" aria-label="Line 41">41</a>    temporal = torch.exp(-((times[:, None]-0.5)/0.55).square())</span>
+<span id="L42"><a href="#L42" aria-label="Line 42">42</a>    alpha = (torch.sigmoid(opacity_logits)[None, :, None, None]</span>
+<span id="L43"><a href="#L43" aria-label="Line 43">43</a>             * temporal[:, :, None, None] * torch.exp(power)).clamp(max=0.99)</span>
+<span id="L44"><a href="#L44" aria-label="Line 44">44</a>    alpha = torch.where(alpha &gt;= 1/255, alpha, 0)</span>
+<span id="L45"><a href="#L45" aria-label="Line 45">45</a>    order = z.argsort(dim=1)  # Discrete ordering; no gradient through visibility changes.</span>
+<span id="L46"><a href="#L46" aria-label="Line 46">46</a>    alpha = alpha.gather(1, order[:, :, None, None].expand_as(alpha))</span>
+<span id="L47"><a href="#L47" aria-label="Line 47">47</a>    color = torch.sigmoid(rgb_logits)[order]</span>
+<span id="L48"><a href="#L48" aria-label="Line 48">48</a>    transmittance = torch.cumprod(torch.cat((torch.ones_like(alpha[:, :1]), 1-alpha), 1), 1)[:, :-1]</span>
+<span id="L49"><a href="#L49" aria-label="Line 49">49</a>    return (transmittance[:, :, :, :, None] * alpha[:, :, :, :, None]</span>
+<span id="L50"><a href="#L50" aria-label="Line 50">50</a>            * color[:, :, None, None, :]).sum(1)</span>
+<span id="L51"><a href="#L51" aria-label="Line 51">51</a></span>
+<span id="L52"><a href="#L52" aria-label="Line 52">52</a></span>
+<span id="L53"><a href="#L53" aria-label="Line 53">53</a>def main():</span>
+<span id="L54"><a href="#L54" aria-label="Line 54">54</a>    parser = argparse.ArgumentParser(description=__doc__)</span>
+<span id="L55"><a href="#L55" aria-label="Line 55">55</a>    parser.add_argument(&quot;--output&quot;, type=Path, default=Path(&quot;artifacts/toy-training&quot;))</span>
+<span id="L56"><a href="#L56" aria-label="Line 56">56</a>    parser.add_argument(&quot;--steps&quot;, type=int, default=400)</span>
+<span id="L57"><a href="#L57" aria-label="Line 57">57</a>    parser.add_argument(&quot;--device&quot;, choices=[&quot;cpu&quot;, &quot;cuda&quot;], default=&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;)</span>
+<span id="L58"><a href="#L58" aria-label="Line 58">58</a>    args = parser.parse_args()</span>
+<span id="L59"><a href="#L59" aria-label="Line 59">59</a>    if args.steps &lt; 1:</span>
+<span id="L60"><a href="#L60" aria-label="Line 60">60</a>        parser.error(&quot;--steps must be positive&quot;)</span>
+<span id="L61"><a href="#L61" aria-label="Line 61">61</a>    torch.manual_seed(7)</span>
+<span id="L62"><a href="#L62" aria-label="Line 62">62</a>    args.output.mkdir(parents=True, exist_ok=True)</span>
+<span id="L63"><a href="#L63" aria-label="Line 63">63</a>    device = torch.device(args.device)</span>
+<span id="L64"><a href="#L64" aria-label="Line 64">64</a>    teacher = [torch.tensor(value, device=device, dtype=torch.float32) for value in [</span>
+<span id="L65"><a href="#L65" aria-label="Line 65">65</a>        [[-.55,-.25,3.0],[.0,-.25,3.2],[.55,-.25,3.4],[-.3,.3,3.1],[.3,.3,3.3]],</span>
+<span id="L66"><a href="#L66" aria-label="Line 66">66</a>        [[.4,.1,0],[-.2,.3,.1],[.1,-.4,0],[.3,-.1,-.1],[-.4,-.1,.1]],</span>
+<span id="L67"><a href="#L67" aria-label="Line 67">67</a>        [[2,-1,-1],[-1,2,-1],[-1,-1,2],[2,1,-1],[-1,1,2]],</span>
+<span id="L68"><a href="#L68" aria-label="Line 68">68</a>        [2,2,2,2,2],</span>
+<span id="L69"><a href="#L69" aria-label="Line 69">69</a>    ]]</span>
+<span id="L70"><a href="#L70" aria-label="Line 70">70</a>    times = torch.linspace(0.05, 0.95, 9, device=device).repeat(2)</span>
+<span id="L71"><a href="#L71" aria-label="Line 71">71</a>    cameras = torch.zeros((18, 3), device=device)</span>
+<span id="L72"><a href="#L72" aria-label="Line 72">72</a>    cameras[:9, 0] = -0.3</span>
+<span id="L73"><a href="#L73" aria-label="Line 73">73</a>    cameras[9:, 0] = 0.3</span>
+<span id="L74"><a href="#L74" aria-label="Line 74">74</a>    with torch.no_grad():</span>
+<span id="L75"><a href="#L75" aria-label="Line 75">75</a>        truth = render(*teacher, times, cameras)</span>
+<span id="L76"><a href="#L76" aria-label="Line 76">76</a>    fitted = [torch.nn.Parameter(teacher[0]+torch.randn_like(teacher[0])*0.08),</span>
+<span id="L77"><a href="#L77" aria-label="Line 77">77</a>              torch.nn.Parameter(torch.zeros_like(teacher[1])),</span>
+<span id="L78"><a href="#L78" aria-label="Line 78">78</a>              torch.nn.Parameter(teacher[2]+torch.randn_like(teacher[2])*0.5),</span>
+<span id="L79"><a href="#L79" aria-label="Line 79">79</a>              torch.nn.Parameter(torch.ones_like(teacher[3]))]</span>
+<span id="L80"><a href="#L80" aria-label="Line 80">80</a>    optimizer = torch.optim.Adam(fitted, lr=0.025)</span>
+<span id="L81"><a href="#L81" aria-label="Line 81">81</a>    history = []</span>
+<span id="L82"><a href="#L82" aria-label="Line 82">82</a>    started = time.perf_counter()</span>
+<span id="L83"><a href="#L83" aria-label="Line 83">83</a>    for step in range(args.steps):</span>
+<span id="L84"><a href="#L84" aria-label="Line 84">84</a>        optimizer.zero_grad(set_to_none=True)</span>
+<span id="L85"><a href="#L85" aria-label="Line 85">85</a>        loss = (render(*fitted, times, cameras)-truth).square().mean()</span>
+<span id="L86"><a href="#L86" aria-label="Line 86">86</a>        if not torch.isfinite(loss):</span>
+<span id="L87"><a href="#L87" aria-label="Line 87">87</a>            raise RuntimeError(&quot;Non-finite training loss&quot;)</span>
+<span id="L88"><a href="#L88" aria-label="Line 88">88</a>        loss.backward()</span>
+<span id="L89"><a href="#L89" aria-label="Line 89">89</a>        optimizer.step()</span>
+<span id="L90"><a href="#L90" aria-label="Line 90">90</a>        history.append(float(loss.detach().cpu()))</span>
+<span id="L91"><a href="#L91" aria-label="Line 91">91</a>        if step % 100 == 0:</span>
+<span id="L92"><a href="#L92" aria-label="Line 92">92</a>            print(f&quot;step={step} mse={history[-1]:.8f}&quot;, flush=True)</span>
+<span id="L93"><a href="#L93" aria-label="Line 93">93</a>    with torch.no_grad():</span>
+<span id="L94"><a href="#L94" aria-label="Line 94">94</a>        final_mse = float((render(*fitted, times, cameras)-truth).square().mean().cpu())</span>
+<span id="L95"><a href="#L95" aria-label="Line 95">95</a>        held_times = torch.tensor([0.35,0.65], device=device)</span>
+<span id="L96"><a href="#L96" aria-label="Line 96">96</a>        held_cameras = torch.zeros((2,3), device=device)</span>
+<span id="L97"><a href="#L97" aria-label="Line 97">97</a>        held_mse = float((render(*fitted, held_times, held_cameras)-render(*teacher, held_times, held_cameras)).square().mean().cpu())</span>
+<span id="L98"><a href="#L98" aria-label="Line 98">98</a>    rows = np.zeros((len(teacher[0]),32), dtype=&quot;&lt;f4&quot;)</span>
+<span id="L99"><a href="#L99" aria-label="Line 99">99</a>    rows[:, :3] = fitted[0].detach().cpu().numpy()</span>
+<span id="L100"><a href="#L100" aria-label="Line 100">100</a>    rows[:, 3] = 0.5</span>
+<span id="L101"><a href="#L101" aria-label="Line 101">101</a>    rows[:, 4] = math.log(0.55)</span>
+<span id="L102"><a href="#L102" aria-label="Line 102">102</a>    rows[:, 8:11] = fitted[1].detach().cpu().numpy()</span>
+<span id="L103"><a href="#L103" aria-label="Line 103">103</a>    rows[:, 17:20] = fitted[2].sigmoid().detach().cpu().numpy()</span>
+<span id="L104"><a href="#L104" aria-label="Line 104">104</a>    rows[:, 20] = fitted[3].detach().cpu().numpy()</span>
+<span id="L105"><a href="#L105" aria-label="Line 105">105</a>    rows[:, 21:24] = math.log(0.12)</span>
+<span id="L106"><a href="#L106" aria-label="Line 106">106</a>    rows[:, 24] = 1  # quaternion wxyz</span>
+<span id="L107"><a href="#L107" aria-label="Line 107">107</a>    header = (f&quot;ply\nformat binary_little_endian 1.0\nelement vertex {len(rows)}\n&quot;</span>
+<span id="L108"><a href="#L108" aria-label="Line 108">108</a>              + &quot;&quot;.join(f&quot;property float {p}\n&quot; for p in PROPERTIES) + &quot;end_header\n&quot;)</span>
+<span id="L109"><a href="#L109" aria-label="Line 109">109</a>    (args.output/&quot;model.ply&quot;).write_bytes(header.encode(&quot;ascii&quot;)+rows.tobytes())</span>
+<span id="L110"><a href="#L110" aria-label="Line 110">110</a>    (args.output/&quot;cameras.json&quot;).write_text(json.dumps({</span>
+<span id="L111"><a href="#L111" aria-label="Line 111">111</a>        &quot;schema&quot;:&quot;pajama.stg.reference-cameras.v1&quot;, &quot;cameras&quot;:[{</span>
+<span id="L112"><a href="#L112" aria-label="Line 112">112</a>            &quot;name&quot;:&quot;synthetic-heldout&quot;, &quot;width&quot;:64, &quot;height&quot;:48, &quot;fx&quot;:60, &quot;fy&quot;:60,</span>
+<span id="L113"><a href="#L113" aria-label="Line 113">113</a>            &quot;position&quot;:[0,0,0], &quot;rotation&quot;:[[1,0,0],[0,1,0],[0,0,1]]}]}, indent=2), encoding=&quot;utf-8&quot;)</span>
+<span id="L114"><a href="#L114" aria-label="Line 114">114</a>    report = {</span>
+<span id="L115"><a href="#L115" aria-label="Line 115">115</a>        &quot;scope&quot;:&quot;synthetic teaching experiment; not official STG training or real-scene reconstruction&quot;,</span>
+<span id="L116"><a href="#L116" aria-label="Line 116">116</a>        &quot;torch&quot;:torch.__version__, &quot;device&quot;:str(device), &quot;seed&quot;:7, &quot;steps&quot;:args.steps,</span>
+<span id="L117"><a href="#L117" aria-label="Line 117">117</a>        &quot;splats&quot;:len(rows), &quot;trainImages&quot;:18, &quot;imageSize&quot;:[64,48],</span>
+<span id="L118"><a href="#L118" aria-label="Line 118">118</a>        &quot;learned&quot;:[&quot;mean&quot;,&quot;linear motion&quot;,&quot;RGB&quot;,&quot;opacity&quot;],</span>
+<span id="L119"><a href="#L119" aria-label="Line 119">119</a>        &quot;fixed&quot;:[&quot;scale&quot;,&quot;rotation&quot;,&quot;temporal center&quot;,&quot;temporal scale&quot;,&quot;splat count&quot;],</span>
+<span id="L120"><a href="#L120" aria-label="Line 120">120</a>        &quot;initialMse&quot;:history[0], &quot;finalMse&quot;:final_mse,</span>
+<span id="L121"><a href="#L121" aria-label="Line 121">121</a>        &quot;heldoutSyntheticMse&quot;:held_mse, &quot;heldoutSyntheticPsnr&quot;:-10*math.log10(max(held_mse,1e-15)),</span>
+<span id="L122"><a href="#L122" aria-label="Line 122">122</a>        &quot;elapsedSeconds&quot;:time.perf_counter()-started,</span>
+<span id="L123"><a href="#L123" aria-label="Line 123">123</a>        &quot;timeContract&quot;:{&quot;normalizedStart&quot;:0,&quot;normalizedEnd&quot;:1,&quot;captureSeconds&quot;:None},</span>
+<span id="L124"><a href="#L124" aria-label="Line 124">124</a>        &quot;lossEvery100Steps&quot;:history[::100],</span>
+<span id="L125"><a href="#L125" aria-label="Line 125">125</a>    }</span>
+<span id="L126"><a href="#L126" aria-label="Line 126">126</a>    (args.output/&quot;training-report.json&quot;).write_text(json.dumps(report, indent=2), encoding=&quot;utf-8&quot;)</span>
+<span id="L127"><a href="#L127" aria-label="Line 127">127</a>    print(json.dumps(report, indent=2))</span>
+<span id="L128"><a href="#L128" aria-label="Line 128">128</a>    if final_mse &gt;= history[0] * 0.1:</span>
+<span id="L129"><a href="#L129" aria-label="Line 129">129</a>        raise RuntimeError(&quot;Training failed to reduce loss by at least 10x&quot;)</span>
+<span id="L130"><a href="#L130" aria-label="Line 130">130</a></span>
+<span id="L131"><a href="#L131" aria-label="Line 131">131</a></span>
+<span id="L132"><a href="#L132" aria-label="Line 132">132</a>if __name__ == &quot;__main__&quot;:</span>
+<span id="L133"><a href="#L133" aria-label="Line 133">133</a>    main()</span>
+<span id="L134"><a href="#L134" aria-label="Line 134">134</a></span></code></pre></main></body></html>

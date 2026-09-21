@@ -1,0 +1,106 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>scripts/check-math.mjs · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>scripts/check-math.mjs</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>0daab81bbad25ecafee952219b278c00f290c496b046a6a88fb52671a534a968</code></p><p><a href="scripts-check-math.mjs.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>import assert from 'node:assert/strict';</span>
+<span id="L2"><a href="#L2" aria-label="Line 2">2</a>import { readFile, writeFile, mkdir } from 'node:fs/promises';</span>
+<span id="L3"><a href="#L3" aria-label="Line 3">3</a>import { sections } from './math/content.mjs';</span>
+<span id="L4"><a href="#L4" aria-label="Line 4">4</a></span>
+<span id="L5"><a href="#L5" aria-label="Line 5">5</a>// Independent numerical checks of the mathematical identities, not a GPU test.</span>
+<span id="L6"><a href="#L6" aria-label="Line 6">6</a>const results = [];</span>
+<span id="L7"><a href="#L7" aria-label="Line 7">7</a>const flat = x =&gt; Array.isArray(x) ? x.flatMap(flat) : [x];</span>
+<span id="L8"><a href="#L8" aria-label="Line 8">8</a>function close(label, actual, expected, tolerance = 1e-7) {</span>
+<span id="L9"><a href="#L9" aria-label="Line 9">9</a>  const a = flat(actual), e = flat(expected);</span>
+<span id="L10"><a href="#L10" aria-label="Line 10">10</a>  assert.equal(a.length, e.length, label);</span>
+<span id="L11"><a href="#L11" aria-label="Line 11">11</a>  const error = Math.max(...a.map((v, i) =&gt; Math.abs(v - e[i])));</span>
+<span id="L12"><a href="#L12" aria-label="Line 12">12</a>  assert.ok(Number.isFinite(error) &amp;&amp; error &lt; tolerance, `${label}: ${error}`);</span>
+<span id="L13"><a href="#L13" aria-label="Line 13">13</a>  results.push({ label, maxAbsoluteError: error, tolerance });</span>
+<span id="L14"><a href="#L14" aria-label="Line 14">14</a>}</span>
+<span id="L15"><a href="#L15" aria-label="Line 15">15</a>const add = (a, b) =&gt; a.map((v, i) =&gt; v + b[i]);</span>
+<span id="L16"><a href="#L16" aria-label="Line 16">16</a>const scale = (a, s) =&gt; a.map(v =&gt; v * s);</span>
+<span id="L17"><a href="#L17" aria-label="Line 17">17</a>const dot = (a, b) =&gt; a.reduce((s, v, i) =&gt; s + v * b[i], 0);</span>
+<span id="L18"><a href="#L18" aria-label="Line 18">18</a>const tr = a =&gt; a[0].map((_, j) =&gt; a.map(row =&gt; row[j]));</span>
+<span id="L19"><a href="#L19" aria-label="Line 19">19</a>const mul = (a, b) =&gt; a.map(row =&gt; tr(b).map(col =&gt; dot(row, col)));</span>
+<span id="L20"><a href="#L20" aria-label="Line 20">20</a>const mv = (a, x) =&gt; a.map(row =&gt; dot(row, x));</span>
+<span id="L21"><a href="#L21" aria-label="Line 21">21</a>const outer = (a, b) =&gt; a.map(x =&gt; b.map(y =&gt; x * y));</span>
+<span id="L22"><a href="#L22" aria-label="Line 22">22</a>const eye = n =&gt; Array.from({ length: n }, (_, i) =&gt; Array.from({ length: n }, (_, j) =&gt; +(i === j)));</span>
+<span id="L23"><a href="#L23" aria-label="Line 23">23</a>const matrixSubtract = (a, b) =&gt; a.map((row, i) =&gt; row.map((v, j) =&gt; v - b[i][j]));</span>
+<span id="L24"><a href="#L24" aria-label="Line 24">24</a>function inverse(a) {</span>
+<span id="L25"><a href="#L25" aria-label="Line 25">25</a>  const n = a.length, augmented = a.map((row, i) =&gt; [...row, ...eye(n)[i]]);</span>
+<span id="L26"><a href="#L26" aria-label="Line 26">26</a>  for (let k = 0; k &lt; n; k++) {</span>
+<span id="L27"><a href="#L27" aria-label="Line 27">27</a>    let pivot = k;</span>
+<span id="L28"><a href="#L28" aria-label="Line 28">28</a>    for (let r = k + 1; r &lt; n; r++) if (Math.abs(augmented[r][k]) &gt; Math.abs(augmented[pivot][k])) pivot = r;</span>
+<span id="L29"><a href="#L29" aria-label="Line 29">29</a>    [augmented[k], augmented[pivot]] = [augmented[pivot], augmented[k]];</span>
+<span id="L30"><a href="#L30" aria-label="Line 30">30</a>    const diagonal = augmented[k][k];</span>
+<span id="L31"><a href="#L31" aria-label="Line 31">31</a>    assert.ok(Math.abs(diagonal) &gt; 1e-12);</span>
+<span id="L32"><a href="#L32" aria-label="Line 32">32</a>    augmented[k] = augmented[k].map(v =&gt; v / diagonal);</span>
+<span id="L33"><a href="#L33" aria-label="Line 33">33</a>    for (let r = 0; r &lt; n; r++) if (r !== k) {</span>
+<span id="L34"><a href="#L34" aria-label="Line 34">34</a>      const factor = augmented[r][k];</span>
+<span id="L35"><a href="#L35" aria-label="Line 35">35</a>      augmented[r] = augmented[r].map((v, j) =&gt; v - factor * augmented[k][j]);</span>
+<span id="L36"><a href="#L36" aria-label="Line 36">36</a>    }</span>
+<span id="L37"><a href="#L37" aria-label="Line 37">37</a>  }</span>
+<span id="L38"><a href="#L38" aria-label="Line 38">38</a>  return augmented.map(row =&gt; row.slice(n));</span>
+<span id="L39"><a href="#L39" aria-label="Line 39">39</a>}</span>
+<span id="L40"><a href="#L40" aria-label="Line 40">40</a>function finiteJacobian(fn, x, step) {</span>
+<span id="L41"><a href="#L41" aria-label="Line 41">41</a>  return tr(x.map((_, k) =&gt; {</span>
+<span id="L42"><a href="#L42" aria-label="Line 42">42</a>    const a = [...x], b = [...x]; a[k] += step; b[k] -= step;</span>
+<span id="L43"><a href="#L43" aria-label="Line 43">43</a>    return fn(a).map((v, j) =&gt; (v - fn(b)[j]) / (2 * step));</span>
+<span id="L44"><a href="#L44" aria-label="Line 44">44</a>  }));</span>
+<span id="L45"><a href="#L45" aria-label="Line 45">45</a>}</span>
+<span id="L46"><a href="#L46" aria-label="Line 46">46</a>function finiteCheck(label, fn, x, expected) {</span>
+<span id="L47"><a href="#L47" aria-label="Line 47">47</a>  for (const step of [1e-4, 1e-5, 1e-6]) close(`${label} h=${step}`, finiteJacobian(fn, x, step), expected, 2e-6);</span>
+<span id="L48"><a href="#L48" aria-label="Line 48">48</a>}</span>
+<span id="L49"><a href="#L49" aria-label="Line 49">49</a></span>
+<span id="L50"><a href="#L50" aria-label="Line 50">50</a>const projection = ([x, y, z]) =&gt; [100 * x / z, 100 * y / z];</span>
+<span id="L51"><a href="#L51" aria-label="Line 51">51</a>const J = [[10, 0, -1], [0, 10, -2]];</span>
+<span id="L52"><a href="#L52" aria-label="Line 52">52</a>finiteCheck('pinhole Jacobian', projection, [1, 2, 10], J);</span>
+<span id="L53"><a href="#L53" aria-label="Line 53">53</a>const covariance = mul(mul(J, [[1, 0, 0], [0, 4, 0], [0, 0, 9]]), tr(J));</span>
+<span id="L54"><a href="#L54" aria-label="Line 54">54</a>close('worked projected covariance', covariance.map((row, i) =&gt; row.map((v, j) =&gt; v + (i === j ? 0.3 : 0))), [[109.3, 18], [18, 436.3]]);</span>
+<span id="L55"><a href="#L55" aria-label="Line 55">55</a></span>
+<span id="L56"><a href="#L56" aria-label="Line 56">56</a>const A = [[2, 0, 0], [0, 1, 0], [0, 0, 1]], b = [1, 0, 0], c = 1;</span>
+<span id="L57"><a href="#L57" aria-label="Line 57">57</a>const conditional = matrixSubtract(A, outer(b, b));</span>
+<span id="L58"><a href="#L58" aria-label="Line 58">58</a>close('Schur complement', conditional, eye(3));</span>
+<span id="L59"><a href="#L59" aria-label="Line 59">59</a>const sigma4 = [...A.map((row, i) =&gt; [...row, b[i]]), [...b, c]];</span>
+<span id="L60"><a href="#L60" aria-label="Line 60">60</a>const z = [0.9, -0.2, 0.7, 0.4], d = add(z.slice(0, 3), scale(b, -z[3] / c));</span>
+<span id="L61"><a href="#L61" aria-label="Line 61">61</a>close('joint versus conditional quadratic form', dot(z, mv(inverse(sigma4), z)), dot(d, mv(inverse(conditional), d)) + z[3] ** 2 / c);</span>
+<span id="L62"><a href="#L62" aria-label="Line 62">62</a></span>
+<span id="L63"><a href="#L63" aria-label="Line 63">63</a>const C = [[1.4, 0.3], [0.3, 0.8]], Q = inverse(C), pixel = [0.7, -0.2], mean = [0.2, 0.1], beta = 0.4;</span>
+<span id="L64"><a href="#L64" aria-label="Line 64">64</a>const sigmoid = x =&gt; 1 / (1 + Math.exp(-x));</span>
+<span id="L65"><a href="#L65" aria-label="Line 65">65</a>const alpha = (mu, cov, logit) =&gt; {</span>
+<span id="L66"><a href="#L66" aria-label="Line 66">66</a>  const delta = add(pixel, scale(mu, -1));</span>
+<span id="L67"><a href="#L67" aria-label="Line 67">67</a>  return sigmoid(logit) * Math.exp(-dot(delta, mv(inverse(cov), delta)) / 2);</span>
+<span id="L68"><a href="#L68" aria-label="Line 68">68</a>};</span>
+<span id="L69"><a href="#L69" aria-label="Line 69">69</a>const currentAlpha = alpha(mean, C, beta), qd = mv(Q, add(pixel, scale(mean, -1)));</span>
+<span id="L70"><a href="#L70" aria-label="Line 70">70</a>finiteCheck('projected mean gradient', mu =&gt; [alpha(mu, C, beta)], mean, [scale(qd, currentAlpha)]);</span>
+<span id="L71"><a href="#L71" aria-label="Line 71">71</a>finiteCheck('independent symmetric covariance entries', ([a, b, c]) =&gt; [alpha(mean, [[a, b], [b, c]], beta)], [1.4, 0.3, 0.8], [[currentAlpha / 2 * qd[0] ** 2, currentAlpha * qd[0] * qd[1], currentAlpha / 2 * qd[1] ** 2]]);</span>
+<span id="L72"><a href="#L72" aria-label="Line 72">72</a>finiteCheck('opacity logit gradient', ([logit]) =&gt; [alpha(mean, C, logit)], [beta], [[currentAlpha * (1 - sigmoid(beta))]]);</span>
+<span id="L73"><a href="#L73" aria-label="Line 73">73</a></span>
+<span id="L74"><a href="#L74" aria-label="Line 74">74</a>const colors = [[1, 0, 0], [0, 0, 1], [0.2, 0.7, 0.1]], background = [0.13, 0.23, 0.31], alphas = [0.2, 0.4, 0.3];</span>
+<span id="L75"><a href="#L75" aria-label="Line 75">75</a>const composite = (as, cs, bg) =&gt; as.reduceRight((tail, a, index) =&gt; add(scale(cs[index], a), scale(tail, 1 - a)), bg);</span>
+<span id="L76"><a href="#L76" aria-label="Line 76">76</a>close('ordered two layer example', composite([0.5, 0.5], colors.slice(0, 2), [0, 0, 0]), [0.5, 0, 0.25]);</span>
+<span id="L77"><a href="#L77" aria-label="Line 77">77</a>const alphaGrad = tr(alphas.map((_, index) =&gt; {</span>
+<span id="L78"><a href="#L78" aria-label="Line 78">78</a>  const T = alphas.slice(0, index).reduce((value, a) =&gt; value * (1 - a), 1);</span>
+<span id="L79"><a href="#L79" aria-label="Line 79">79</a>  const tail = composite(alphas.slice(index + 1), colors.slice(index + 1), background);</span>
+<span id="L80"><a href="#L80" aria-label="Line 80">80</a>  return scale(add(colors[index], scale(tail, -1)), T);</span>
+<span id="L81"><a href="#L81" aria-label="Line 81">81</a>}));</span>
+<span id="L82"><a href="#L82" aria-label="Line 82">82</a>finiteCheck('compositing alpha gradient including background', as =&gt; composite(as, colors, background), alphas, alphaGrad);</span>
+<span id="L83"><a href="#L83" aria-label="Line 83">83</a></span>
+<span id="L84"><a href="#L84" aria-label="Line 84">84</a>const time = 0.61, center = 0.43, logWidth = Math.log(0.3), delta = time - center;</span>
+<span id="L85"><a href="#L85" aria-label="Line 85">85</a>const weight = (t, ell) =&gt; Math.exp(-(((t - center) / Math.exp(ell)) ** 2));</span>
+<span id="L86"><a href="#L86" aria-label="Line 86">86</a>const w = weight(time, logWidth), rho2 = Math.exp(logWidth) ** 2;</span>
+<span id="L87"><a href="#L87" aria-label="Line 87">87</a>finiteCheck('STG temporal derivative and log-width derivative', ([t, ell]) =&gt; [weight(t, ell)], [time, logWidth], [[-2 * delta / rho2 * w, 2 * delta ** 2 / rho2 * w]]);</span>
+<span id="L88"><a href="#L88" aria-label="Line 88">88</a>const normalize = u =&gt; scale(u, 1 / Math.hypot(...u));</span>
+<span id="L89"><a href="#L89" aria-label="Line 89">89</a>const u = [1.1, 0.2, -0.3, 0.4], q = normalize(u), normalJac = matrixSubtract(eye(4), outer(q, q)).map(row =&gt; scale(row, 1 / Math.hypot(...u)));</span>
+<span id="L90"><a href="#L90" aria-label="Line 90">90</a>finiteCheck('quaternion normalization Jacobian', normalize, u, normalJac);</span>
+<span id="L91"><a href="#L91" aria-label="Line 91">91</a></span>
+<span id="L92"><a href="#L92" aria-label="Line 92">92</a>const html = await readFile(new URL('../public/math/index.html', import.meta.url), 'utf8');</span>
+<span id="L93"><a href="#L93" aria-label="Line 93">93</a>const ids = [...html.matchAll(/\bid=&quot;([^&quot;]+)&quot;/g)].map(match =&gt; match[1]);</span>
+<span id="L94"><a href="#L94" aria-label="Line 94">94</a>assert.equal(new Set(ids).size, ids.length, 'Unique HTML ids');</span>
+<span id="L95"><a href="#L95" aria-label="Line 95">95</a>for (const [, anchor] of html.matchAll(/href=&quot;#([^&quot;]+)&quot;/g)) assert.ok(ids.includes(anchor), 'Missing anchor: ' + anchor);</span>
+<span id="L96"><a href="#L96" aria-label="Line 96">96</a>const equations = sections.flatMap(section =&gt; section.blocks.filter(block =&gt; typeof block === 'object'));</span>
+<span id="L97"><a href="#L97" aria-label="Line 97">97</a>assert.equal(equations.length, 39);</span>
+<span id="L98"><a href="#L98" aria-label="Line 98">98</a>assert.equal([...html.matchAll(/class=&quot;copy-equation&quot;/g)].length, equations.length);</span>
+<span id="L99"><a href="#L99" aria-label="Line 99">99</a>const saved = JSON.parse(await readFile(new URL('../public/math/equations.json', import.meta.url), 'utf8'));</span>
+<span id="L100"><a href="#L100" aria-label="Line 100">100</a>assert.deepEqual(saved, equations.map(({ id, title, latex }) =&gt; ({ id, title, latex })));</span>
+<span id="L101"><a href="#L101" aria-label="Line 101">101</a>assert.ok(!/&lt;(?:script|link)[^&gt;]+(?:src|href)=&quot;https?:/i.test(html), 'Math page must not require a CDN');</span>
+<span id="L102"><a href="#L102" aria-label="Line 102">102</a>const report = { status: 'pass', equations: equations.length, numericChecks: results, visualReview: 'Not performed by this numerical and structural check.' };</span>
+<span id="L103"><a href="#L103" aria-label="Line 103">103</a>await mkdir(new URL('../artifacts/', import.meta.url), { recursive: true });</span>
+<span id="L104"><a href="#L104" aria-label="Line 104">104</a>await writeFile(new URL('../artifacts/math-checks.json', import.meta.url), JSON.stringify(report, null, 2) + '\n');</span>
+<span id="L105"><a href="#L105" aria-label="Line 105">105</a>console.log(`PASS: ${results.length} numerical checks, 39 equation sources, all local anchors. Browser visual review not run.`);</span>
+<span id="L106"><a href="#L106" aria-label="Line 106">106</a></span></code></pre></main></body></html>

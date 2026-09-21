@@ -1,0 +1,78 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>public/math/training.mjs · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>public/math/training.mjs</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>b8db8cb6882aa0eb396960da6d96c852f2ac9a4744b956a53858db7197003b12</code></p><p><a href="public-math-training.mjs.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>// A real, tiny full-batch SGD experiment. Analytic derivatives, fixed synthetic</span>
+<span id="L2"><a href="#L2" aria-label="Line 2">2</a>// targets, one camera, three times, two STG-Lite splats. No prerecorded losses.</span>
+<span id="L3"><a href="#L3" aria-label="Line 3">3</a>import { initialRecords, forward, gradient } from './trace.mjs';</span>
+<span id="L4"><a href="#L4" aria-label="Line 4">4</a></span>
+<span id="L5"><a href="#L5" aria-label="Line 5">5</a>export const trainingSpec = Object.freeze({ width:12, height:10, left:68, top:63, times:[0.25,0.5,0.75] });</span>
+<span id="L6"><a href="#L6" aria-label="Line 6">6</a>export const trainingParameters = [0,8,20]; // A: mean x, linear motion x, opacity logit</span>
+<span id="L7"><a href="#L7" aria-label="Line 7">7</a>export const trainingNames = ['μ₀x','m₁x','β'];</span>
+<span id="L8"><a href="#L8" aria-label="Line 8">8</a>export const copyRecords = rows =&gt; rows.map(row=&gt;[...row]);</span>
+<span id="L9"><a href="#L9" aria-label="Line 9">9</a></span>
+<span id="L10"><a href="#L10" aria-label="Line 10">10</a>export function createTrainingData() {</span>
+<span id="L11"><a href="#L11" aria-label="Line 11">11</a>  const truth=initialRecords();</span>
+<span id="L12"><a href="#L12" aria-label="Line 12">12</a>  truth[0][0]=1.12; truth[0][8]=0.8; truth[0][20]=0.2;</span>
+<span id="L13"><a href="#L13" aria-label="Line 13">13</a>  const {width,height,left,top,times}=trainingSpec;</span>
+<span id="L14"><a href="#L14" aria-label="Line 14">14</a>  return times.map(time=&gt;({time,samples:Array.from({length:width*height},(_,i)=&gt;{</span>
+<span id="L15"><a href="#L15" aria-label="Line 15">15</a>    const pixel=[left+i%width+0.5,top+Math.floor(i/width)+0.5];</span>
+<span id="L16"><a href="#L16" aria-label="Line 16">16</a>    return {pixel,target:forward(truth,time,pixel).color};</span>
+<span id="L17"><a href="#L17" aria-label="Line 17">17</a>  })}));</span>
+<span id="L18"><a href="#L18" aria-label="Line 18">18</a>}</span>
+<span id="L19"><a href="#L19" aria-label="Line 19">19</a></span>
+<span id="L20"><a href="#L20" aria-label="Line 20">20</a>export function evaluateTraining(records, data, withGradient=false) {</span>
+<span id="L21"><a href="#L21" aria-label="Line 21">21</a>  let loss=0; const gradients=[0,0,0],frames=[];</span>
+<span id="L22"><a href="#L22" aria-label="Line 22">22</a>  const count=data.reduce((n,frame)=&gt;n+frame.samples.length,0);</span>
+<span id="L23"><a href="#L23" aria-label="Line 23">23</a>  for(const frame of data) {</span>
+<span id="L24"><a href="#L24" aria-label="Line 24">24</a>    const pixels=[];</span>
+<span id="L25"><a href="#L25" aria-label="Line 25">25</a>    for(const sample of frame.samples) {</span>
+<span id="L26"><a href="#L26" aria-label="Line 26">26</a>      const options={target:sample.target,finite:false};</span>
+<span id="L27"><a href="#L27" aria-label="Line 27">27</a>      const position=withGradient?gradient(records,0,frame.time,sample.pixel,options):null;</span>
+<span id="L28"><a href="#L28" aria-label="Line 28">28</a>      const result=position?.result??forward(records,frame.time,sample.pixel,options);</span>
+<span id="L29"><a href="#L29" aria-label="Line 29">29</a>      loss+=result.loss/count;</span>
+<span id="L30"><a href="#L30" aria-label="Line 30">30</a>      if(withGradient) {</span>
+<span id="L31"><a href="#L31" aria-label="Line 31">31</a>        gradients[0]+=position.analytic/count;</span>
+<span id="L32"><a href="#L32" aria-label="Line 32">32</a>        gradients[1]+=position.analytic*(frame.time-records[0][3])/count;</span>
+<span id="L33"><a href="#L33" aria-label="Line 33">33</a>        gradients[2]+=gradient(records,20,frame.time,sample.pixel,options).analytic/count;</span>
+<span id="L34"><a href="#L34" aria-label="Line 34">34</a>      }</span>
+<span id="L35"><a href="#L35" aria-label="Line 35">35</a>      pixels.push(result);</span>
+<span id="L36"><a href="#L36" aria-label="Line 36">36</a>    }</span>
+<span id="L37"><a href="#L37" aria-label="Line 37">37</a>    frames.push(pixels);</span>
+<span id="L38"><a href="#L38" aria-label="Line 38">38</a>  }</span>
+<span id="L39"><a href="#L39" aria-label="Line 39">39</a>  return {loss,gradients,frames};</span>
+<span id="L40"><a href="#L40" aria-label="Line 40">40</a>}</span>
+<span id="L41"><a href="#L41" aria-label="Line 41">41</a></span>
+<span id="L42"><a href="#L42" aria-label="Line 42">42</a>export function trainingIteration(records, data, rate=1) {</span>
+<span id="L43"><a href="#L43" aria-label="Line 43">43</a>  if(!Number.isFinite(rate)||rate&lt;=0)throw new RangeError('Learning rate must be positive');</span>
+<span id="L44"><a href="#L44" aria-label="Line 44">44</a>  const beforeRecords=copyRecords(records),before=evaluateTraining(beforeRecords,data,true);</span>
+<span id="L45"><a href="#L45" aria-label="Line 45">45</a>  const afterRecords=copyRecords(beforeRecords);</span>
+<span id="L46"><a href="#L46" aria-label="Line 46">46</a>  // All gradients come from the same pre-update batch; commit simultaneously.</span>
+<span id="L47"><a href="#L47" aria-label="Line 47">47</a>  trainingParameters.forEach((field,j)=&gt;{afterRecords[0][field]-=rate*before.gradients[j];});</span>
+<span id="L48"><a href="#L48" aria-label="Line 48">48</a>  const after=evaluateTraining(afterRecords,data);</span>
+<span id="L49"><a href="#L49" aria-label="Line 49">49</a>  if(!Number.isFinite(after.loss)||!afterRecords.flat().every(Number.isFinite))throw new Error('Non-finite training state');</span>
+<span id="L50"><a href="#L50" aria-label="Line 50">50</a>  return {beforeRecords,before,afterRecords,after,rate};</span>
+<span id="L51"><a href="#L51" aria-label="Line 51">51</a>}</span>
+<span id="L52"><a href="#L52" aria-label="Line 52">52</a></span>
+<span id="L53"><a href="#L53" aria-label="Line 53">53</a>// Moving through explanatory stages never repeats an update. Only the last</span>
+<span id="L54"><a href="#L54" aria-label="Line 54">54</a>// stage commits; rewinding from it restores the exact pre-update snapshot.</span>
+<span id="L55"><a href="#L55" aria-label="Line 55">55</a>export class TrainingSession {</span>
+<span id="L56"><a href="#L56" aria-label="Line 56">56</a>  constructor(rate=1) { this.data=createTrainingData(); this.rate=rate; this.reset(); }</span>
+<span id="L57"><a href="#L57" aria-label="Line 57">57</a>  reset() {</span>
+<span id="L58"><a href="#L58" aria-label="Line 58">58</a>    this.records=initialRecords(); this.stage=0; this.iteration=0;</span>
+<span id="L59"><a href="#L59" aria-label="Line 59">59</a>    this.history=[evaluateTraining(this.records,this.data).loss]; this.pending=null;</span>
+<span id="L60"><a href="#L60" aria-label="Line 60">60</a>  }</span>
+<span id="L61"><a href="#L61" aria-label="Line 61">61</a>  prepare() { return this.pending??=trainingIteration(this.records,this.data,this.rate); }</span>
+<span id="L62"><a href="#L62" aria-label="Line 62">62</a>  next() {</span>
+<span id="L63"><a href="#L63" aria-label="Line 63">63</a>    if(this.stage===7) { this.pending=null;this.stage=0;return; }</span>
+<span id="L64"><a href="#L64" aria-label="Line 64">64</a>    const trace=this.prepare(); this.stage++;</span>
+<span id="L65"><a href="#L65" aria-label="Line 65">65</a>    if(this.stage===7) {</span>
+<span id="L66"><a href="#L66" aria-label="Line 66">66</a>      this.records=copyRecords(trace.afterRecords);this.iteration++;</span>
+<span id="L67"><a href="#L67" aria-label="Line 67">67</a>      this.history.push(trace.after.loss);</span>
+<span id="L68"><a href="#L68" aria-label="Line 68">68</a>    }</span>
+<span id="L69"><a href="#L69" aria-label="Line 69">69</a>  }</span>
+<span id="L70"><a href="#L70" aria-label="Line 70">70</a>  previous() {</span>
+<span id="L71"><a href="#L71" aria-label="Line 71">71</a>    if(this.stage===0)return;</span>
+<span id="L72"><a href="#L72" aria-label="Line 72">72</a>    if(this.stage===7) {</span>
+<span id="L73"><a href="#L73" aria-label="Line 73">73</a>      this.records=copyRecords(this.pending.beforeRecords);this.iteration--;this.history.pop();</span>
+<span id="L74"><a href="#L74" aria-label="Line 74">74</a>    }</span>
+<span id="L75"><a href="#L75" aria-label="Line 75">75</a>    this.stage--;</span>
+<span id="L76"><a href="#L76" aria-label="Line 76">76</a>  }</span>
+<span id="L77"><a href="#L77" aria-label="Line 77">77</a>}</span>
+<span id="L78"><a href="#L78" aria-label="Line 78">78</a></span></code></pre></main></body></html>

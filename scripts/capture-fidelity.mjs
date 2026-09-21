@@ -1,12 +1,10 @@
 import { chromium } from "playwright";
+import { browserOptions } from "./browser-options.mjs";
 
 const url = process.argv[2] || "http://127.0.0.1:8793";
 const seconds = Number(process.argv[3] || 5);
 const output = process.argv[4] || "/tmp/stg-render.png";
-const browser = await chromium.launch({
-  headless: true,
-  args: ["--enable-unsafe-webgpu", "--use-angle=metal"],
-});
+const browser = await chromium.launch(browserOptions);
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
 const errors = [];
 page.on("console", message => {

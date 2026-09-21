@@ -1,5 +1,6 @@
-import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js";
+import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=inspector-1";
 import { mountSegmentedVideo } from "/stream-player.js";
+import { mountInspector } from "/inspector.mjs";
 
 const DATA_URL = "/data/n3d-sear-steak-stg-lite.ply.gz";
 const CAMERA_URL = "/data/n3d-sear-steak-reference-cameras.json";
@@ -49,11 +50,21 @@ let pitch = 0.03;
 let distance = 17.2;
 let dragging = false;
 let pointer = [0, 0];
+let pointerStart = [0, 0];
+let pointerMoved = false;
 let comparing = false;
 let activeScene = "stg";
 let stgLoadState = "Loading…";
 const emptyCamera = new Float32Array();
 const referenceCameras = new Map();
+function pausePlayback() {
+  playing=false;referenceVideo.pause();playButton.textContent="▶";playButton.ariaLabel="Play";
+}
+const inspector = mountInspector({
+  panel:document.querySelector('#gaussian-inspector'),canvas,
+  overlay:document.querySelector('#selection-overlay'),getRenderer:()=>renderer,
+  pause:pausePlayback,seek:value=>{time=value;pausePlayback();timeline.value=value;},workbench,
+});
 
 function resize() {
   const dpr = Math.min(devicePixelRatio || 1, 1.35);
@@ -139,6 +150,7 @@ function selectScene(scene) {
   }
   showLoadState();
   window.__gaussianScene = scene;
+  inspector.scene(scene === "stg");
 }
 
 function activeCamera() {
@@ -203,6 +215,7 @@ function frame(now) {
   try {
     renderer.render(time, yaw, pitch, distance, canvas.width, canvas.height, activeCamera());
     updateMetrics(now);
+    inspector.onFrame(now);
   } catch (error) {
     console.error(error);
     status.textContent = "Render error — inspect console";
@@ -224,7 +237,7 @@ async function loadResearchAsset() {
   const compressedBytes = Number(response.headers.get("content-length") || 0);
   const decompressedStream = response.body.pipeThrough(new DecompressionStream("gzip"));
   const plyBuffer = await new Response(decompressedStream).arrayBuffer();
-  stgLoadState = `${(compressedBytes / 1048576).toFixed(1)} MiB compressed · ${(plyBuffer.byteLength / 1048576).toFixed(1)} MiB resident`;
+  stgLoadState = `${(compressedBytes / 1048576).toFixed(1)} MiB compressed · ${(plyBuffer.byteLength / 1048576).toFixed(1)} MiB decoded PLY`;
   showLoadState();
   return new Uint8Array(plyBuffer);
 }
@@ -284,19 +297,35 @@ referenceVideo.addEventListener("loadedmetadata", () => {
   if (comparing) referenceVideo.currentTime = Math.min(time, Math.max(0, referenceVideo.duration - 0.001));
 });
 wrap.addEventListener("pointerdown", (event) => {
-  setComparison(false);
-  setCameraMode("orbit");
+  if (event.button !== 0 || event.target.closest('button,select,input,a,.metrics-panel,.scene-badge')) return;
   dragging = true;
   pointer = [event.clientX, event.clientY];
+  pointerStart = [...pointer];
+  pointerMoved = false;
   wrap.setPointerCapture(event.pointerId);
 });
 wrap.addEventListener("pointermove", (event) => {
   if (!dragging) return;
+  if (!pointerMoved) {
+    if (Math.hypot(event.clientX-pointerStart[0],event.clientY-pointerStart[1]) < 4) return;
+    pointerMoved=true;
+    setComparison(false);
+    setCameraMode("orbit");
+  }
   yaw -= (event.clientX - pointer[0]) * 0.004;
   pitch = Math.max(-0.5, Math.min(0.65, pitch + (event.clientY - pointer[1]) * 0.003));
   pointer = [event.clientX, event.clientY];
 });
-wrap.addEventListener("pointerup", () => { dragging = false; });
+wrap.addEventListener("pointerup", event => {
+  if (!dragging) return;
+  dragging=false;
+  if (!pointerMoved && inspector.enabled) {
+    // Disable the RGB overlay before selecting the rendered splat at this pixel.
+    setComparison(false);
+    const rect=canvas.getBoundingClientRect();
+    inspector.pickAt((event.clientX-rect.left)*canvas.width/rect.width,(event.clientY-rect.top)*canvas.height/rect.height);
+  }
+});
 wrap.addEventListener("pointercancel", () => { dragging = false; });
 wrap.addEventListener("wheel", (event) => {
   event.preventDefault();
@@ -307,11 +336,12 @@ wrap.addEventListener("wheel", (event) => {
 
 async function start() {
   if (!navigator.gpu) throw new Error("This browser does not expose WebGPU");
-  await init();
+  await init({module_or_path:"/pkg/pajama_gaussian_lab_bg.wasm?v=inspector-1"});
   resize();
   const [plyData] = await Promise.all([loadResearchAsset(), loadReferenceCameras()]);
   status.textContent = "Building GPU-resident scene…";
   renderer = await GaussianRenderer.create(canvas, plyData);
+  inspector.ready(renderer.sourceCount);
   setCameraMode("cam00");
   const timingLabel = renderer.gpuTimingSupported ? "GPU pass timer active" : "GPU pass timer unavailable · rendering active";
   adapter.textContent = `${renderer.adapterName || "Browser WebGPU adapter"} · ${renderer.sourceCount.toLocaleString()} learned splats · ${timingLabel}`;

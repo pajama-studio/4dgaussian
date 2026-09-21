@@ -8,6 +8,7 @@
   <title>Dynamic Gaussian Lab · Pajama Studio</title>
   <link rel="icon" href="/pajama-mark.svg" />
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/inspector.css" />
 </head>
 <body>
   <header class="topbar">
@@ -18,6 +19,8 @@
     <div class="topbar-actions">
       <a class="docs-link" href="https://github.com/pajama-studio/4dgaussian" target="_blank" rel="noreferrer">View source</a>
       <a class="docs-link" href="/docs/">Read the field guide</a>
+      <a class="docs-link" href="/math/">Math notes</a>
+      <a class="docs-link" href="/?inspect=1#workbench">Inspect a Gaussian</a>
       <div class="runtime"><span class="status-dot"></span><span id="runtime-status">Preparing research model…</span><b>v0.8</b></div>
     </div>
   </header>
@@ -57,9 +60,11 @@
         </header>
 
         <div class="player-pane" id="stg-pane">
+          <div class="inspection-toolbar"><span>Data → Gaussian → pixel</span><button id="inspect-toggle" type="button" aria-pressed="false">Inspect a Gaussian</button></div>
           <div class="viewer-topline"><span><i class="live-dot"></i>WebGPU renderer</span><span id="adapter">Research asset pending</span></div>
           <div class="canvas-wrap" id="canvas-wrap">
             <canvas id="gaussian-canvas" aria-label="Sear steak dynamic multi-view reconstruction rendered as Spacetime Gaussians"></canvas>
+            <canvas id="selection-overlay" aria-hidden="true" hidden></canvas>
             <video id="reference-video" muted playsinline preload="metadata" loop aria-label="Official Neural 3D Video cam00 RGB reference"><source src="/data/n3d-sear-steak-cam00-reference-960x720.mp4" type="video/mp4" /></video>
             <div class="compare-divider" aria-hidden="true"></div>
             <div class="compare-label compare-label-left">RGB reference · cam00</div>
@@ -71,7 +76,7 @@
               <div><span>CPU prepare</span><strong id="prepare">—</strong></div><div><span>CPU sort</span><strong id="sort">—</strong></div>
               <div><span>GPU pass timing</span><strong id="gpu-render">—</strong></div><div><span>Order upload</span><strong id="upload">—</strong></div>
             </div>
-            <div class="gesture-hint">Drag to orbit · wheel to zoom</div>
+            <div class="gesture-hint">Click to inspect when enabled · drag to orbit · wheel to zoom</div>
           </div>
           <div class="transport">
             <button id="play" class="icon-button" type="button" aria-label="Pause playback">Ⅱ</button><span id="timecode">00:00.000</span>
@@ -96,6 +101,7 @@
           <a href="/data/THIRD_PARTY_NOTICES.md">Provenance ↗</a>
         </footer>
       </section>
+      <aside id="gaussian-inspector" class="gaussian-inspector" aria-label="Gaussian inspector" hidden></aside>
     </section>
 
     <section class="docs-cta">

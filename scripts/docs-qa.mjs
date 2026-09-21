@@ -1,11 +1,9 @@
 import { chromium } from "playwright";
+import { browserOptions } from "./browser-options.mjs";
 
 const base = process.argv[2] || "http://127.0.0.1:8787";
 const url = new URL("/docs/", base).toString();
-const browser = await chromium.launch({
-  headless: true,
-  args: ["--enable-unsafe-webgpu", "--use-angle=metal", "--autoplay-policy=no-user-gesture-required"],
-});
+const browser = await chromium.launch(browserOptions);
 
 function collectErrors(page) {
   const errors = [];

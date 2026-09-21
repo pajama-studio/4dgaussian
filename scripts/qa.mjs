@@ -1,11 +1,9 @@
 import { chromium } from "playwright";
+import { browserOptions } from "./browser-options.mjs";
 
 const url = process.argv[2] || "http://127.0.0.1:8793";
 const screenshot = process.argv[3] || "/tmp/stg-comparison.png";
-const browser = await chromium.launch({
-  headless: true,
-  args: ["--enable-unsafe-webgpu", "--use-angle=metal", "--autoplay-policy=no-user-gesture-required"],
-});
+const browser = await chromium.launch(browserOptions);
 
 async function collectErrors(page) {
   const errors = [];
@@ -75,9 +73,11 @@ const mobileState = await mobile.evaluate(() => ({
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
 }));
 
-const renderMetricBeforeFlames = await desktop.evaluate(() => window.__gaussianMetrics.at);
 await desktop.locator('.scene-card[data-scene="flames"]').click();
 await desktop.waitForFunction(() => window.__gaussianScene === "flames");
+// Capture after the scene switch has committed: another frame can run between
+// a pre-click sample and Playwright's click, especially on native Windows GPUs.
+const renderMetricBeforeFlames = await desktop.evaluate(() => window.__gaussianMetrics.at);
 await desktop.locator("#flames-video").scrollIntoViewIfNeeded();
 await desktop.locator("#flames-stream-start").click();
 await desktop.waitForFunction(() => window.__flamesStream?.state === "ready", null, { timeout: 15_000 });

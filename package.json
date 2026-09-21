@@ -4,15 +4,23 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:math": "node scripts/build-math.mjs",
+    "qa:math": "node --check public/math/math.js && node --check public/math/trace-ui.mjs && node --check public/math/i18n.mjs && node --check public/math/sh-ui.mjs && node --check public/math/training-ui.mjs && node scripts/check-math.mjs && node scripts/check-math-trace.mjs && node scripts/check-math-sh.mjs && node scripts/check-math-training.mjs && node scripts/check-math-i18n.mjs",
     "build:wasm": "wasm-pack build --target web --release --out-dir public/pkg",
-    "check": "cargo test && cargo check --target wasm32-unknown-unknown && npm run build:wasm && node scripts/check.mjs",
+    "qa:inspector": "node --check public/inspector.mjs && node --check public/inspector-data.mjs && node --check public/inspector-viz.mjs && node scripts/check-inspector.mjs",
+    "check": "npm run build:math && npm run qa:math && npm run qa:inspector && cargo test && cargo check --target wasm32-unknown-unknown && npm run build:wasm && node scripts/check.mjs",
     "profile": "node scripts/profile.mjs",
     "qa": "node scripts/qa.mjs",
     "qa:docs": "node scripts/docs-qa.mjs",
     "capture:fidelity": "node scripts/capture-fidelity.mjs",
     "remote-zip": "node scripts/remote-zip.mjs",
-    "dev": "npm run build:wasm && wrangler dev --config wrangler.jsonc",
+    "dev": "npm run build:math && npm run build:wasm && wrangler dev --config wrangler.jsonc",
     "deploy": "npm run check && wrangler deploy --config wrangler.jsonc"
   },
-  "devDependencies": { "wrangler": "^4.127.1" }
+  "devDependencies": {
+    "katex": "0.18.7",
+    "parse5": "8.0.1",
+    "playwright": "^1.63.0",
+    "wrangler": "^4.127.1"
+  }
 }

@@ -1,0 +1,290 @@
+{
+  "note": "Build-time working-tree snapshots; a hash is not a Git commit.",
+  "files": [
+    {
+      "path": "src/splat.wgsl",
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "code/src-splat.wgsl.txt"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "92c2ccff91d9909ae8a0b8a5518367297a86075ab8df79cdc0709f140d5c2512",
+      "href": "code/src-lib.rs.txt"
+    },
+    {
+      "path": "src/stg_pass.rs",
+      "sha256": "868f3acd53e14e867a65e81ab5e575d4eb65bfad7a9c2c8b72eb14a6abab7a6f",
+      "href": "code/src-stg_pass.rs.txt"
+    },
+    {
+      "path": "scripts/train_toy_stg.py",
+      "sha256": "e838a776c07d595b58a9860601af4711464b425e83cb3037d33f1051af2b02e2",
+      "href": "code/scripts-train_toy_stg.py.txt"
+    },
+    {
+      "path": "scripts/check-math.mjs",
+      "sha256": "0daab81bbad25ecafee952219b278c00f290c496b046a6a88fb52671a534a968",
+      "href": "code/scripts-check-math.mjs.txt"
+    },
+    {
+      "path": "public/math/reference.mjs",
+      "sha256": "b50c72b5e2812604e48f9bd565d51a490db2598a792fa9d7519895df76b83baf",
+      "href": "code/public-math-reference.mjs.txt"
+    },
+    {
+      "path": "public/math/sh.mjs",
+      "sha256": "e2cb85a24dcd0426062b2918baaf9928e5192f3989329f07bea1c0a17918d593",
+      "href": "code/public-math-sh.mjs.txt"
+    },
+    {
+      "path": "public/math/trace.mjs",
+      "sha256": "c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c",
+      "href": "code/public-math-trace.mjs.txt"
+    },
+    {
+      "path": "public/math/training.mjs",
+      "sha256": "b8db8cb6882aa0eb396960da6d96c852f2ac9a4744b956a53858db7197003b12",
+      "href": "code/public-math-training.mjs.txt"
+    }
+  ],
+  "excerpts": {
+    "fragment": {
+      "path": "src/splat.wgsl",
+      "first": 130,
+      "last": 136,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L130"
+    },
+    "activation": {
+      "path": "src/splat.wgsl",
+      "first": 65,
+      "last": 73,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L65"
+    },
+    "axes": {
+      "path": "src/splat.wgsl",
+      "first": 77,
+      "last": 93,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L77"
+    },
+    "covariance": {
+      "path": "src/splat.wgsl",
+      "first": 94,
+      "last": 101,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L94"
+    },
+    "projected-axis": {
+      "path": "src/splat.wgsl",
+      "first": 41,
+      "last": 49,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L41"
+    },
+    "ellipse": {
+      "path": "src/splat.wgsl",
+      "first": 102,
+      "last": 115,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L102"
+    },
+    "quad": {
+      "path": "src/splat.wgsl",
+      "first": 116,
+      "last": 126,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L116"
+    },
+    "motion": {
+      "path": "src/splat.wgsl",
+      "first": 55,
+      "last": 63,
+      "sha256": "0a43511f10c402c69096374f5ca6a7647695ec8ab77bcaacaf1f84a74f10e7b5",
+      "href": "/math/code/src-splat.wgsl.html#L55"
+    },
+    "cpu-sample": {
+      "path": "src/lib.rs",
+      "first": 78,
+      "last": 86,
+      "sha256": "92c2ccff91d9909ae8a0b8a5518367297a86075ab8df79cdc0709f140d5c2512",
+      "href": "/math/code/src-lib.rs.html#L78"
+    },
+    "browser-time": {
+      "path": "src/lib.rs",
+      "first": 453,
+      "last": 455,
+      "sha256": "92c2ccff91d9909ae8a0b8a5518367297a86075ab8df79cdc0709f140d5c2512",
+      "href": "/math/code/src-lib.rs.html#L453"
+    },
+    "host-camera": {
+      "path": "src/stg_pass.rs",
+      "first": 178,
+      "last": 180,
+      "sha256": "868f3acd53e14e867a65e81ab5e575d4eb65bfad7a9c2c8b72eb14a6abab7a6f",
+      "href": "/math/code/src-stg_pass.rs.html#L178"
+    },
+    "blend": {
+      "path": "src/stg_pass.rs",
+      "first": 129,
+      "last": 137,
+      "sha256": "868f3acd53e14e867a65e81ab5e575d4eb65bfad7a9c2c8b72eb14a6abab7a6f",
+      "href": "/math/code/src-stg_pass.rs.html#L129"
+    },
+    "sort": {
+      "path": "src/stg_pass.rs",
+      "first": 200,
+      "last": 204,
+      "sha256": "868f3acd53e14e867a65e81ab5e575d4eb65bfad7a9c2c8b72eb14a6abab7a6f",
+      "href": "/math/code/src-stg_pass.rs.html#L200"
+    },
+    "toy-project": {
+      "path": "scripts/train_toy_stg.py",
+      "first": 27,
+      "last": 35,
+      "sha256": "e838a776c07d595b58a9860601af4711464b425e83cb3037d33f1051af2b02e2",
+      "href": "/math/code/scripts-train_toy_stg.py.html#L27"
+    },
+    "toy-kernel": {
+      "path": "scripts/train_toy_stg.py",
+      "first": 36,
+      "last": 44,
+      "sha256": "e838a776c07d595b58a9860601af4711464b425e83cb3037d33f1051af2b02e2",
+      "href": "/math/code/scripts-train_toy_stg.py.html#L36"
+    },
+    "toy-composite": {
+      "path": "scripts/train_toy_stg.py",
+      "first": 45,
+      "last": 50,
+      "sha256": "e838a776c07d595b58a9860601af4711464b425e83cb3037d33f1051af2b02e2",
+      "href": "/math/code/scripts-train_toy_stg.py.html#L45"
+    },
+    "train-loop": {
+      "path": "scripts/train_toy_stg.py",
+      "first": 80,
+      "last": 89,
+      "sha256": "e838a776c07d595b58a9860601af4711464b425e83cb3037d33f1051af2b02e2",
+      "href": "/math/code/scripts-train_toy_stg.py.html#L80"
+    },
+    "export": {
+      "path": "scripts/train_toy_stg.py",
+      "first": 98,
+      "last": 106,
+      "sha256": "e838a776c07d595b58a9860601af4711464b425e83cb3037d33f1051af2b02e2",
+      "href": "/math/code/scripts-train_toy_stg.py.html#L98"
+    },
+    "finite-check": {
+      "path": "scripts/check-math.mjs",
+      "first": 40,
+      "last": 49,
+      "sha256": "0daab81bbad25ecafee952219b278c00f290c496b046a6a88fb52671a534a968",
+      "href": "/math/code/scripts-check-math.mjs.html#L40"
+    },
+    "deformation-demo": {
+      "path": "public/math/reference.mjs",
+      "first": 9,
+      "last": 17,
+      "sha256": "b50c72b5e2812604e48f9bd565d51a490db2598a792fa9d7519895df76b83baf",
+      "href": "/math/code/public-math-reference.mjs.html#L9"
+    },
+    "conditional-demo": {
+      "path": "public/math/reference.mjs",
+      "first": 18,
+      "last": 28,
+      "sha256": "b50c72b5e2812604e48f9bd565d51a490db2598a792fa9d7519895df76b83baf",
+      "href": "/math/code/public-math-reference.mjs.html#L18"
+    },
+    "sh-demo": {
+      "path": "public/math/reference.mjs",
+      "first": 29,
+      "last": 38,
+      "sha256": "b50c72b5e2812604e48f9bd565d51a490db2598a792fa9d7519895df76b83baf",
+      "href": "/math/code/public-math-reference.mjs.html#L29"
+    },
+    "sh-basis-full": {
+      "path": "public/math/sh.mjs",
+      "first": 19,
+      "last": 36,
+      "sha256": "e2cb85a24dcd0426062b2918baaf9928e5192f3989329f07bea1c0a17918d593",
+      "href": "/math/code/public-math-sh.mjs.html#L19"
+    },
+    "sh-color-full": {
+      "path": "public/math/sh.mjs",
+      "first": 37,
+      "last": 50,
+      "sha256": "e2cb85a24dcd0426062b2918baaf9928e5192f3989329f07bea1c0a17918d593",
+      "href": "/math/code/public-math-sh.mjs.html#L37"
+    },
+    "feature-demo": {
+      "path": "public/math/reference.mjs",
+      "first": 39,
+      "last": 49,
+      "sha256": "b50c72b5e2812604e48f9bd565d51a490db2598a792fa9d7519895df76b83baf",
+      "href": "/math/code/public-math-reference.mjs.html#L39"
+    },
+    "trace-gradient": {
+      "path": "public/math/trace.mjs",
+      "first": 110,
+      "last": 141,
+      "sha256": "c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c",
+      "href": "/math/code/public-math-trace.mjs.html#L110"
+    },
+    "trace-ply": {
+      "path": "public/math/trace.mjs",
+      "first": 151,
+      "last": 160,
+      "sha256": "c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c",
+      "href": "/math/code/public-math-trace.mjs.html#L151"
+    },
+    "trace-decode": {
+      "path": "public/math/trace.mjs",
+      "first": 42,
+      "last": 58,
+      "sha256": "c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c",
+      "href": "/math/code/public-math-trace.mjs.html#L42"
+    },
+    "trace-project": {
+      "path": "public/math/trace.mjs",
+      "first": 59,
+      "last": 67,
+      "sha256": "c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c",
+      "href": "/math/code/public-math-trace.mjs.html#L59"
+    },
+    "trace-forward": {
+      "path": "public/math/trace.mjs",
+      "first": 94,
+      "last": 109,
+      "sha256": "c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c",
+      "href": "/math/code/public-math-trace.mjs.html#L94"
+    },
+    "trace-loss": {
+      "path": "public/math/trace.mjs",
+      "first": 106,
+      "last": 107,
+      "sha256": "c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c",
+      "href": "/math/code/public-math-trace.mjs.html#L106"
+    },
+    "training-data": {
+      "path": "public/math/training.mjs",
+      "first": 10,
+      "last": 19,
+      "sha256": "b8db8cb6882aa0eb396960da6d96c852f2ac9a4744b956a53858db7197003b12",
+      "href": "/math/code/public-math-training.mjs.html#L10"
+    },
+    "training-batch": {
+      "path": "public/math/training.mjs",
+      "first": 20,
+      "last": 41,
+      "sha256": "b8db8cb6882aa0eb396960da6d96c852f2ac9a4744b956a53858db7197003b12",
+      "href": "/math/code/public-math-training.mjs.html#L20"
+    },
+    "training-step": {
+      "path": "public/math/training.mjs",
+      "first": 42,
+      "last": 50,
+      "sha256": "b8db8cb6882aa0eb396960da6d96c852f2ac9a4744b956a53858db7197003b12",
+      "href": "/math/code/public-math-training.mjs.html#L42"
+    }
+  }
+}

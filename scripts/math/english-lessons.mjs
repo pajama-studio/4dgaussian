@@ -1,0 +1,103 @@
+// Complete editorial translations. Mathematical expressions and source excerpts
+// are shared with Chinese so neither language can drift to different equations.
+// Fields: kind, goal, [step title, explanation][], example, [code explanation, mapping][],
+// pitfall, question, answer.
+export const englishLessons = {
+kernel: [
+  'Model definition → coordinate transformation',
+  'Why does a soft ellipsoid become the exponential of a negative quadratic form?',
+  [
+    ['Start with a number line','The center μ locates the peak. The scale s determines what counts as far away. Subtract the center and divide by the scale to get a dimensionless distance z. Changing centimeters to meters then leaves the shape unchanged.'],
+    ['Choose a smooth weight','We want a value of 1 at the center, symmetry on either side, and decreasing weight farther away. exp(−z²/2) has these properties. Choosing a Gaussian is a modeling decision: it is not the only possible function. The factor 1/2 is the convention that makes s the standard deviation.'],
+    ['Multiply the weights along three independent axes','Multiplying exponentials adds their exponents. Each local coordinate ξ is measured in its own scale. Positions with the same weight form an ellipsoid.'],
+    ['Allow the ellipsoid to rotate and move','The world-space offset is d=x−μ. The inverse rotation Rᵀ takes it into the ellipsoid’s own coordinates, ξ=Rᵀd. Write the three squared terms as a matrix product, then substitute ξ.'],
+    ['Name the middle matrix the inverse covariance','The inverse of a rotation is its transpose, and inverting a product reverses its order. The middle matrix is therefore exactly Σ⁻¹. This is just a compact version of the sum of squared, scaled coordinates.'],
+  ],
+  'Let μ=0, R=I, and scales be (2,1,1). The point (2,0,0) is exactly one long-axis scale from the center.',
+  [['The GPU ultimately evaluates the projected 2D kernel. local already accounts for subtracting the center, rotating, and dividing by scale; dot adds the squared components.','r² ↔ dot(input.local,input.local); G ↔ exp(power)']],
+  'This kernel peaks at 1. A probability density also needs a normalization constant, but splat brightness is controlled by opacity. Do not add that constant without changing the rendering model.',
+  'What is the weight at (4,0,0)?','The standardized distance is 2, so its square is 4. exp(−2)≈0.135335.',
+],
+activation: [
+  'Parameterization choice + solving an equation','How do arbitrary training parameters become valid scales and opacity?',
+  [
+    ['Give scale an always-positive output','The stored parameter ℓ may be negative, but exp(ℓ) is positive. Training optimizes ℓ; rendering decodes it into scale s.'],
+    ['Express opacity as odds','Assume 0<o<1. The ratio o/(1−o) ranges from zero to infinity. Taking its logarithm covers every real number; call that number the logit β.'],
+    ['Solve for o','Multiply by 1−o, expand, collect the terms containing o, and divide by their coefficient.'],
+    ['Activate once on each reading path','The PLY scale_* and opacity fields store raw parameters. The CPU decodes them for visibility checks; the GPU decodes the same raw values for drawing. These are parallel reads, not a second activation of the CPU’s decoded values.'],
+  ],
+  'To store opacity 0.8, write its logit rather than the number 0.8.',
+  [['r5.x holds the opacity logit; r5.yzw holds the three log-scales.','β ↔ splat.r5.x; ℓ₁..₃ ↔ splat.r5.yzw'],
+   ['The teaching trainer exports raw opacity logits and log-scales. RGB is passed through sigmoid before export, unlike opacity.','opacity ↔ rows[:,20]; log-scale ↔ rows[:,21:24]']],
+  'Mathematically, exp is always positive. Floating-point arithmetic can still overflow or underflow. The loader checks finite values, and temporal width also has a lower bound.',
+  'Does scale_0=0 mean zero size?','No. exp(0)=1, so it means a length scale of 1.',
+],
+covariance: [
+  'Algebraic identity','How do three oriented axes become a covariance matrix?',
+  [
+    ['Start with an unbiased sphere','Let a local random vector Z have mean zero, variance one along each axis, and uncorrelated components. Its covariance is I. Random variables help describe the shape; rendering does not need to sample them.'],
+    ['Stretch, rotate, then translate','S is the diagonal matrix of scales. X−μ=RSZ. Multiply this offset by its transpose and take the average. Constant matrices can move outside the expectation.'],
+    ['Write the columns explicitly','The kth column of A=RS is the kth rotation column multiplied by its scale. Each entry of AAᵀ sums products of the corresponding components of these columns.'],
+    ['Recover the outer-product sum and positive definiteness','The quadratic form along any direction v is a sum of three squares. With three positive scales, A is invertible: a nonzero v cannot make all three squares zero.'],
+  ],
+  'With no rotation and scales (2,1,3), the axes are (2,0,0), (0,1,0), and (0,0,3).',
+  [['axis0/1/2 are these three scaled axes. After projection, the same outer-product sum applies to 2D rather than 3D vectors.','a₁..₃ ↔ axis0/1/2'],
+   ['cov_a sums squared x components, cov_b sums xy products, and cov_c sums squared y components.','C₁₁,C₁₂,C₂₂ ↔ cov_a,cov_b,cov_c']],
+  'Covariance has units of length squared; scale has units of length. Putting s rather than s² on the covariance diagonal produces the wrong ellipsoid.',
+  'Does translating everything by 10 meters change Σ?','No. X and μ translate together, so X−μ is unchanged.',
+],
+quaternion: [
+  'An algebraic representation of rotation','How do four numbers produce the nine rotation terms in the shader?',
+  [
+    ['First define quaternion multiplication','Write a quaternion as (w,v), where v=(x,y,z). The rule below is the definition. The cross product a×b has components (a₂b₃−a₃b₂,a₃b₁−a₁b₃,a₁b₂−a₂b₁), so you can evaluate everything with ordinary arithmetic.'],
+    ['Use a unit quaternion to represent rotation','Require w²+x²+y²+z²=1. The inverse is its conjugate (w,−v). Embed a point p as (0,p), then rotate it with q(0,p)q⁻¹. Angle θ about unit axis n corresponds to q=(cos(θ/2),n sin(θ/2)); this defines the connection to geometric rotation.'],
+    ['Multiply again and expand the vector part','Apply the multiplication rule from step 1. The second line uses (v×p)×v=||v||²p−(v·p)v, which can be checked component by component. Each step is multiplication followed by collecting like terms.'],
+    ['Substitute each coordinate axis','For p=e₁, v×e₁=(0,z,−y); for e₂ it is (−z,0,x); for e₃ it is (y,−x,0). The three resulting vectors are the columns of the rotation matrix.'],
+    ['Use unit length to simplify the diagonal','For example, w²+x²=1−y²−z², so the first diagonal entry becomes 1−2(y²+z²). Simplify the other two in the same way to obtain the nine-term formula above.'],
+  ],
+  'For a 90° rotation about z, q=(√2/2,0,0,√2/2). The first axis points up and the second points left.',
+  [['With this page’s column-vector convention, axis0=s₁Re₁, axis1=s₂Re₂, and axis2=s₃Re₃. Comparing these vectors directly avoids the transposed matrix naming in the GLM reference.','q=(w,x,y,z) ↔ quaternion.xyzw; quaternion.x stores w']],
+  'The formula assumes a unit quaternion. q and −q describe the same rotation, but arbitrarily flipping an interpolation endpoint can change the path.',
+  'What does q=(1,0,0,0) produce?','All three axes remain unchanged: R=I.',
+],
+camera: [
+  'Changing coordinates + solving a linear equation','Why is the camera position different from the stored translation t?',
+  [
+    ['Move the camera to the origin','The camera’s world-space position is Cw. A point’s displacement from the camera is xw−Cw, not xw+Cw.'],
+    ['Rotate world directions into camera directions','Rcw expresses a world vector in camera coordinates. Expand the brackets and call the term independent of xw, tcw. The subscript cw means world to camera.'],
+    ['Solve for the camera center','Left-multiply by Rcwᵀ and use RᵀR=I. Alternatively, set the camera-space coordinates of the camera center to zero; the answer is the same.'],
+    ['Put it into the GPU’s homogeneous matrix','Append 1 to a point so translation applies; append 0 to a direction so it does not. The WebGPU host uses forward −Z and up +Y. Our hand calculation uses forward +Z and down +Y. B=diag(1,−1,−1) converts between these camera coordinates.'],
+  ],
+  'With no rotation, let the camera be at (2,0,0) and a world point at (3,1,5).',
+  [['The host supplies column-major view and projection matrices. view_projection=projection*view; a camera-to-world pose cannot be used directly as view.','R,t ↔ the upper-left 3×3 block and translation column of view'],
+   ['The teaching trainer fixes every camera rotation to I, so it only subtracts cameras. This simplification does not handle arbitrary extrinsics.','Cw ↔ cameras; xc ↔ xyz']],
+  'Column-major memory layout and column-vector geometry are different concepts. Check upload layout, multiplication order, and coordinate axes together.',
+  'If the camera moves right by 1, what happens to a stationary object’s camera-space x?','With no rotation, x decreases by 1, so the object moves left on screen.',
+],
+pinhole: [
+  'Similar triangles','Why does projecting a 3D point require division by depth z?',
+  [
+    ['Look at two similar triangles from the side','One triangle has horizontal side x and depth z. The image plane is f away, and the projected horizontal side is x′. The same ray gives the same side ratio. We place a virtual image plane in front, avoiding the inverted-image sign of physical film.'],
+    ['Convert lengths to pixels and add the principal point','If pixel width is ax, focal length in pixels is fx=f/ax. The optical axis meets the image at cx, usually near the center but not necessarily exactly half the image width.'],
+    ['Write it using homogeneous coordinates','First multiply by the intrinsic matrix K to get (fx x+cx z,fy y+cy z,z), then divide by the final component. The multiplication is linear; this final division is nonlinear.'],
+    ['Match pixel sample centers','Pixel indices are integers, but samples usually lie at index+0.5. Resizing the image also requires scaling fx,fy,cx,cy under the same coordinate convention. Lens distortion is omitted here.'],
+  ],
+  'Double depth to 20 while keeping x and y unchanged: the displacement from the principal point halves.',
+  [['The two entries of uv implement the pinhole formula. The trainer uses pixel-center samples to match the fixed graphics pipeline’s sampling convention.','fx=fy ↔ focal; cx ↔ width/2; cy ↔ height/2']],
+  'Points with z≤0 do not satisfy this forward-camera model; near-plane handling is also necessary. Perspective projection is not simply dropping z.',
+  'What happens if fx doubles while the principal point stays fixed?','Every horizontal displacement from the principal point doubles, producing horizontal magnification.',
+],
+jacobian: [
+  'Differentiate each input separately','Turn “a small motion changes how many pixels?” into a table.',
+  [
+    ['Change only x; hold y and z fixed','Substitute x+h into u, subtract the original u, and divide by h. cx cancels and the result is independent of h. v contains no x, so that entry in the second row is zero.'],
+    ['Change only y','Similarly, u does not depend on y, while v changes at rate fy/z.'],
+    ['Do not overlook depth','This time the denominator changes. Use a common denominator, cancel h, then take its limit toward zero. You cannot treat z as constant in this step.'],
+    ['Arrange the results into a 2×3 matrix','The first row belongs to u, the second to v; columns correspond to x,y,z. J maps a small 3D displacement to a pixel displacement. This is a first-order approximation around the center.'],
+  ],
+  'For f=100 and center (1,2,10), moving right by 0.01 moves the projection right by approximately 0.1 pixel.',
+  [['The six torch.stack entries match this matrix term by term. reshape(...,2,3) arranges those six numbers into two rows.','J ↔ jacobian; one matrix per batch item and Gaussian']],
+  'J has units of pixels per world length: f is in pixels and z is in world length. J is not the camera rotation matrix.',
+  'Why is the third column zero when x=y=0 on the optical axis?','Moving along the optical axis leaves the projected center at the principal point, although the projected size still changes.',
+],
+};

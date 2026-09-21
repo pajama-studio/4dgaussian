@@ -1,0 +1,51 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>public/math/reference.mjs · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>public/math/reference.mjs</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>b50c72b5e2812604e48f9bd565d51a490db2598a792fa9d7519895df76b83baf</code></p><p><a href="public-math-reference.mjs.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>// Teaching examples for OTHER representations. Not called by the STG-Lite pass.</span>
+<span id="L2"><a href="#L2" aria-label="Line 2">2</a>// Inputs use ordinary arrays and double precision; no model/checkpoint loader.</span>
+<span id="L3"><a href="#L3" aria-label="Line 3">3</a>function normalize(v) {</span>
+<span id="L4"><a href="#L4" aria-label="Line 4">4</a>  const length = Math.hypot(...v);</span>
+<span id="L5"><a href="#L5" aria-label="Line 5">5</a>  if (!(length &gt; 0)) throw new Error('Cannot normalize a zero vector');</span>
+<span id="L6"><a href="#L6" aria-label="Line 6">6</a>  return v.map(x =&gt; x / length);</span>
+<span id="L7"><a href="#L7" aria-label="Line 7">7</a>}</span>
+<span id="L8"><a href="#L8" aria-label="Line 8">8</a></span>
+<span id="L9"><a href="#L9" aria-label="Line 9">9</a>export function decodeDeformation(base, deltaPosition, deltaLogScale, deltaQuaternion) {</span>
+<span id="L10"><a href="#L10" aria-label="Line 10">10</a>  // Example choice of heads; not a claim about every deformation implementation.</span>
+<span id="L11"><a href="#L11" aria-label="Line 11">11</a>  return {</span>
+<span id="L12"><a href="#L12" aria-label="Line 12">12</a>    position: base.position.map((v, i) =&gt; v + deltaPosition[i]),</span>
+<span id="L13"><a href="#L13" aria-label="Line 13">13</a>    scale: base.logScale.map((v, i) =&gt; Math.exp(v + deltaLogScale[i])),</span>
+<span id="L14"><a href="#L14" aria-label="Line 14">14</a>    quaternion: normalize(base.quaternion.map((v, i) =&gt; v + deltaQuaternion[i])),</span>
+<span id="L15"><a href="#L15" aria-label="Line 15">15</a>  };</span>
+<span id="L16"><a href="#L16" aria-label="Line 16">16</a>}</span>
+<span id="L17"><a href="#L17" aria-label="Line 17">17</a></span>
+<span id="L18"><a href="#L18" aria-label="Line 18">18</a>export function condition4D(meanSpace, meanTime, A, b, c, time) {</span>
+<span id="L19"><a href="#L19" aria-label="Line 19">19</a>  if (!(c &gt; 0)) throw new Error('Time variance must be positive');</span>
+<span id="L20"><a href="#L20" aria-label="Line 20">20</a>  // Caller supplies a positive-definite joint covariance.</span>
+<span id="L21"><a href="#L21" aria-label="Line 21">21</a>  const dt = time - meanTime;</span>
+<span id="L22"><a href="#L22" aria-label="Line 22">22</a>  return {</span>
+<span id="L23"><a href="#L23" aria-label="Line 23">23</a>    mean: meanSpace.map((v, i) =&gt; v + b[i] * dt / c),</span>
+<span id="L24"><a href="#L24" aria-label="Line 24">24</a>    covariance: A.map((row, i) =&gt; row.map((v, j) =&gt; v - b[i] * b[j] / c)),</span>
+<span id="L25"><a href="#L25" aria-label="Line 25">25</a>    timeWeight: Math.exp(-0.5 * dt * dt / c),</span>
+<span id="L26"><a href="#L26" aria-label="Line 26">26</a>  };</span>
+<span id="L27"><a href="#L27" aria-label="Line 27">27</a>}</span>
+<span id="L28"><a href="#L28" aria-label="Line 28">28</a></span>
+<span id="L29"><a href="#L29" aria-label="Line 29">29</a>export function evaluateSH1(coefficients, direction) {</span>
+<span id="L30"><a href="#L30" aria-label="Line 30">30</a>  // Four RGB coefficients, Graphdeco real-SH signs/order. Raw sum, no +0.5/clamp.</span>
+<span id="L31"><a href="#L31" aria-label="Line 31">31</a>  const [x, y, z] = normalize(direction);</span>
+<span id="L32"><a href="#L32" aria-label="Line 32">32</a>  const c0 = 1 / Math.sqrt(4 * Math.PI);</span>
+<span id="L33"><a href="#L33" aria-label="Line 33">33</a>  const c1 = Math.sqrt(3 / (4 * Math.PI));</span>
+<span id="L34"><a href="#L34" aria-label="Line 34">34</a>  const basis = [c0, -c1 * y, c1 * z, -c1 * x];</span>
+<span id="L35"><a href="#L35" aria-label="Line 35">35</a>  return [0, 1, 2].map(channel =&gt;</span>
+<span id="L36"><a href="#L36" aria-label="Line 36">36</a>    basis.reduce((sum, value, index) =&gt; sum + value * coefficients[index][channel], 0));</span>
+<span id="L37"><a href="#L37" aria-label="Line 37">37</a>}</span>
+<span id="L38"><a href="#L38" aria-label="Line 38">38</a></span>
+<span id="L39"><a href="#L39" aria-label="Line 39">39</a>export function compositeFeatures(alphas, features, background) {</span>
+<span id="L40"><a href="#L40" aria-label="Line 40">40</a>  // Near to far; any feature dimension, including ordinary RGB.</span>
+<span id="L41"><a href="#L41" aria-label="Line 41">41</a>  const result = background.map(() =&gt; 0);</span>
+<span id="L42"><a href="#L42" aria-label="Line 42">42</a>  let transmittance = 1;</span>
+<span id="L43"><a href="#L43" aria-label="Line 43">43</a>  for (let i = 0; i &lt; alphas.length; i++) {</span>
+<span id="L44"><a href="#L44" aria-label="Line 44">44</a>    for (let d = 0; d &lt; result.length; d++) {</span>
+<span id="L45"><a href="#L45" aria-label="Line 45">45</a>      result[d] += transmittance * alphas[i] * features[i][d];</span>
+<span id="L46"><a href="#L46" aria-label="Line 46">46</a>    }</span>
+<span id="L47"><a href="#L47" aria-label="Line 47">47</a>    transmittance *= 1 - alphas[i];</span>
+<span id="L48"><a href="#L48" aria-label="Line 48">48</a>  }</span>
+<span id="L49"><a href="#L49" aria-label="Line 49">49</a>  return result.map((v, d) =&gt; v + transmittance * background[d]);</span>
+<span id="L50"><a href="#L50" aria-label="Line 50">50</a>}</span>
+<span id="L51"><a href="#L51" aria-label="Line 51">51</a></span></code></pre></main></body></html>

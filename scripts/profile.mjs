@@ -1,8 +1,9 @@
 import { chromium } from "playwright";
+import { browserOptions } from "./browser-options.mjs";
 
 const url = process.argv[2] || "http://127.0.0.1:4175";
 const frames = Number(process.argv[3] || 300);
-const browser = await chromium.launch({ headless: true, args: ["--enable-unsafe-webgpu", "--use-angle=metal"] });
+const browser = await chromium.launch(browserOptions);
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
 const errors = [];
 page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
@@ -29,6 +30,8 @@ const sort = samples.map(sample => sample.sortMs);
 const gpuRender = samples.map(sample => sample.gpuRenderMs).filter(value => value >= 0);
 const frameIntervals = samples.slice(1).map((sample, index) => sample.at - samples[index].at);
 const report = {
+  platform: process.platform,
+  browserVersion: browser.version(),
   url,
   samples: samples.length,
   source: samples.at(-1).source,

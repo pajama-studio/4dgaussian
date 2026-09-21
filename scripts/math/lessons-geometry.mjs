@@ -1,0 +1,62 @@
+import { lesson as L, step as S, codeLink as C } from './lesson-format.mjs';
+
+export const geometryLessons = {
+  kernel: L('模型定义 → 坐标变换', '为什么一团软椭球会写成“负的二次型的指数”？', ['vectors','matrices','exp'], [
+    S('先只画一条数轴', '中心 μ 决定最高点在哪里。尺度 s 决定多远算“远”。先减中心，再除尺度，得到没有单位的距离 z；这样厘米和米不会改变形状。', "z=\\frac{x-\\mu}{s},\\qquad z^2=\\frac{(x-\\mu)^2}{s^2}"),
+    S('选择一个平滑的权重', '我们希望中心为 1、两侧对称、越远越小。exp(−z²/2) 满足这些要求。选 Gaussian 是建模选择，并非这些要求只允许这一种函数；1/2 是让 s 对应标准差的常用约定。', "g(x)=e^{-z^2/2},\\qquad g(\\mu)=1,\\qquad g(\\mu+s)=e^{-1/2}"),
+    S('把三条独立轴的权重相乘', '指数相乘就是指数相加。三维局部坐标 ξ 的每一维都按自己的尺度计量；等权重的位置形成椭球。', "G=\\prod_{k=1}^3 e^{-\\xi_k^2/(2s_k^2)}=\\exp\\left[-\\frac12\\left(\\frac{\\xi_1^2}{s_1^2}+\\frac{\\xi_2^2}{s_2^2}+\\frac{\\xi_3^2}{s_3^2}\\right)\\right]"),
+    S('让椭球可以旋转和移动', '世界偏移 d=x−μ。用逆旋转 Rᵀ 把它转回椭球自己的坐标，ξ=Rᵀd。把三个平方写成矩阵乘法，再把 ξ 代进去。', "\\xi=R^T\\mathbf d,\\quad G=\\exp\\left[-\\frac12\\mathbf d^T R\\operatorname{diag}(s_1^{-2},s_2^{-2},s_3^{-2})R^T\\mathbf d\\right]"),
+    S('把中间那张表命名为逆协方差', '旋转的逆是转置，乘积求逆要倒序。因此括号中恰好是 Σ 的逆。这只是前面逐项平方相加的紧凑写法。', "\\Sigma=R\\operatorname{diag}(s_1^2,s_2^2,s_3^2)R^T,\\qquad G=e^{-\\frac12(\\mathbf x-\\mu)^T\\Sigma^{-1}(\\mathbf x-\\mu)}"),
+  ], ['取 μ=0、R=I、尺度 (2,1,1)，点 (2,0,0) 刚好离中心一个“长轴尺度”。', "r^2=2^2/2^2=1,\\qquad G=e^{-1/2}=0.60653066"],
+  [C('fragment','GPU 最终评估的是投影后的二维核。local 已经完成“减中心、旋转、除尺度”；dot 就是平方相加。','r² ↔ dot(input.local,input.local)；G ↔ exp(power)')],
+  '这是峰值为 1 的核。概率密度还需要归一化常数，但这里的亮度由 opacity 控制，不能随手补那个常数。', '点改成 (4,0,0)，权重是多少？', '标准化距离变成 2，平方为 4；exp(−2)≈0.135335。'),
+  activation: L('参数化选择 + 解方程', '训练得到任意实数，怎么保证尺度和 opacity 合法？', ['exp'], [
+    S('给尺度一个总为正的出口', '原始参数 ℓ 可以是负数；exp(ℓ) 总是正数。训练优化 ℓ，渲染再解码成尺度 s。', "s=e^\\ell>0,\\qquad \\ell=\\ln s"),
+    S('把 opacity 变成胜算', '先假设 0<o<1。比值 o/(1−o) 从 0 到无穷大；对它取 ln 后能覆盖所有实数，把这个数叫 logit β。', "\\beta=\\ln\\frac{o}{1-o}\\quad\\Longrightarrow\\quad e^\\beta=\\frac{o}{1-o}"),
+    S('把 o 单独解出来', '两边乘 1−o，展开，再把含 o 的项移到同一侧，最后除以系数。', "e^\\beta-e^\\beta o=o\\ \\Longrightarrow\\ e^\\beta=o(1+e^\\beta)\\ \\Longrightarrow\\ o=\\frac{e^\\beta}{1+e^\\beta}=\\frac1{1+e^{-\\beta}}"),
+    S('从文件到 GPU，只激活一次', 'PLY 的 scale_*、opacity 保存原始值。CPU 为可见性判断解码；GPU 从同一份原始值解码用于绘制。它们是两条并行读取路线，不是把 CPU 已激活的值再激活一次。', "\\ell=\\ln 2\\Rightarrow s=2,\\qquad \\beta=0\\Rightarrow o=\\frac12"),
+  ], ['保存 0.8 的 opacity 时应写 logit，而不是直接写 0.8。', "\\beta=\\ln(0.8/0.2)=\\ln4\\approx1.386294,\\qquad \\operatorname{sigmoid}(\\ln4)=0.8"],
+  [C('activation','r5.x 是 opacity logit；r5.yzw 是三个 log-scale。','β ↔ splat.r5.x；ℓ₁..₃ ↔ splat.r5.yzw'), C('export','教学训练器直接导出 opacity logit 和 log-scale；RGB 在导出前先 sigmoid，和 opacity 不同。','opacity ↔ rows[:,20]；log-scale ↔ rows[:,21:24]')],
+  '数学上 exp 总为正，浮点上仍会溢出或下溢。当前 loader 检查有限值；时间尺度另设最小值。', 'scale_0=0 表示零尺寸吗？', '不是。exp(0)=1；它表示长度尺度 1。'),
+  covariance: L('代数恒等式', '怎样从三条有方向的轴得到一张协方差表？', ['matrices','statistics'], [
+    S('从一个没有偏好的小球开始', '设局部随机向量 Z 的均值为 0，三维方差均为 1，互不相关。它的协方差就是 I。这里随机变量只是帮助描述形状，渲染时不需要随机采样。', "\\mathbb E[Z]=0,\\qquad \\mathbb E[ZZ^T]=I"),
+    S('先拉伸，再旋转，最后平移', 'S 是三个尺度组成的对角矩阵。X−μ=RSZ。把偏移和自己的转置相乘，再求平均；固定矩阵可移到平均之外。', "X=\\mu+RSZ,\\quad \\Sigma=\\mathbb E[(RSZ)(RSZ)^T]=RS\\,\\mathbb E[ZZ^T]\\,S^TR^T=RS^2R^T"),
+    S('把矩阵的列写出来', 'A=RS 的第 k 列就是旋转的第 k 列乘尺度。矩阵乘法 AAᵀ 的每个元素是各列对应分量的乘积之和。', "A=[\\mathbf a_1\\ \\mathbf a_2\\ \\mathbf a_3],\\quad \\mathbf a_k=s_k\\mathbf r_k,\\quad \\Sigma_{ij}=\\sum_{k=1}^3 a_{k,i}a_{k,j}"),
+    S('得到轴外积求和，也解释正定', '任意方向 v 的二次型是三个平方的和；三个正尺度对应可逆的 A，非零 v 不可能三个平方都为 0。', "\\Sigma=\\sum_k\\mathbf a_k\\mathbf a_k^T,\\qquad \\mathbf v^T\\Sigma\\mathbf v=\\sum_k(\\mathbf a_k^T\\mathbf v)^2>0\\quad(\\mathbf v\\ne0)"),
+  ], ['不旋转、尺度 (2,1,3)，三条轴分别为 (2,0,0)、(0,1,0)、(0,0,3)。', "\\Sigma=\\operatorname{diag}(4,1,9)"],
+  [C('axes','axis0/1/2 是这三条缩放后的轴。投影后仍按同样的外积规则累加，只是向量从三维变成二维。','a₁..₃ ↔ axis0/1/2'), C('covariance','cov_a 是所有 x 分量平方之和；cov_b 是 xy 乘积之和；cov_c 是所有 y 分量平方之和。','C₁₁,C₁₂,C₂₂ ↔ cov_a,cov_b,cov_c')],
+  '协方差的单位是长度平方；尺度是长度。把 s 直接放到协方差对角线会把椭球画错。', '整体位置平移 10 米会改变 Σ 吗？', '不会。X 和 μ 一起平移，X−μ 不变。'),
+  quaternion: L('旋转的代数表示', '为什么四个数能变成 shader 里的九个旋转项？', ['vectors','matrices'], [
+    S('先约定四元数如何相乘', '四元数记为 (w,v)，其中 v=(x,y,z)。下面的规则是定义。叉积 a×b 的三个分量依次为 (a₂b₃−a₃b₂,a₃b₁−a₁b₃,a₁b₂−a₂b₁)，可直接代数计算。', "(a,\\mathbf u)(b,\\mathbf v)=(ab-\\mathbf u^T\\mathbf v,\\ a\\mathbf v+b\\mathbf u+\\mathbf u\\times\\mathbf v)"),
+    S('用单位四元数表示旋转', '令 w²+x²+y²+z²=1；逆四元数就是共轭 (w,−v)。把待旋转的点 p 装成 (0,p)，用 q(0,p)q⁻¹ 旋转。角度 θ、单位轴 n 对应 q=(cos(θ/2),n sin(θ/2))；这一步定义了它与几何旋转的联系。', "q(0,\\mathbf p)=(-\\mathbf v^T\\mathbf p,\\ w\\mathbf p+\\mathbf v\\times\\mathbf p),\\qquad q^{-1}=(w,-\\mathbf v)"),
+    S('再乘一次，把向量部分展开', '用第一步的乘法规则，得到下式。第二行用叉积逐分量可验证的恒等式 (v×p)×v=||v||²p−(v·p)v；每一步只是乘法与合并同类项。', "\\begin{aligned}\\mathbf p^{\\prime}&=(\\mathbf v^T\\mathbf p)\\mathbf v+w^2\\mathbf p+w(\\mathbf v\\times\\mathbf p)-w(\\mathbf p\\times\\mathbf v)-(\\mathbf v\\times\\mathbf p)\\times\\mathbf v\\\\&=(w^2-\\|\\mathbf v\\|^2)\\mathbf p+2\\mathbf v(\\mathbf v^T\\mathbf p)+2w(\\mathbf v\\times\\mathbf p)\\end{aligned}"),
+    S('把三个坐标轴分别代进去', 'p=e₁ 时 v×e₁=(0,z,−y)；p=e₂ 时为 (−z,0,x)；p=e₃ 时为 (y,−x,0)。这三次计算的结果就是旋转矩阵的三列。', "\\begin{aligned}Re_1&=(w^2+x^2-y^2-z^2,\\ 2xy+2wz,\\ 2xz-2wy)^T\\\\Re_2&=(2xy-2wz,\\ w^2-x^2+y^2-z^2,\\ 2yz+2wx)^T\\\\Re_3&=(2xz+2wy,\\ 2yz-2wx,\\ w^2-x^2-y^2+z^2)^T\\end{aligned}"),
+    S('用单位长度替换对角项', '例如 w²+x²=1−y²−z²，因此第一个对角元素变成 1−2(y²+z²)。另外两个完全同理，得到上面的九项公式。', "w^2+x^2-y^2-z^2=1-2(y^2+z^2)"),
+  ], ['绕 z 轴转 90°：q=(√2/2,0,0,√2/2)。第一条轴向上，第二条轴向左。', "R=\\begin{bmatrix}0&-1&0\\\\1&0&0\\\\0&0&1\\end{bmatrix},\\qquad R(1,0,0)^T=(0,1,0)^T"],
+  [C('axes','按本页的列向量约定，axis0 是 s₁Re₁，axis1 是 s₂Re₂，axis2 是 s₃Re₃。直接比较这三条轴，可避开 GLM 参考代码对矩阵命名的转置差异。','q=(w,x,y,z) ↔ quaternion.xyzw；注意 quaternion.x 存 w')],
+  '单位四元数才满足本页公式。q 和 −q 表示同一旋转，但任意翻转插值端点的符号可能改变插值路径。', 'q=(1,0,0,0) 得到什么？', '三个轴原样输出，R=I。'),
+  camera: L('换坐标 + 解一次方程', '为什么相机位置不是文件中的平移 t？', ['matrices'], [
+    S('先把相机搬到原点', '相机在世界中的位置为 Cw。一个点相对相机的位移是 xw−Cw，而不是 xw+Cw。', "\\mathbf d_w=\\mathbf x_w-\\mathbf C_w"),
+    S('再把世界方向转到相机方向', 'Rcw 把世界向量表示成相机坐标。展开括号，把不含 xw 的项叫 tcw。下标 cw 表示从 world 到 camera。', "\\mathbf x_c=R_{cw}(\\mathbf x_w-\\mathbf C_w)=R_{cw}\\mathbf x_w-R_{cw}\\mathbf C_w,\\qquad \\mathbf t_{cw}=-R_{cw}\\mathbf C_w"),
+    S('反解相机中心', '两边左乘 Rcwᵀ，利用 RᵀR=I；或令相机中心在相机坐标中等于 0，都能得到同一结果。', "R_{cw}^T\\mathbf t_{cw}=-\\mathbf C_w\\quad\\Longrightarrow\\quad\\mathbf C_w=-R_{cw}^T\\mathbf t_{cw}"),
+    S('放入 GPU 使用的四维表格', '点的末尾写 1，平移会生效；方向末尾写 0，平移不会生效。WebGPU 宿主使用相机前方 −Z、上方 +Y；本页手算使用前方 +Z、下方 +Y。两者的相机坐标可用 B=diag(1,−1,−1) 转换。', "V=\\begin{bmatrix}R&t\\\\0&1\\end{bmatrix},\\qquad V\\begin{bmatrix}x\\\\1\\end{bmatrix}=\\begin{bmatrix}Rx+t\\\\1\\end{bmatrix},\\qquad B=\\operatorname{diag}(1,-1,-1)"),
+  ], ['无旋转，相机在 (2,0,0)，世界点在 (3,1,5)。', "\\mathbf t=(-2,0,0)^T,\\qquad \\mathbf x_c=(3,1,5)^T+(-2,0,0)^T=(1,1,5)^T"],
+  [C('host-camera','宿主传入列主序的 view 和 projection。view_projection=projection*view；不能直接把 camera→world pose 当 view。','R,t ↔ view 的左上 3×3 与平移列'), C('toy-project','教学训练器的相机旋转恒为 I，所以这里只减 cameras。这个简化不能替代任意相机外参。','Cw ↔ cameras；xc ↔ xyz')],
+  '内存列主序和几何使用列向量是两个概念；上传顺序、乘法次序、坐标轴必须一起核对。', '相机向右移动 1，静止物体的相机 x 怎样变化？', '无旋转时减小 1，所以屏幕上向左移。'),
+  pinhole: L('相似三角形', '三维点为什么要除以深度 z？', ['vectors'], [
+    S('从侧面看两只相似三角形', '一只三角形的横边为 x、纵边为 z；图像平面距离为 f，投影横边为 x′。相同射线给出相同的边长比。我们把成像平面放在前方，因此不用物理底片的倒像符号。', "\\frac{x^{\\prime}}f=\\frac xz\\quad\\Longrightarrow\\quad x^{\\prime}=f\\frac xz"),
+    S('从长度换成像素，再加主点', '像素宽为 ax，焦距 f/ax 就是 fx。光轴打到图像上的位置是主点 cx，通常在图像附近中心，但不必恰好等于宽度的一半。', "f_x=\\frac f{a_x},\\qquad u=f_x\\frac xz+c_x,\\qquad v=f_y\\frac yz+c_y"),
+    S('用齐次坐标统一写法', '先乘内参矩阵 K，得到 (fx x+cx z, fy y+cy z,z)，再除以最后一项。乘法是线性的，最后这次除法是非线性的。', "K\\mathbf x_c=\\begin{bmatrix}f_x&0&c_x\\\\0&f_y&c_y\\\\0&0&1\\end{bmatrix}\\begin{bmatrix}x\\\\y\\\\z\\end{bmatrix}=\\begin{bmatrix}f_xx+c_xz\\\\f_yy+c_yz\\\\z\\end{bmatrix}"),
+    S('对应屏幕像素中心', '像素索引是整数，但采样位置通常是整数加 0.5。图像宽高缩放时 fx、fy、cx、cy 也必须按相同坐标约定缩放。这里忽略镜头畸变。', "f_x=f_y=100,\\ (c_x,c_y)=(64,48),\\ (x,y,z)=(1,2,10)\\Rightarrow(u,v)=(74,68)"),
+  ], ['深度变成 20，x 和 y 不变：偏离主点的距离减半。', "(u,v)=(100/20+64,\\ 200/20+48)=(69,58)"],
+  [C('toy-project','uv 的两项正是针孔公式。训练器用像素中心网格，和固定图形管线的采样位置衔接。','fx=fy ↔ focal；cx ↔ width/2；cy ↔ height/2')],
+  'z≤0 的点不满足这套前向成像条件；近平面也需要处理。透视投影不是简单丢掉 z。', 'fx 增加一倍，主点不变时会怎样？', '所有点相对主点的横向距离增加一倍，看起来放大。'),
+  jacobian: L('逐项求偏导', '把“移动一点点，会挪多少像素”写成一张表。', ['derivatives','matrices'], [
+    S('只改 x，锁住 y 和 z', '将 x+h 代入 u，再减原来的 u，除以 h。cx 抵消，答案与 h 无关。v 不含 x，所以第二行这一项为 0。', "\\frac{u(x+h,y,z)-u(x,y,z)}h=\\frac{f_xh/z}h=\\frac{f_x}z,\\qquad \\frac{\\partial v}{\\partial x}=0"),
+    S('只改 y', '同理，u 不含 y；v 的变化率为 fy/z。', "\\frac{\\partial u}{\\partial y}=0,\\qquad \\frac{\\partial v}{\\partial y}=\\frac{f_y}z"),
+    S('最容易漏掉的是深度', '这次分母变了。先通分，再约掉 h，最后取 h 接近 0 的极限。不要把 z 当常数带进这一步。', "\\frac{f_xx/(z+h)-f_xx/z}{h}=\\frac{f_xx[z-(z+h)]}{hz(z+h)}=-\\frac{f_xx}{z(z+h)}\\to-\\frac{f_xx}{z^2}"),
+    S('把两组结果排成 2×3', '第一行对应 u，第二行对应 v；三列依次对应 x,y,z。小位移 δx 经 J 变成像素位移，这只是中心附近的一阶近似。', "J=\\begin{bmatrix}f_x/z&0&-f_xx/z^2\\\\0&f_y/z&-f_yy/z^2\\end{bmatrix},\\qquad \\delta\\mathbf p\\approx J\\delta\\mathbf x_c"),
+  ], ['f=100、中心 (1,2,10)，只向右移动 0.01：屏幕约向右 0.1 像素。', "J=\\begin{bmatrix}10&0&-1\\\\0&10&-2\\end{bmatrix},\\quad J(0.01,0,0)^T=(0.1,0)^T"],
+  [C('toy-project','torch.stack 的六项逐项对应这张表，reshape(...,2,3) 是把最后六个数排成两行。','J ↔ jacobian；每个 batch、每个 Gaussian 各有一张表')],
+  'J 的单位为像素/世界长度；f 是像素，z 是世界长度。它不是相机旋转矩阵。', '位于光轴 x=y=0 时，J 的第三列为什么全是 0？', '沿光轴前后移动，投影中心仍是主点；但投影大小仍会变化。'),
+};

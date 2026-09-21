@@ -1,0 +1,197 @@
+[
+  {
+    "id": "kernel",
+    "title": "三维 Gaussian 核",
+    "latex": "G(\\mathbf{x})=\\exp\\!\\left[-\\frac12(\\mathbf{x}-\\boldsymbol\\mu)^T\\boldsymbol\\Sigma^{-1}(\\mathbf{x}-\\boldsymbol\\mu)\\right]"
+  },
+  {
+    "id": "activation",
+    "title": "存储参数 → 有效参数",
+    "latex": "s_k=e^{\\ell_k},\\qquad o=\\operatorname{sigmoid}(\\beta)=\\frac1{1+e^{-\\beta}}"
+  },
+  {
+    "id": "covariance",
+    "title": "协方差的安全参数化",
+    "latex": "\\boldsymbol\\Sigma=\\mathbf R\\operatorname{diag}(s_1^2,s_2^2,s_3^2)\\mathbf R^T=\\sum_{k=1}^{3}\\mathbf a_k\\mathbf a_k^T,\\quad\\mathbf a_k=s_k\\mathbf r_k"
+  },
+  {
+    "id": "quaternion",
+    "title": "单位四元数与旋转矩阵",
+    "latex": "\\hat q=(w,x,y,z),\\quad\\|\\hat q\\|=1,\\quad R(\\hat q)=\\begin{bmatrix}1-2(y^2+z^2)&2(xy-wz)&2(xz+wy)\\\\2(xy+wz)&1-2(x^2+z^2)&2(yz-wx)\\\\2(xz-wy)&2(yz+wx)&1-2(x^2+y^2)\\end{bmatrix}"
+  },
+  {
+    "id": "camera",
+    "title": "世界 → 相机",
+    "latex": "\\mathbf x_c=\\mathbf R_{cw}\\mathbf x_w+\\mathbf t_{cw},\\qquad \\mathbf C_w=-\\mathbf R_{cw}^{T}\\mathbf t_{cw}"
+  },
+  {
+    "id": "pinhole",
+    "title": "针孔投影",
+    "latex": "\\pi(x,y,z)=\\begin{bmatrix}f_xx/z+c_x\\\\f_yy/z+c_y\\end{bmatrix},\\qquad z>0"
+  },
+  {
+    "id": "jacobian",
+    "title": "对投影求偏导",
+    "latex": "\\mathbf J=\\frac{\\partial\\pi}{\\partial\\mathbf x_c}=\\begin{bmatrix}f_x/z&0&-f_xx/z^2\\\\0&f_y/z&-f_yy/z^2\\end{bmatrix}"
+  },
+  {
+    "id": "covariance-proof",
+    "title": "先证明线性变换的协方差",
+    "latex": "\\mathbf Y=\\mathbf A\\mathbf X+\\mathbf b\\ \\Longrightarrow\\ \\operatorname{Cov}(\\mathbf Y)=\\mathbb E[\\mathbf A(\\mathbf X-\\boldsymbol\\mu)(\\mathbf X-\\boldsymbol\\mu)^T\\mathbf A^T]=\\mathbf A\\boldsymbol\\Sigma\\mathbf A^T"
+  },
+  {
+    "id": "projected-covariance",
+    "title": "一阶线性化与屏幕协方差",
+    "latex": "\\pi(\\mathbf X)\\approx\\pi(\\boldsymbol\\mu_c)+\\mathbf J(\\mathbf X-\\boldsymbol\\mu_c),\\quad \\mathbf C=\\mathbf J\\mathbf R_{cw}\\boldsymbol\\Sigma\\mathbf R_{cw}^T\\mathbf J^T+\\varepsilon\\mathbf I_2"
+  },
+  {
+    "id": "homogeneous-derivative",
+    "title": "与 WGSL 对齐的齐次坐标导数",
+    "latex": "D\\!\\left(\\frac{\\mathbf h_{xy}}{h_w}\\right)[\\delta\\mathbf h]=\\frac{\\delta\\mathbf h_{xy}h_w-\\mathbf h_{xy}\\delta h_w}{h_w^2}"
+  },
+  {
+    "id": "conic",
+    "title": "2×2 协方差的逆",
+    "latex": "\\mathbf C=\\begin{bmatrix}a&b\\\\b&c\\end{bmatrix},\\quad \\mathbf Q=\\mathbf C^{-1}=\\frac1{ac-b^2}\\begin{bmatrix}c&-b\\\\-b&a\\end{bmatrix}"
+  },
+  {
+    "id": "pixel-weight",
+    "title": "Mahalanobis 距离与像素 alpha",
+    "latex": "\\mathbf d=\\mathbf p-\\boldsymbol\\mu_{2D},\\quad r^2=\\mathbf d^T\\mathbf Q\\mathbf d,\\quad\\alpha(\\mathbf p,t)=o(t)e^{-r^2/2}"
+  },
+  {
+    "id": "eigenvalues",
+    "title": "椭圆主轴与标准差",
+    "latex": "\\lambda_\\pm=\\frac{a+c\\pm\\sqrt{(a-c)^2+4b^2}}2,\\qquad r_\\pm=k\\sqrt{\\lambda_\\pm}"
+  },
+  {
+    "id": "support",
+    "title": "由 alpha 阈值推覆盖范围",
+    "latex": "o(t)e^{-r^2/2}\\ge\\alpha_{\\min}\\ \\Longrightarrow\\ r^2\\le2\\log\\frac{o(t)}{\\alpha_{\\min}}"
+  },
+  {
+    "id": "transmittance",
+    "title": "前向透射率",
+    "latex": "T_i=\\prod_{j<i}(1-\\alpha_j),\\qquad T_1=1"
+  },
+  {
+    "id": "composite",
+    "title": "最终像素颜色，包含背景",
+    "latex": "\\mathbf C_{pixel}=\\sum_{i=1}^{N}T_i\\alpha_i\\mathbf c_i+T_{N+1}\\mathbf c_{bg}"
+  },
+  {
+    "id": "premultiplied",
+    "title": "远→近的预乘 over 操作",
+    "latex": "\\widetilde{\\mathbf c}_{out}=\\alpha_s\\mathbf c_s+(1-\\alpha_s)\\widetilde{\\mathbf c}_{dst}"
+  },
+  {
+    "id": "volume-bridge",
+    "title": "与体渲染的联系",
+    "latex": "T(s)=\\exp\\!\\left[-\\int_{s_0}^{s}\\sigma(u)\\,du\\right],\\qquad\\alpha_i=1-e^{-\\sigma_i\\Delta s_i}"
+  },
+  {
+    "id": "time-domain",
+    "title": "物理秒与模型时间",
+    "latex": "t=\\frac{s-s_0}{D},\\qquad \\Delta t=t-\\tau"
+  },
+  {
+    "id": "temporal-rbf",
+    "title": "STG-Lite 的时间核",
+    "latex": "\\rho=e^{\\ell_\\tau},\\quad w(t)=\\exp\\!\\left[-\\left(\\frac{t-\\tau}{\\rho}\\right)^2\\right],\\quad o(t)=\\operatorname{sigmoid}(\\beta)w(t)"
+  },
+  {
+    "id": "trajectory",
+    "title": "三次运动轨迹",
+    "latex": "\\boldsymbol\\mu(t)=\\boldsymbol\\mu_0+\\mathbf m_1\\Delta t+\\mathbf m_2\\Delta t^2+\\mathbf m_3\\Delta t^3"
+  },
+  {
+    "id": "velocity",
+    "title": "速度取决于时间单位",
+    "latex": "\\frac{d\\boldsymbol\\mu}{dt}=\\mathbf m_1+2\\mathbf m_2\\Delta t+3\\mathbf m_3\\Delta t^2,\\qquad\\frac{d\\boldsymbol\\mu}{ds}=\\frac1D\\frac{d\\boldsymbol\\mu}{dt}"
+  },
+  {
+    "id": "rotation-time",
+    "title": "四元数的一阶时间模型",
+    "latex": "\\mathbf u(t)=\\mathbf q_0+\\Delta t\\boldsymbol\\omega,\\qquad \\mathbf q(t)=\\frac{\\mathbf u(t)}{\\|\\mathbf u(t)\\|}"
+  },
+  {
+    "id": "normalization-gradient",
+    "title": "归一化的 Jacobian",
+    "latex": "\\frac{\\partial\\mathbf q}{\\partial\\mathbf u}=\\frac{\\mathbf I_4-\\mathbf q\\mathbf q^T}{\\|\\mathbf u\\|},\\qquad\\frac{d\\mathbf q}{dt}=\\frac{\\mathbf I_4-\\mathbf q\\mathbf q^T}{\\|\\mathbf u\\|}\\boldsymbol\\omega"
+  },
+  {
+    "id": "deformation",
+    "title": "参数形变的概念接口",
+    "latex": "\\Delta\\mathcal G_i(t)=\\mathcal F_\\theta(\\mathcal G_i^0,t),\\qquad \\mathcal G_i(t)=\\operatorname{Decode}(\\mathcal G_i^0,\\Delta\\mathcal G_i(t))"
+  },
+  {
+    "id": "four-dimensional",
+    "title": "四维联合协方差的分块",
+    "latex": "\\mathbf z=\\begin{bmatrix}\\mathbf x\\\\t\\end{bmatrix},\\quad\\boldsymbol\\mu_4=\\begin{bmatrix}\\boldsymbol\\mu_x\\\\\\mu_t\\end{bmatrix},\\quad\\boldsymbol\\Sigma_4=\\begin{bmatrix}\\mathbf A&\\mathbf b\\\\\\mathbf b^T&c\\end{bmatrix}\\succ0"
+  },
+  {
+    "id": "conditional",
+    "title": "条件 Gaussian：均值与 Schur 补",
+    "latex": "\\boldsymbol\\mu_{x\\mid t}=\\boldsymbol\\mu_x+\\mathbf b c^{-1}(t-\\mu_t),\\qquad\\boldsymbol\\Sigma_{x\\mid t}=\\mathbf A-\\mathbf b c^{-1}\\mathbf b^T"
+  },
+  {
+    "id": "four-factorization",
+    "title": "空间条件核 × 时间边缘核",
+    "latex": "G_4(\\mathbf x,t)=G_{x\\mid t}(\\mathbf x)\\,\\exp\\!\\left[-\\frac{(t-\\mu_t)^2}{2c}\\right]"
+  },
+  {
+    "id": "conditional-example",
+    "title": "一个可手算的条件化例子",
+    "latex": "\\mathbf A=\\operatorname{diag}(2,1,1),\\quad\\mathbf b=(1,0,0)^T,\\quad c=1\\ \\Longrightarrow\\ \\boldsymbol\\Sigma_{x\\mid t}=\\mathbf I_3"
+  },
+  {
+    "id": "spherical-harmonics",
+    "title": "静态 3DGS 常用的方向外观",
+    "latex": "\\mathbf c_i(\\mathbf v)=\\sum_{\\ell=0}^{L}\\sum_{m=-\\ell}^{\\ell}\\mathbf a_{i\\ell m}Y_{\\ell m}(\\mathbf v)"
+  },
+  {
+    "id": "feature-splatting",
+    "title": "先合成特征，再解码",
+    "latex": "\\mathbf F(\\mathbf p,t)=\\sum_iT_i\\alpha_i\\mathbf f_i(t),\\qquad\\mathbf C=\\mathcal D_\\theta(\\mathbf F,\\text{view inputs})"
+  },
+  {
+    "id": "objective",
+    "title": "常见的 photometric 目标",
+    "latex": "\\mathcal L=(1-\\lambda)\\frac{\\|\\widehat I-I\\|_1}{M}+\\lambda(1-\\operatorname{SSIM}(\\widehat I,I))+\\mathcal R(\\theta)"
+  },
+  {
+    "id": "mean-gradient",
+    "title": "Gaussian 核对投影均值的梯度",
+    "latex": "\\nabla_{\\boldsymbol\\mu_{2D}}\\alpha=\\alpha\\mathbf Q\\mathbf d"
+  },
+  {
+    "id": "cov-gradient",
+    "title": "对屏幕协方差的梯度",
+    "latex": "\\frac{\\partial\\alpha}{\\partial\\mathbf C}=\\frac\\alpha2\\mathbf Q\\mathbf d\\mathbf d^T\\mathbf Q"
+  },
+  {
+    "id": "opacity-gradient",
+    "title": "对 opacity logit 的梯度",
+    "latex": "\\frac{\\partial\\alpha}{\\partial\\beta}=\\alpha\\,[1-\\operatorname{sigmoid}(\\beta)]"
+  },
+  {
+    "id": "full-chain",
+    "title": "位置梯度不只有投影均值这一条路",
+    "latex": "\\nabla_{\\boldsymbol\\mu_c}\\mathcal L=\\mathbf J^T\\nabla_{\\boldsymbol\\mu_{2D}}\\mathcal L+\\left(\\frac{\\partial\\operatorname{vec}\\mathbf C}{\\partial\\boldsymbol\\mu_c}\\right)^T\\nabla_{\\operatorname{vec}\\mathbf C}\\mathcal L"
+  },
+  {
+    "id": "composite-gradient",
+    "title": "合成对 alpha 与颜色的梯度",
+    "latex": "\\frac{\\partial\\mathbf C}{\\partial\\alpha_i}=T_i(\\mathbf c_i-\\mathbf B_i),\\qquad\\frac{\\partial\\mathbf C}{\\partial\\mathbf c_i}=T_i\\alpha_i\\mathbf I_3"
+  },
+  {
+    "id": "time-gradient",
+    "title": "时间核与运动系数的导数",
+    "latex": "\\frac{dw}{dt}=-\\frac{2\\Delta t}{\\rho^2}w,\\qquad\\frac{\\partial w}{\\partial\\ell_\\tau}=\\frac{2\\Delta t^2}{\\rho^2}w,\\qquad\\frac{\\partial\\boldsymbol\\mu}{\\partial\\mathbf m_k}=\\Delta t^k\\mathbf I_3"
+  },
+  {
+    "id": "finite-difference",
+    "title": "用有限差分检验一个梯度",
+    "latex": "\\frac{\\partial\\mathcal L}{\\partial\\theta_k}\\approx\\frac{\\mathcal L(\\theta+h\\mathbf e_k)-\\mathcal L(\\theta-h\\mathbf e_k)}{2h}"
+  }
+]

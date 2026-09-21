@@ -1,0 +1,162 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>public/math/trace.mjs · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>public/math/trace.mjs</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>c1369ede9a2303a9d1f39f73bfd50b1bb9b7e14ad689308f8388033f77f18a2c</code></p><p><a href="public-math-trace.mjs.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>// Executable single-pixel lesson: STG-Lite fields -&gt; time -&gt; ellipse -&gt; pixel -&gt;</span>
+<span id="L2"><a href="#L2" aria-label="Line 2">2</a>// ordered over -&gt; MSE -&gt; analytic gradient -&gt; SGD -&gt; the same 32-float PLY.</span>
+<span id="L3"><a href="#L3" aria-label="Line 3">3</a>// Independent CPU arithmetic, not a WebGPU renderer or the official STG trainer.</span>
+<span id="L4"><a href="#L4" aria-label="Line 4">4</a>export const properties = (</span>
+<span id="L5"><a href="#L5" aria-label="Line 5">5</a>  'x y z trbf_center trbf_scale nx ny nz ' +</span>
+<span id="L6"><a href="#L6" aria-label="Line 6">6</a>  'motion_0 motion_1 motion_2 motion_3 motion_4 motion_5 motion_6 motion_7 motion_8 ' +</span>
+<span id="L7"><a href="#L7" aria-label="Line 7">7</a>  'f_dc_0 f_dc_1 f_dc_2 opacity scale_0 scale_1 scale_2 ' +</span>
+<span id="L8"><a href="#L8" aria-label="Line 8">8</a>  'rot_0 rot_1 rot_2 rot_3 omega_0 omega_1 omega_2 omega_3'</span>
+<span id="L9"><a href="#L9" aria-label="Line 9">9</a>).split(' ');</span>
+<span id="L10"><a href="#L10" aria-label="Line 10">10</a>export const camera = { focal: 100, width: 128, height: 96, cx: 64, cy: 48 };</span>
+<span id="L11"><a href="#L11" aria-label="Line 11">11</a>export const background = [0.04, 0.05, 0.08];</span>
+<span id="L12"><a href="#L12" aria-label="Line 12">12</a>export const target = [0.45, 0.18, 0.22];</span>
+<span id="L13"><a href="#L13" aria-label="Line 13">13</a>export const defaults = { time: 0.5, pixel: [74.5, 68.5], rate: 0.5 };</span>
+<span id="L14"><a href="#L14" aria-label="Line 14">14</a>export const dot = (a, b) =&gt; a.reduce((sum, v, i) =&gt; sum + v * b[i], 0);</span>
+<span id="L15"><a href="#L15" aria-label="Line 15">15</a>export const transpose = a =&gt; a[0].map((_, j) =&gt; a.map(row =&gt; row[j]));</span>
+<span id="L16"><a href="#L16" aria-label="Line 16">16</a>export const multiply = (a, b) =&gt; a.map(row =&gt; transpose(b).map(col =&gt; dot(row, col)));</span>
+<span id="L17"><a href="#L17" aria-label="Line 17">17</a>const outer = a =&gt; a.map(v =&gt; a.map(w =&gt; v * w));</span>
+<span id="L18"><a href="#L18" aria-label="Line 18">18</a>const matrixVector = (a, v) =&gt; a.map(row =&gt; dot(row, v));</span>
+<span id="L19"><a href="#L19" aria-label="Line 19">19</a>const sigmoid = v =&gt; 1 / (1 + Math.exp(-v));</span>
+<span id="L20"><a href="#L20" aria-label="Line 20">20</a>const plus = (a, b) =&gt; a.map((v, i) =&gt; v + b[i]);</span>
+<span id="L21"><a href="#L21" aria-label="Line 21">21</a>const scaled = (a, s) =&gt; a.map(v =&gt; v * s);</span>
+<span id="L22"><a href="#L22" aria-label="Line 22">22</a></span>
+<span id="L23"><a href="#L23" aria-label="Line 23">23</a>export function initialRecords() {</span>
+<span id="L24"><a href="#L24" aria-label="Line 24">24</a>  const a = Array(32).fill(0), b = Array(32).fill(0);</span>
+<span id="L25"><a href="#L25" aria-label="Line 25">25</a>  for (const row of [a, b]) {</span>
+<span id="L26"><a href="#L26" aria-label="Line 26">26</a>    row[3] = 0.5; row[4] = Math.log(0.55);</span>
+<span id="L27"><a href="#L27" aria-label="Line 27">27</a>    row.splice(21, 3, ...[0.20, 0.12, 0.10].map(Math.log));</span>
+<span id="L28"><a href="#L28" aria-label="Line 28">28</a>    row[24] = 1;</span>
+<span id="L29"><a href="#L29" aria-label="Line 29">29</a>  }</span>
+<span id="L30"><a href="#L30" aria-label="Line 30">30</a>  a.splice(0, 3, 1, 2, 10);</span>
+<span id="L31"><a href="#L31" aria-label="Line 31">31</a>  a.splice(8, 9, 2, 0, 0, 0, 4, 0, 0, 0, 8);</span>
+<span id="L32"><a href="#L32" aria-label="Line 32">32</a>  a.splice(17, 3, 0.9, 0.2, 0.1); a[20] = Math.log(4);</span>
+<span id="L33"><a href="#L33" aria-label="Line 33">33</a>  // Thirty degrees around Z, with a small four-dimensional coefficient velocity.</span>
+<span id="L34"><a href="#L34" aria-label="Line 34">34</a>  a.splice(24, 4, Math.cos(Math.PI / 12), 0, 0, Math.sin(Math.PI / 12));</span>
+<span id="L35"><a href="#L35" aria-label="Line 35">35</a>  a[31] = 0.2;</span>
+<span id="L36"><a href="#L36" aria-label="Line 36">36</a>  b.splice(0, 3, 1.12, 2.04, 11);</span>
+<span id="L37"><a href="#L37" aria-label="Line 37">37</a>  b.splice(8, 3, -0.2, 0.1, 0);</span>
+<span id="L38"><a href="#L38" aria-label="Line 38">38</a>  b.splice(17, 3, 0.1, 0.3, 0.9); b[20] = 0;</span>
+<span id="L39"><a href="#L39" aria-label="Line 39">39</a>  return [a, b];</span>
+<span id="L40"><a href="#L40" aria-label="Line 40">40</a>}</span>
+<span id="L41"><a href="#L41" aria-label="Line 41">41</a></span>
+<span id="L42"><a href="#L42" aria-label="Line 42">42</a>export function evaluateRecord(row, time, pixel) {</span>
+<span id="L43"><a href="#L43" aria-label="Line 43">43</a>  const dt = time - row[3], rho = Math.max(Math.exp(row[4]), 1e-6);</span>
+<span id="L44"><a href="#L44" aria-label="Line 44">44</a>  const temporal = Math.exp(-((dt / rho) ** 2));</span>
+<span id="L45"><a href="#L45" aria-label="Line 45">45</a>  const mean = row.slice(0, 3).map((v, i) =&gt;</span>
+<span id="L46"><a href="#L46" aria-label="Line 46">46</a>    v + row[8 + i] * dt + row[11 + i] * dt ** 2 + row[14 + i] * dt ** 3);</span>
+<span id="L47"><a href="#L47" aria-label="Line 47">47</a>  const u = row.slice(24, 28).map((v, i) =&gt; v + dt * row[28 + i]);</span>
+<span id="L48"><a href="#L48" aria-label="Line 48">48</a>  const norm = Math.hypot(...u);</span>
+<span id="L49"><a href="#L49" aria-label="Line 49">49</a>  if (!(norm &gt; 0)) throw new Error('Undefined quaternion');</span>
+<span id="L50"><a href="#L50" aria-label="Line 50">50</a>  const q = u.map(v =&gt; v / norm), [w, x, y, z] = q;</span>
+<span id="L51"><a href="#L51" aria-label="Line 51">51</a>  const scales = row.slice(21, 24).map(Math.exp);</span>
+<span id="L52"><a href="#L52" aria-label="Line 52">52</a>  // Columns of the active, right-handed rotation, exactly as splat.wgsl axes.</span>
+<span id="L53"><a href="#L53" aria-label="Line 53">53</a>  const axes = [</span>
+<span id="L54"><a href="#L54" aria-label="Line 54">54</a>    [1 - 2 * (y*y + z*z), 2 * (x*y + w*z), 2 * (x*z - w*y)],</span>
+<span id="L55"><a href="#L55" aria-label="Line 55">55</a>    [2 * (x*y - w*z), 1 - 2 * (x*x + z*z), 2 * (y*z + w*x)],</span>
+<span id="L56"><a href="#L56" aria-label="Line 56">56</a>    [2 * (x*z + w*y), 2 * (y*z - w*x), 1 - 2 * (x*x + y*y)],</span>
+<span id="L57"><a href="#L57" aria-label="Line 57">57</a>  ].map((axis, i) =&gt; scaled(axis, scales[i]));</span>
+<span id="L58"><a href="#L58" aria-label="Line 58">58</a>  const sigma = axes.map(outer).reduce((a, b) =&gt; a.map((row, i) =&gt; plus(row, b[i])));</span>
+<span id="L59"><a href="#L59" aria-label="Line 59">59</a>  const [mx, my, mz] = mean, f = camera.focal;</span>
+<span id="L60"><a href="#L60" aria-label="Line 60">60</a>  if (!(mz &gt; 0)) throw new Error('Teaching camera requires positive depth');</span>
+<span id="L61"><a href="#L61" aria-label="Line 61">61</a>  const uv = [f * mx / mz + camera.cx, f * my / mz + camera.cy];</span>
+<span id="L62"><a href="#L62" aria-label="Line 62">62</a>  const J = [[f / mz, 0, -f * mx / mz ** 2], [0, f / mz, -f * my / mz ** 2]];</span>
+<span id="L63"><a href="#L63" aria-label="Line 63">63</a>  const projectedAxes = axes.map(axis =&gt; matrixVector(J, axis));</span>
+<span id="L64"><a href="#L64" aria-label="Line 64">64</a>  const covariance = multiply(multiply(J, sigma), transpose(J))</span>
+<span id="L65"><a href="#L65" aria-label="Line 65">65</a>    .map((row, i) =&gt; row.map((v, j) =&gt; v + (i === j ? 0.3 : 0)));</span>
+<span id="L66"><a href="#L66" aria-label="Line 66">66</a>  const [[a, b], [, c]] = covariance, determinant = a*c - b*b;</span>
+<span id="L67"><a href="#L67" aria-label="Line 67">67</a>  const inverse = [[c / determinant, -b / determinant], [-b / determinant, a / determinant]];</span>
+<span id="L68"><a href="#L68" aria-label="Line 68">68</a>  const delta = pixel.map((v, i) =&gt; v - uv[i]);</span>
+<span id="L69"><a href="#L69" aria-label="Line 69">69</a>  const qd = matrixVector(inverse, delta);</span>
+<span id="L70"><a href="#L70" aria-label="Line 70">70</a>  const radiusSquared = dot(delta, qd), spatial = Math.exp(-0.5 * radiusSquared);</span>
+<span id="L71"><a href="#L71" aria-label="Line 71">71</a>  const baseOpacity = sigmoid(row[20]), rawAlpha = baseOpacity * temporal * spatial;</span>
+<span id="L72"><a href="#L72" aria-label="Line 72">72</a>  const discriminant = Math.sqrt((a-c)**2 + 4*b*b);</span>
+<span id="L73"><a href="#L73" aria-label="Line 73">73</a>  const eigenvalues = [(a+c+discriminant)/2, (a+c-discriminant)/2];</span>
+<span id="L74"><a href="#L74" aria-label="Line 74">74</a>  let major = [1, 0];</span>
+<span id="L75"><a href="#L75" aria-label="Line 75">75</a>  if (Math.abs(b) &gt; 1e-5) {</span>
+<span id="L76"><a href="#L76" aria-label="Line 76">76</a>    major = [b, Math.max(0.1, eigenvalues[0])-a];</span>
+<span id="L77"><a href="#L77" aria-label="Line 77">77</a>    major = scaled(major, 1 / Math.hypot(...major));</span>
+<span id="L78"><a href="#L78" aria-label="Line 78">78</a>  } else if (c &gt; a) major = [0, 1];</span>
+<span id="L79"><a href="#L79" aria-label="Line 79">79</a>  const minor = [-major[1], major[0]];</span>
+<span id="L80"><a href="#L80" aria-label="Line 80">80</a>  const deviations = eigenvalues.map(v =&gt; Math.min(Math.sqrt(Math.max(0.1, v)), 192));</span>
+<span id="L81"><a href="#L81" aria-label="Line 81">81</a>  // Teaching coordinates are downwards; simultaneous Y reflection leaves r² unchanged.</span>
+<span id="L82"><a href="#L82" aria-label="Line 82">82</a>  const local = [dot(delta, major) / deviations[0], dot(delta, minor) / deviations[1]];</span>
+<span id="L83"><a href="#L83" aria-label="Line 83">83</a>  const covered = local.every(v =&gt; Math.abs(v) &lt;= 3);</span>
+<span id="L84"><a href="#L84" aria-label="Line 84">84</a>  const capped = Math.min(0.99, rawAlpha);</span>
+<span id="L85"><a href="#L85" aria-label="Line 85">85</a>  const alpha = covered &amp;&amp; capped &gt;= 1/255 ? capped : 0;</span>
+<span id="L86"><a href="#L86" aria-label="Line 86">86</a>  return { dt, rho, temporal, mean, q, scales, axes, sigma, J, projectedAxes, uv,</span>
+<span id="L87"><a href="#L87" aria-label="Line 87">87</a>    covariance, determinant, inverse, delta, qd, radiusSquared, spatial,</span>
+<span id="L88"><a href="#L88" aria-label="Line 88">88</a>    baseOpacity, rawAlpha, eigenvalues, local, covered, alpha,</span>
+<span id="L89"><a href="#L89" aria-label="Line 89">89</a>    branch: !covered ? 'quad 外：不产生片元' : capped &lt; 1/255 ? 'alpha 低于阈值：丢弃' :</span>
+<span id="L90"><a href="#L90" aria-label="Line 90">90</a>      rawAlpha &gt;= 0.99 ? 'alpha 上限生效' : '光滑区间',</span>
+<span id="L91"><a href="#L91" aria-label="Line 91">91</a>    color: row.slice(17, 20).map(v =&gt; Math.max(0, Math.min(1, v))) };</span>
+<span id="L92"><a href="#L92" aria-label="Line 92">92</a>}</span>
+<span id="L93"><a href="#L93" aria-label="Line 93">93</a></span>
+<span id="L94"><a href="#L94" aria-label="Line 94">94</a>export function forward(records, time = defaults.time, pixel = defaults.pixel, options = {}) {</span>
+<span id="L95"><a href="#L95" aria-label="Line 95">95</a>  const expected = options.target ?? target;</span>
+<span id="L96"><a href="#L96" aria-label="Line 96">96</a>  const splats = records.map((row, id) =&gt; ({ id, ...evaluateRecord(row, time, pixel) }))</span>
+<span id="L97"><a href="#L97" aria-label="Line 97">97</a>    .sort((a, b) =&gt; a.mean[2] - b.mean[2]);</span>
+<span id="L98"><a href="#L98" aria-label="Line 98">98</a>  let remaining = 1, color = [0, 0, 0];</span>
+<span id="L99"><a href="#L99" aria-label="Line 99">99</a>  for (const splat of splats) {</span>
+<span id="L100"><a href="#L100" aria-label="Line 100">100</a>    splat.transmittance = remaining;</span>
+<span id="L101"><a href="#L101" aria-label="Line 101">101</a>    splat.contribution = scaled(splat.color, remaining * splat.alpha);</span>
+<span id="L102"><a href="#L102" aria-label="Line 102">102</a>    color = plus(color, splat.contribution);</span>
+<span id="L103"><a href="#L103" aria-label="Line 103">103</a>    remaining *= 1 - splat.alpha;</span>
+<span id="L104"><a href="#L104" aria-label="Line 104">104</a>  }</span>
+<span id="L105"><a href="#L105" aria-label="Line 105">105</a>  color = plus(color, scaled(background, remaining));</span>
+<span id="L106"><a href="#L106" aria-label="Line 106">106</a>  const error = color.map((v, i) =&gt; v - expected[i]);</span>
+<span id="L107"><a href="#L107" aria-label="Line 107">107</a>  return { splats, remaining, color, target: [...expected], loss: dot(error, error) / 3 };</span>
+<span id="L108"><a href="#L108" aria-label="Line 108">108</a>}</span>
+<span id="L109"><a href="#L109" aria-label="Line 109">109</a></span>
+<span id="L110"><a href="#L110" aria-label="Line 110">110</a>export function gradient(records, parameter, time = defaults.time, pixel = defaults.pixel, options = {}) {</span>
+<span id="L111"><a href="#L111" aria-label="Line 111">111</a>  // Differentiate record A, while holding the visibility/sort branches fixed.</span>
+<span id="L112"><a href="#L112" aria-label="Line 112">112</a>  // Supported fields: base mean x/y/z or opacity logit. Scales/rotation remain fixed.</span>
+<span id="L113"><a href="#L113" aria-label="Line 113">113</a>  if (![0, 1, 2, 20].includes(parameter)) throw new Error('Unsupported teaching parameter');</span>
+<span id="L114"><a href="#L114" aria-label="Line 114">114</a>  const result = forward(records, time, pixel, options);</span>
+<span id="L115"><a href="#L115" aria-label="Line 115">115</a>  const index = result.splats.findIndex(s =&gt; s.id === 0), s = result.splats[index];</span>
+<span id="L116"><a href="#L116" aria-label="Line 116">116</a>  let tail = [...background];</span>
+<span id="L117"><a href="#L117" aria-label="Line 117">117</a>  for (let j = result.splats.length - 1; j &gt; index; j--) {</span>
+<span id="L118"><a href="#L118" aria-label="Line 118">118</a>    const layer = result.splats[j];</span>
+<span id="L119"><a href="#L119" aria-label="Line 119">119</a>    tail = plus(scaled(layer.color, layer.alpha), scaled(tail, 1-layer.alpha));</span>
+<span id="L120"><a href="#L120" aria-label="Line 120">120</a>  }</span>
+<span id="L121"><a href="#L121" aria-label="Line 121">121</a>  const colorSlope = scaled(s.color.map((v, i) =&gt; v - tail[i]), s.transmittance);</span>
+<span id="L122"><a href="#L122" aria-label="Line 122">122</a>  const lossColorSlope = result.color.map((v, i) =&gt; 2 * (v-result.target[i]) / 3);</span>
+<span id="L123"><a href="#L123" aria-label="Line 123">123</a>  const lossAlphaSlope = dot(lossColorSlope, colorSlope);</span>
+<span id="L124"><a href="#L124" aria-label="Line 124">124</a>  let meanPath = 0, covariancePath = 0, opacityPath = 0;</span>
+<span id="L125"><a href="#L125" aria-label="Line 125">125</a>  if (s.branch === '光滑区间') {</span>
+<span id="L126"><a href="#L126" aria-label="Line 126">126</a>    if (parameter === 20) opacityPath = s.alpha * (1-s.baseOpacity);</span>
+<span id="L127"><a href="#L127" aria-label="Line 127">127</a>    else {</span>
+<span id="L128"><a href="#L128" aria-label="Line 128">128</a>      const [x, y, z] = s.mean, f = camera.focal;</span>
+<span id="L129"><a href="#L129" aria-label="Line 129">129</a>      const dJ = parameter === 0 ? [[0, 0, -f/z**2], [0, 0, 0]] :</span>
+<span id="L130"><a href="#L130" aria-label="Line 130">130</a>        parameter === 1 ? [[0, 0, 0], [0, 0, -f/z**2]] :</span>
+<span id="L131"><a href="#L131" aria-label="Line 131">131</a>        [[-f/z**2, 0, 2*f*x/z**3], [0, -f/z**2, 2*f*y/z**3]];</span>
+<span id="L132"><a href="#L132" aria-label="Line 132">132</a>      const left = multiply(multiply(dJ, s.sigma), transpose(s.J));</span>
+<span id="L133"><a href="#L133" aria-label="Line 133">133</a>      const right = multiply(multiply(s.J, s.sigma), transpose(dJ));</span>
+<span id="L134"><a href="#L134" aria-label="Line 134">134</a>      const dC = left.map((row, i) =&gt; plus(row, right[i]));</span>
+<span id="L135"><a href="#L135" aria-label="Line 135">135</a>      meanPath = s.alpha * dot(s.qd, s.J.map(row =&gt; row[parameter]));</span>
+<span id="L136"><a href="#L136" aria-label="Line 136">136</a>      covariancePath = s.alpha / 2 * dot(s.qd, matrixVector(dC, s.qd));</span>
+<span id="L137"><a href="#L137" aria-label="Line 137">137</a>    }</span>
+<span id="L138"><a href="#L138" aria-label="Line 138">138</a>  }</span>
+<span id="L139"><a href="#L139" aria-label="Line 139">139</a>  const alphaSlope = meanPath + covariancePath + opacityPath;</span>
+<span id="L140"><a href="#L140" aria-label="Line 140">140</a>  const analytic = lossAlphaSlope * alphaSlope;</span>
+<span id="L141"><a href="#L141" aria-label="Line 141">141</a>  const finite = (options.finite === false ? [] : [1e-4, 1e-5, 1e-6]).map(h =&gt; {</span>
+<span id="L142"><a href="#L142" aria-label="Line 142">142</a>    const plusRecords = records.map(row =&gt; [...row]), minusRecords = records.map(row =&gt; [...row]);</span>
+<span id="L143"><a href="#L143" aria-label="Line 143">143</a>    plusRecords[0][parameter] += h; minusRecords[0][parameter] -= h;</span>
+<span id="L144"><a href="#L144" aria-label="Line 144">144</a>    const value = (forward(plusRecords, time, pixel, options).loss - forward(minusRecords, time, pixel, options).loss) / (2*h);</span>
+<span id="L145"><a href="#L145" aria-label="Line 145">145</a>    return { h, value, error: Math.abs(value-analytic) };</span>
+<span id="L146"><a href="#L146" aria-label="Line 146">146</a>  });</span>
+<span id="L147"><a href="#L147" aria-label="Line 147">147</a>  return { result, tail, colorSlope, lossColorSlope, lossAlphaSlope, meanPath, covariancePath,</span>
+<span id="L148"><a href="#L148" aria-label="Line 148">148</a>    opacityPath, alphaSlope, analytic, finite };</span>
+<span id="L149"><a href="#L149" aria-label="Line 149">149</a>}</span>
+<span id="L150"><a href="#L150" aria-label="Line 150">150</a></span>
+<span id="L151"><a href="#L151" aria-label="Line 151">151</a>export function encodePly(records) {</span>
+<span id="L152"><a href="#L152" aria-label="Line 152">152</a>  const header = new TextEncoder().encode(</span>
+<span id="L153"><a href="#L153" aria-label="Line 153">153</a>    'ply\nformat binary_little_endian 1.0\nelement vertex ' + records.length + '\n' +</span>
+<span id="L154"><a href="#L154" aria-label="Line 154">154</a>    properties.map(name =&gt; 'property float ' + name + '\n').join('') + 'end_header\n');</span>
+<span id="L155"><a href="#L155" aria-label="Line 155">155</a>  const output = new Uint8Array(header.length + records.length * 32 * 4);</span>
+<span id="L156"><a href="#L156" aria-label="Line 156">156</a>  output.set(header);</span>
+<span id="L157"><a href="#L157" aria-label="Line 157">157</a>  const view = new DataView(output.buffer);</span>
+<span id="L158"><a href="#L158" aria-label="Line 158">158</a>  records.forEach((row, i) =&gt; row.forEach((value, j) =&gt;</span>
+<span id="L159"><a href="#L159" aria-label="Line 159">159</a>    view.setFloat32(header.length + (i * 32 + j) * 4, value, true)));</span>
+<span id="L160"><a href="#L160" aria-label="Line 160">160</a>  return output;</span>
+<span id="L161"><a href="#L161" aria-label="Line 161">161</a>}</span>
+<span id="L162"><a href="#L162" aria-label="Line 162">162</a></span></code></pre></main></body></html>

@@ -1,0 +1,1868 @@
+{
+  "kernel": {
+    "kind": "模型定义 → 坐标变换",
+    "goal": "为什么一团软椭球会写成“负的二次型的指数”？",
+    "prerequisites": [
+      "vectors",
+      "matrices",
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "先只画一条数轴",
+        "why": "中心 μ 决定最高点在哪里。尺度 s 决定多远算“远”。先减中心，再除尺度，得到没有单位的距离 z；这样厘米和米不会改变形状。",
+        "source": "z=\\frac{x-\\mu}{s},\\qquad z^2=\\frac{(x-\\mu)^2}{s^2}"
+      },
+      {
+        "title": "选择一个平滑的权重",
+        "why": "我们希望中心为 1、两侧对称、越远越小。exp(−z²/2) 满足这些要求。选 Gaussian 是建模选择，并非这些要求只允许这一种函数；1/2 是让 s 对应标准差的常用约定。",
+        "source": "g(x)=e^{-z^2/2},\\qquad g(\\mu)=1,\\qquad g(\\mu+s)=e^{-1/2}"
+      },
+      {
+        "title": "把三条独立轴的权重相乘",
+        "why": "指数相乘就是指数相加。三维局部坐标 ξ 的每一维都按自己的尺度计量；等权重的位置形成椭球。",
+        "source": "G=\\prod_{k=1}^3 e^{-\\xi_k^2/(2s_k^2)}=\\exp\\left[-\\frac12\\left(\\frac{\\xi_1^2}{s_1^2}+\\frac{\\xi_2^2}{s_2^2}+\\frac{\\xi_3^2}{s_3^2}\\right)\\right]"
+      },
+      {
+        "title": "让椭球可以旋转和移动",
+        "why": "世界偏移 d=x−μ。用逆旋转 Rᵀ 把它转回椭球自己的坐标，ξ=Rᵀd。把三个平方写成矩阵乘法，再把 ξ 代进去。",
+        "source": "\\xi=R^T\\mathbf d,\\quad G=\\exp\\left[-\\frac12\\mathbf d^T R\\operatorname{diag}(s_1^{-2},s_2^{-2},s_3^{-2})R^T\\mathbf d\\right]"
+      },
+      {
+        "title": "把中间那张表命名为逆协方差",
+        "why": "旋转的逆是转置，乘积求逆要倒序。因此括号中恰好是 Σ 的逆。这只是前面逐项平方相加的紧凑写法。",
+        "source": "\\Sigma=R\\operatorname{diag}(s_1^2,s_2^2,s_3^2)R^T,\\qquad G=e^{-\\frac12(\\mathbf x-\\mu)^T\\Sigma^{-1}(\\mathbf x-\\mu)}"
+      }
+    ],
+    "example": [
+      "取 μ=0、R=I、尺度 (2,1,1)，点 (2,0,0) 刚好离中心一个“长轴尺度”。",
+      "r^2=2^2/2^2=1,\\qquad G=e^{-1/2}=0.60653066"
+    ],
+    "code": [
+      {
+        "id": "fragment",
+        "explanation": "GPU 最终评估的是投影后的二维核。local 已经完成“减中心、旋转、除尺度”；dot 就是平方相加。",
+        "symbols": "r² ↔ dot(input.local,input.local)；G ↔ exp(power)"
+      }
+    ],
+    "pitfall": "这是峰值为 1 的核。概率密度还需要归一化常数，但这里的亮度由 opacity 控制，不能随手补那个常数。",
+    "question": "点改成 (4,0,0)，权重是多少？",
+    "answer": "标准化距离变成 2，平方为 4；exp(−2)≈0.135335。"
+  },
+  "activation": {
+    "kind": "参数化选择 + 解方程",
+    "goal": "训练得到任意实数，怎么保证尺度和 opacity 合法？",
+    "prerequisites": [
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "给尺度一个总为正的出口",
+        "why": "原始参数 ℓ 可以是负数；exp(ℓ) 总是正数。训练优化 ℓ，渲染再解码成尺度 s。",
+        "source": "s=e^\\ell>0,\\qquad \\ell=\\ln s"
+      },
+      {
+        "title": "把 opacity 变成胜算",
+        "why": "先假设 0<o<1。比值 o/(1−o) 从 0 到无穷大；对它取 ln 后能覆盖所有实数，把这个数叫 logit β。",
+        "source": "\\beta=\\ln\\frac{o}{1-o}\\quad\\Longrightarrow\\quad e^\\beta=\\frac{o}{1-o}"
+      },
+      {
+        "title": "把 o 单独解出来",
+        "why": "两边乘 1−o，展开，再把含 o 的项移到同一侧，最后除以系数。",
+        "source": "e^\\beta-e^\\beta o=o\\ \\Longrightarrow\\ e^\\beta=o(1+e^\\beta)\\ \\Longrightarrow\\ o=\\frac{e^\\beta}{1+e^\\beta}=\\frac1{1+e^{-\\beta}}"
+      },
+      {
+        "title": "从文件到 GPU，只激活一次",
+        "why": "PLY 的 scale_*、opacity 保存原始值。CPU 为可见性判断解码；GPU 从同一份原始值解码用于绘制。它们是两条并行读取路线，不是把 CPU 已激活的值再激活一次。",
+        "source": "\\ell=\\ln 2\\Rightarrow s=2,\\qquad \\beta=0\\Rightarrow o=\\frac12"
+      }
+    ],
+    "example": [
+      "保存 0.8 的 opacity 时应写 logit，而不是直接写 0.8。",
+      "\\beta=\\ln(0.8/0.2)=\\ln4\\approx1.386294,\\qquad \\operatorname{sigmoid}(\\ln4)=0.8"
+    ],
+    "code": [
+      {
+        "id": "activation",
+        "explanation": "r5.x 是 opacity logit；r5.yzw 是三个 log-scale。",
+        "symbols": "β ↔ splat.r5.x；ℓ₁..₃ ↔ splat.r5.yzw"
+      },
+      {
+        "id": "export",
+        "explanation": "教学训练器直接导出 opacity logit 和 log-scale；RGB 在导出前先 sigmoid，和 opacity 不同。",
+        "symbols": "opacity ↔ rows[:,20]；log-scale ↔ rows[:,21:24]"
+      }
+    ],
+    "pitfall": "数学上 exp 总为正，浮点上仍会溢出或下溢。当前 loader 检查有限值；时间尺度另设最小值。",
+    "question": "scale_0=0 表示零尺寸吗？",
+    "answer": "不是。exp(0)=1；它表示长度尺度 1。"
+  },
+  "covariance": {
+    "kind": "代数恒等式",
+    "goal": "怎样从三条有方向的轴得到一张协方差表？",
+    "prerequisites": [
+      "matrices",
+      "statistics"
+    ],
+    "steps": [
+      {
+        "title": "从一个没有偏好的小球开始",
+        "why": "设局部随机向量 Z 的均值为 0，三维方差均为 1，互不相关。它的协方差就是 I。这里随机变量只是帮助描述形状，渲染时不需要随机采样。",
+        "source": "\\mathbb E[Z]=0,\\qquad \\mathbb E[ZZ^T]=I"
+      },
+      {
+        "title": "先拉伸，再旋转，最后平移",
+        "why": "S 是三个尺度组成的对角矩阵。X−μ=RSZ。把偏移和自己的转置相乘，再求平均；固定矩阵可移到平均之外。",
+        "source": "X=\\mu+RSZ,\\quad \\Sigma=\\mathbb E[(RSZ)(RSZ)^T]=RS\\,\\mathbb E[ZZ^T]\\,S^TR^T=RS^2R^T"
+      },
+      {
+        "title": "把矩阵的列写出来",
+        "why": "A=RS 的第 k 列就是旋转的第 k 列乘尺度。矩阵乘法 AAᵀ 的每个元素是各列对应分量的乘积之和。",
+        "source": "A=[\\mathbf a_1\\ \\mathbf a_2\\ \\mathbf a_3],\\quad \\mathbf a_k=s_k\\mathbf r_k,\\quad \\Sigma_{ij}=\\sum_{k=1}^3 a_{k,i}a_{k,j}"
+      },
+      {
+        "title": "得到轴外积求和，也解释正定",
+        "why": "任意方向 v 的二次型是三个平方的和；三个正尺度对应可逆的 A，非零 v 不可能三个平方都为 0。",
+        "source": "\\Sigma=\\sum_k\\mathbf a_k\\mathbf a_k^T,\\qquad \\mathbf v^T\\Sigma\\mathbf v=\\sum_k(\\mathbf a_k^T\\mathbf v)^2>0\\quad(\\mathbf v\\ne0)"
+      }
+    ],
+    "example": [
+      "不旋转、尺度 (2,1,3)，三条轴分别为 (2,0,0)、(0,1,0)、(0,0,3)。",
+      "\\Sigma=\\operatorname{diag}(4,1,9)"
+    ],
+    "code": [
+      {
+        "id": "axes",
+        "explanation": "axis0/1/2 是这三条缩放后的轴。投影后仍按同样的外积规则累加，只是向量从三维变成二维。",
+        "symbols": "a₁..₃ ↔ axis0/1/2"
+      },
+      {
+        "id": "covariance",
+        "explanation": "cov_a 是所有 x 分量平方之和；cov_b 是 xy 乘积之和；cov_c 是所有 y 分量平方之和。",
+        "symbols": "C₁₁,C₁₂,C₂₂ ↔ cov_a,cov_b,cov_c"
+      }
+    ],
+    "pitfall": "协方差的单位是长度平方；尺度是长度。把 s 直接放到协方差对角线会把椭球画错。",
+    "question": "整体位置平移 10 米会改变 Σ 吗？",
+    "answer": "不会。X 和 μ 一起平移，X−μ 不变。"
+  },
+  "quaternion": {
+    "kind": "旋转的代数表示",
+    "goal": "为什么四个数能变成 shader 里的九个旋转项？",
+    "prerequisites": [
+      "vectors",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "先约定四元数如何相乘",
+        "why": "四元数记为 (w,v)，其中 v=(x,y,z)。下面的规则是定义。叉积 a×b 的三个分量依次为 (a₂b₃−a₃b₂,a₃b₁−a₁b₃,a₁b₂−a₂b₁)，可直接代数计算。",
+        "source": "(a,\\mathbf u)(b,\\mathbf v)=(ab-\\mathbf u^T\\mathbf v,\\ a\\mathbf v+b\\mathbf u+\\mathbf u\\times\\mathbf v)"
+      },
+      {
+        "title": "用单位四元数表示旋转",
+        "why": "令 w²+x²+y²+z²=1；逆四元数就是共轭 (w,−v)。把待旋转的点 p 装成 (0,p)，用 q(0,p)q⁻¹ 旋转。角度 θ、单位轴 n 对应 q=(cos(θ/2),n sin(θ/2))；这一步定义了它与几何旋转的联系。",
+        "source": "q(0,\\mathbf p)=(-\\mathbf v^T\\mathbf p,\\ w\\mathbf p+\\mathbf v\\times\\mathbf p),\\qquad q^{-1}=(w,-\\mathbf v)"
+      },
+      {
+        "title": "再乘一次，把向量部分展开",
+        "why": "用第一步的乘法规则，得到下式。第二行用叉积逐分量可验证的恒等式 (v×p)×v=||v||²p−(v·p)v；每一步只是乘法与合并同类项。",
+        "source": "\\begin{aligned}\\mathbf p^{\\prime}&=(\\mathbf v^T\\mathbf p)\\mathbf v+w^2\\mathbf p+w(\\mathbf v\\times\\mathbf p)-w(\\mathbf p\\times\\mathbf v)-(\\mathbf v\\times\\mathbf p)\\times\\mathbf v\\\\&=(w^2-\\|\\mathbf v\\|^2)\\mathbf p+2\\mathbf v(\\mathbf v^T\\mathbf p)+2w(\\mathbf v\\times\\mathbf p)\\end{aligned}"
+      },
+      {
+        "title": "把三个坐标轴分别代进去",
+        "why": "p=e₁ 时 v×e₁=(0,z,−y)；p=e₂ 时为 (−z,0,x)；p=e₃ 时为 (y,−x,0)。这三次计算的结果就是旋转矩阵的三列。",
+        "source": "\\begin{aligned}Re_1&=(w^2+x^2-y^2-z^2,\\ 2xy+2wz,\\ 2xz-2wy)^T\\\\Re_2&=(2xy-2wz,\\ w^2-x^2+y^2-z^2,\\ 2yz+2wx)^T\\\\Re_3&=(2xz+2wy,\\ 2yz-2wx,\\ w^2-x^2-y^2+z^2)^T\\end{aligned}"
+      },
+      {
+        "title": "用单位长度替换对角项",
+        "why": "例如 w²+x²=1−y²−z²，因此第一个对角元素变成 1−2(y²+z²)。另外两个完全同理，得到上面的九项公式。",
+        "source": "w^2+x^2-y^2-z^2=1-2(y^2+z^2)"
+      }
+    ],
+    "example": [
+      "绕 z 轴转 90°：q=(√2/2,0,0,√2/2)。第一条轴向上，第二条轴向左。",
+      "R=\\begin{bmatrix}0&-1&0\\\\1&0&0\\\\0&0&1\\end{bmatrix},\\qquad R(1,0,0)^T=(0,1,0)^T"
+    ],
+    "code": [
+      {
+        "id": "axes",
+        "explanation": "按本页的列向量约定，axis0 是 s₁Re₁，axis1 是 s₂Re₂，axis2 是 s₃Re₃。直接比较这三条轴，可避开 GLM 参考代码对矩阵命名的转置差异。",
+        "symbols": "q=(w,x,y,z) ↔ quaternion.xyzw；注意 quaternion.x 存 w"
+      }
+    ],
+    "pitfall": "单位四元数才满足本页公式。q 和 −q 表示同一旋转，但任意翻转插值端点的符号可能改变插值路径。",
+    "question": "q=(1,0,0,0) 得到什么？",
+    "answer": "三个轴原样输出，R=I。"
+  },
+  "camera": {
+    "kind": "换坐标 + 解一次方程",
+    "goal": "为什么相机位置不是文件中的平移 t？",
+    "prerequisites": [
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "先把相机搬到原点",
+        "why": "相机在世界中的位置为 Cw。一个点相对相机的位移是 xw−Cw，而不是 xw+Cw。",
+        "source": "\\mathbf d_w=\\mathbf x_w-\\mathbf C_w"
+      },
+      {
+        "title": "再把世界方向转到相机方向",
+        "why": "Rcw 把世界向量表示成相机坐标。展开括号，把不含 xw 的项叫 tcw。下标 cw 表示从 world 到 camera。",
+        "source": "\\mathbf x_c=R_{cw}(\\mathbf x_w-\\mathbf C_w)=R_{cw}\\mathbf x_w-R_{cw}\\mathbf C_w,\\qquad \\mathbf t_{cw}=-R_{cw}\\mathbf C_w"
+      },
+      {
+        "title": "反解相机中心",
+        "why": "两边左乘 Rcwᵀ，利用 RᵀR=I；或令相机中心在相机坐标中等于 0，都能得到同一结果。",
+        "source": "R_{cw}^T\\mathbf t_{cw}=-\\mathbf C_w\\quad\\Longrightarrow\\quad\\mathbf C_w=-R_{cw}^T\\mathbf t_{cw}"
+      },
+      {
+        "title": "放入 GPU 使用的四维表格",
+        "why": "点的末尾写 1，平移会生效；方向末尾写 0，平移不会生效。WebGPU 宿主使用相机前方 −Z、上方 +Y；本页手算使用前方 +Z、下方 +Y。两者的相机坐标可用 B=diag(1,−1,−1) 转换。",
+        "source": "V=\\begin{bmatrix}R&t\\\\0&1\\end{bmatrix},\\qquad V\\begin{bmatrix}x\\\\1\\end{bmatrix}=\\begin{bmatrix}Rx+t\\\\1\\end{bmatrix},\\qquad B=\\operatorname{diag}(1,-1,-1)"
+      }
+    ],
+    "example": [
+      "无旋转，相机在 (2,0,0)，世界点在 (3,1,5)。",
+      "\\mathbf t=(-2,0,0)^T,\\qquad \\mathbf x_c=(3,1,5)^T+(-2,0,0)^T=(1,1,5)^T"
+    ],
+    "code": [
+      {
+        "id": "host-camera",
+        "explanation": "宿主传入列主序的 view 和 projection。view_projection=projection*view；不能直接把 camera→world pose 当 view。",
+        "symbols": "R,t ↔ view 的左上 3×3 与平移列"
+      },
+      {
+        "id": "toy-project",
+        "explanation": "教学训练器的相机旋转恒为 I，所以这里只减 cameras。这个简化不能替代任意相机外参。",
+        "symbols": "Cw ↔ cameras；xc ↔ xyz"
+      }
+    ],
+    "pitfall": "内存列主序和几何使用列向量是两个概念；上传顺序、乘法次序、坐标轴必须一起核对。",
+    "question": "相机向右移动 1，静止物体的相机 x 怎样变化？",
+    "answer": "无旋转时减小 1，所以屏幕上向左移。"
+  },
+  "pinhole": {
+    "kind": "相似三角形",
+    "goal": "三维点为什么要除以深度 z？",
+    "prerequisites": [
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "从侧面看两只相似三角形",
+        "why": "一只三角形的横边为 x、纵边为 z；图像平面距离为 f，投影横边为 x′。相同射线给出相同的边长比。我们把成像平面放在前方，因此不用物理底片的倒像符号。",
+        "source": "\\frac{x^{\\prime}}f=\\frac xz\\quad\\Longrightarrow\\quad x^{\\prime}=f\\frac xz"
+      },
+      {
+        "title": "从长度换成像素，再加主点",
+        "why": "像素宽为 ax，焦距 f/ax 就是 fx。光轴打到图像上的位置是主点 cx，通常在图像附近中心，但不必恰好等于宽度的一半。",
+        "source": "f_x=\\frac f{a_x},\\qquad u=f_x\\frac xz+c_x,\\qquad v=f_y\\frac yz+c_y"
+      },
+      {
+        "title": "用齐次坐标统一写法",
+        "why": "先乘内参矩阵 K，得到 (fx x+cx z, fy y+cy z,z)，再除以最后一项。乘法是线性的，最后这次除法是非线性的。",
+        "source": "K\\mathbf x_c=\\begin{bmatrix}f_x&0&c_x\\\\0&f_y&c_y\\\\0&0&1\\end{bmatrix}\\begin{bmatrix}x\\\\y\\\\z\\end{bmatrix}=\\begin{bmatrix}f_xx+c_xz\\\\f_yy+c_yz\\\\z\\end{bmatrix}"
+      },
+      {
+        "title": "对应屏幕像素中心",
+        "why": "像素索引是整数，但采样位置通常是整数加 0.5。图像宽高缩放时 fx、fy、cx、cy 也必须按相同坐标约定缩放。这里忽略镜头畸变。",
+        "source": "f_x=f_y=100,\\ (c_x,c_y)=(64,48),\\ (x,y,z)=(1,2,10)\\Rightarrow(u,v)=(74,68)"
+      }
+    ],
+    "example": [
+      "深度变成 20，x 和 y 不变：偏离主点的距离减半。",
+      "(u,v)=(100/20+64,\\ 200/20+48)=(69,58)"
+    ],
+    "code": [
+      {
+        "id": "toy-project",
+        "explanation": "uv 的两项正是针孔公式。训练器用像素中心网格，和固定图形管线的采样位置衔接。",
+        "symbols": "fx=fy ↔ focal；cx ↔ width/2；cy ↔ height/2"
+      }
+    ],
+    "pitfall": "z≤0 的点不满足这套前向成像条件；近平面也需要处理。透视投影不是简单丢掉 z。",
+    "question": "fx 增加一倍，主点不变时会怎样？",
+    "answer": "所有点相对主点的横向距离增加一倍，看起来放大。"
+  },
+  "jacobian": {
+    "kind": "逐项求偏导",
+    "goal": "把“移动一点点，会挪多少像素”写成一张表。",
+    "prerequisites": [
+      "derivatives",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "只改 x，锁住 y 和 z",
+        "why": "将 x+h 代入 u，再减原来的 u，除以 h。cx 抵消，答案与 h 无关。v 不含 x，所以第二行这一项为 0。",
+        "source": "\\frac{u(x+h,y,z)-u(x,y,z)}h=\\frac{f_xh/z}h=\\frac{f_x}z,\\qquad \\frac{\\partial v}{\\partial x}=0"
+      },
+      {
+        "title": "只改 y",
+        "why": "同理，u 不含 y；v 的变化率为 fy/z。",
+        "source": "\\frac{\\partial u}{\\partial y}=0,\\qquad \\frac{\\partial v}{\\partial y}=\\frac{f_y}z"
+      },
+      {
+        "title": "最容易漏掉的是深度",
+        "why": "这次分母变了。先通分，再约掉 h，最后取 h 接近 0 的极限。不要把 z 当常数带进这一步。",
+        "source": "\\frac{f_xx/(z+h)-f_xx/z}{h}=\\frac{f_xx[z-(z+h)]}{hz(z+h)}=-\\frac{f_xx}{z(z+h)}\\to-\\frac{f_xx}{z^2}"
+      },
+      {
+        "title": "把两组结果排成 2×3",
+        "why": "第一行对应 u，第二行对应 v；三列依次对应 x,y,z。小位移 δx 经 J 变成像素位移，这只是中心附近的一阶近似。",
+        "source": "J=\\begin{bmatrix}f_x/z&0&-f_xx/z^2\\\\0&f_y/z&-f_yy/z^2\\end{bmatrix},\\qquad \\delta\\mathbf p\\approx J\\delta\\mathbf x_c"
+      }
+    ],
+    "example": [
+      "f=100、中心 (1,2,10)，只向右移动 0.01：屏幕约向右 0.1 像素。",
+      "J=\\begin{bmatrix}10&0&-1\\\\0&10&-2\\end{bmatrix},\\quad J(0.01,0,0)^T=(0.1,0)^T"
+    ],
+    "code": [
+      {
+        "id": "toy-project",
+        "explanation": "torch.stack 的六项逐项对应这张表，reshape(...,2,3) 是把最后六个数排成两行。",
+        "symbols": "J ↔ jacobian；每个 batch、每个 Gaussian 各有一张表"
+      }
+    ],
+    "pitfall": "J 的单位为像素/世界长度；f 是像素，z 是世界长度。它不是相机旋转矩阵。",
+    "question": "位于光轴 x=y=0 时，J 的第三列为什么全是 0？",
+    "answer": "沿光轴前后移动，投影中心仍是主点；但投影大小仍会变化。"
+  },
+  "covariance-proof": {
+    "kind": "从平均值定义证明",
+    "goal": "为什么一个线性变换要在协方差左右各乘一次？",
+    "prerequisites": [
+      "statistics",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "写出新均值",
+        "why": "Y=AX+b；平均可以分配到加法，也可以把不变的 A、b 提到外面。有限样本时逐项求和就能验证。",
+        "source": "\\mu_Y=\\mathbb E[AX+b]=A\\mu_X+b"
+      },
+      {
+        "title": "新样本减去新均值",
+        "why": "同一个平移 b 被减掉了。协方差描述相对中心的形状，所以不关心中心平移到哪里。",
+        "source": "Y-\\mu_Y=AX+b-(A\\mu_X+b)=A(X-\\mu_X)"
+      },
+      {
+        "title": "按定义做外积，再求平均",
+        "why": "转置会倒转乘法顺序，所以右侧出现 Aᵀ 而不是 A。把固定矩阵移到期望号外面，内部就是原协方差。",
+        "source": "\\begin{aligned}\\operatorname{Cov}(Y)&=\\mathbb E[(Y-\\mu_Y)(Y-\\mu_Y)^T]\\\\&=\\mathbb E[A(X-\\mu_X)(X-\\mu_X)^TA^T]\\\\&=A\\Sigma_XA^T\\end{aligned}"
+      },
+      {
+        "title": "把矩阵语言翻回标量",
+        "why": "第 i、j 个输出的共同变化来自所有输入分量对的贡献。下面就是上一行的逐项展开，不是另加的一条定理。",
+        "source": "(\\Sigma_Y)_{ij}=\\sum_k\\sum_l A_{ik}(\\Sigma_X)_{kl}A_{jl}"
+      }
+    ],
+    "example": [
+      "X 的二维协方差为 diag(1,4)，x 放大两倍、y 缩小一半。",
+      "A=\\operatorname{diag}(2,1/2),\\qquad A\\Sigma_XA^T=\\operatorname{diag}(4,1)"
+    ],
+    "code": [
+      {
+        "id": "toy-project",
+        "explanation": "教学例子 Σ=0.12²I，因此 JΣJᵀ 可简化成 0.12²*(J@Jᵀ)。任意各向异性 Σ 不能这样简化。",
+        "symbols": "A ↔ jacobian；@ ↔ 矩阵乘法；transpose(-1,-2) ↔ 转置最后两个维度"
+      }
+    ],
+    "pitfall": "只有固定线性或仿射变换才精确。透视除法不是线性变换，下一式要先近似。",
+    "question": "一维尺度放大 3 倍，方差放大几倍？",
+    "answer": "9 倍，因为偏移先乘 3，再平方。"
+  },
+  "projected-covariance": {
+    "kind": "一阶近似 + 线性恒等式",
+    "goal": "为什么 GS 屏幕椭圆是 J R Σ Rᵀ Jᵀ？",
+    "prerequisites": [
+      "derivatives",
+      "statistics",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "先把中心和形状都转到相机坐标",
+        "why": "中心需要旋转加平移，形状只需要旋转。使用上一节的协方差恒等式。",
+        "source": "\\mu_c=R_{cw}\\mu+t_{cw},\\qquad \\Sigma_c=R_{cw}\\Sigma R_{cw}^T"
+      },
+      {
+        "title": "用中心附近的切线替代弯曲投影",
+        "why": "导数告诉我们很小的变化怎样传播。把三维点 X 写成中心加偏移；对每个输出保留一次变化，丢掉二次及更高阶变化。",
+        "source": "\\pi(X)=\\pi(\\mu_c)+J(X-\\mu_c)+O(\\|X-\\mu_c\\|^2)"
+      },
+      {
+        "title": "平移项不改变方差",
+        "why": "在线性近似里，π(μc) 是常数，J 是在中心算好的固定矩阵。因此屏幕形状用 JΣcJᵀ。再加 εI 表示额外的各向同性屏幕方差。",
+        "source": "C\\approx J\\Sigma_cJ^T+\\varepsilon I_2,\\qquad \\varepsilon=0.3\\ {\\rm pixel}^2"
+      },
+      {
+        "title": "把矩阵乘法改写成三个小向量",
+        "why": "若 Σ=∑ak akᵀ，令 dk=JRcw ak。分配乘法后，C 等于三条投影轴的外积之和。这正是 shader 的计算路线。",
+        "source": "C=\\sum_{k=1}^3\\mathbf d_k\\mathbf d_k^T+\\varepsilon I_2,\\quad a=\\sum d_{k,x}^2+\\varepsilon,\\quad b=\\sum d_{k,x}d_{k,y},\\quad c=\\sum d_{k,y}^2+\\varepsilon"
+      },
+      {
+        "title": "检查近似的边界",
+        "why": "当 Gaussian 的深度厚度相对中心深度很大，或靠近相机时，J 在整团内变化明显，一阶椭圆近似会变差。加 0.3 是过滤策略，不是透视几何必然出现的常数。",
+        "source": "\\mathbf d_1=(10,0)^T,\\quad\\mathbf d_2=(0,20)^T,\\quad\\mathbf d_3=(-3,-6)^T"
+      }
+    ],
+    "example": [
+      "用前面的 J 和 Σc=diag(1,4,9)，分别投影长度为 1、2、3 的轴，再累加。",
+      "C=\\begin{bmatrix}100+9+0.3&18\\\\18&400+36+0.3\\end{bmatrix}=\\begin{bmatrix}109.3&18\\\\18&436.3\\end{bmatrix}"
+    ],
+    "code": [
+      {
+        "id": "covariance",
+        "explanation": "shader 保留 cov_a、cov_b、cov_c 三个独立元素，没有先分配一个 3×3 矩阵。",
+        "symbols": "dk ↔ d0,d1,d2；ε ↔ +0.3"
+      }
+    ],
+    "pitfall": "屏幕上“标准差增加 0.3”和“方差增加 0.3”完全不同。当前实现是后者，也没有配套做积分能量补偿。",
+    "question": "为什么主点 cx、cy 不出现在 C 里？",
+    "answer": "它们只平移投影中心，求导后为 0，不改变局部形状。"
+  },
+  "homogeneous-derivative": {
+    "kind": "分式通分 → 方向导数",
+    "goal": "WGSL 没写 fx/z，怎样确认它算的仍是同一个 Jacobian？",
+    "prerequisites": [
+      "derivatives",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "给中心和方向加上不同的末位",
+        "why": "中心 h=PV[μ,1]；轴方向 δh=PV[a,0]。沿轴走一个小量 η 后，clip 坐标就是 h+ηδh，因为矩阵乘法是线性的。",
+        "source": "h(\\eta)=h+\\eta\\delta h,\\qquad n_x(\\eta)=\\frac{h_x+\\eta\\delta h_x}{h_w+\\eta\\delta h_w}"
+      },
+      {
+        "title": "先相减再通分",
+        "why": "分子里的 hx hw 抵消；剩下两项都含 η，和差商分母中的 η 约掉。",
+        "source": "\\frac{n_x(\\eta)-n_x(0)}{\\eta}=\\frac{(h_x+\\eta\\delta h_x)h_w-h_x(h_w+\\eta\\delta h_w)}{\\eta h_w(h_w+\\eta\\delta h_w)}=\\frac{\\delta h_xh_w-h_x\\delta h_w}{h_w(h_w+\\eta\\delta h_w)}"
+      },
+      {
+        "title": "把 η 缩到 0，y 同理",
+        "why": "这里需要 hw 非零。把 x、y 两个结果拼成向量，就是 shader 的分子与分母。",
+        "source": "D(h_{xy}/h_w)[\\delta h]=\\frac{\\delta h_{xy}h_w-h_{xy}\\delta h_w}{h_w^2}"
+      },
+      {
+        "title": "从 NDC 换到像素",
+        "why": "NDC 横向从 −1 到 +1 跨 2 个单位，对应宽度 W，故乘 W/2。WebGPU 屏幕原点在左上，实际向下的像素 y 要乘 −H/2；shader 采用向上的内部屏幕坐标，乘 +H/2。两种坐标用 F 翻转转换，整个椭圆和偏移一起翻转，二次型不变。",
+        "source": "\\mathbf d_{\\uparrow}=\\operatorname{diag}(W/2,H/2)\\delta\\mathbf n,\\quad F=\\operatorname{diag}(1,-1),\\quad C_{\\downarrow}=FC_{\\uparrow}F^T,\\quad \\mathbf d_{\\downarrow}=F\\mathbf d_{\\uparrow}"
+      },
+      {
+        "title": "顶点回到 clip 坐标时为什么又乘 w",
+        "why": "想让透视除法后的 NDC 多 δn，就在 clip.xy 里加 δn·hw；除以 hw 后恰好剩 δn。中心 w 对四个角相同，local 的透视插值在这张 billboard 内也就是线性插值。",
+        "source": "\\frac{h_{xy}+\\delta n\\,h_w}{h_w}=\\frac{h_{xy}}{h_w}+\\delta n"
+      }
+    ],
+    "example": [
+      "hx=2、hw=4、δhx=1、δhw=0.5、W=800。",
+      "\\delta n_x=\\frac{1\\cdot4-2\\cdot0.5}{16}=\\frac3{16},\\qquad d_x=400\\cdot\\frac3{16}=75\\ {\\rm pixel}"
+    ],
+    "code": [
+      {
+        "id": "projected-axis",
+        "explanation": "公式的每一项在 projected_axis 中都有同名值。max(w²,1e−8) 是数值保护，中心背面的剔除另由 CPU 完成。",
+        "symbols": "h ↔ center_clip；δh ↔ axis_clip"
+      },
+      {
+        "id": "quad",
+        "explanation": "pixel_offset 先变成 ndc_offset，再乘 center_clip.w 加回 clip.xy。",
+        "symbols": "δn ↔ ndc_offset"
+      }
+    ],
+    "pitfall": "符号不能一半使用向下的像素坐标，一半使用向上的投影轴。坐标换基需要同时作用于中心、偏移、协方差。",
+    "question": "轴的齐次末位为什么是 0？",
+    "answer": "它是方向，不是点。末位为 0 才不会把相机平移重复加进轴向量。"
+  },
+  "conic": {
+    "kind": "解两组二元一次方程",
+    "goal": "不背口诀，也能得到 2×2 逆矩阵。",
+    "prerequisites": [
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "把逆矩阵的第一列设成未知数",
+        "why": "C 乘逆矩阵的第一列应得到 (1,0)。这就是两条一次方程。",
+        "source": "\\begin{bmatrix}a&b\\\\b&c\\end{bmatrix}\\begin{bmatrix}u\\\\v\\end{bmatrix}=\\begin{bmatrix}1\\\\0\\end{bmatrix}\\quad\\Longrightarrow\\quad au+bv=1,\\quad bu+cv=0"
+      },
+      {
+        "title": "消元解出第一列",
+        "why": "第一式乘 c，第二式乘 b，相减得到 (ac−b²)u=c。类似消掉 u 可解出 v。令 D=ac−b²。",
+        "source": "D=ac-b^2,\\qquad u=\\frac cD,\\qquad v=-\\frac bD"
+      },
+      {
+        "title": "解第二列，再拼回去",
+        "why": "右侧换成 (0,1)，同样消元得到 (−b/D,a/D)。现在把两列排在一起，就得到 Q。",
+        "source": "Q=\\frac1D\\begin{bmatrix}c&-b\\\\-b&a\\end{bmatrix},\\qquad CQ=\\frac1D\\begin{bmatrix}ac-b^2&0\\\\0&ac-b^2\\end{bmatrix}=I"
+      },
+      {
+        "title": "为什么要求正定",
+        "why": "把 ax²+2bxy+cy² 配方；要让任何非零方向都为正，需要 a>0 且 c−b²/a>0，也就是 D>0。",
+        "source": "ax^2+2bxy+cy^2=a\\left(x+\\frac ba y\\right)^2+\\frac Da y^2"
+      }
+    ],
+    "example": [
+      "C=[[4,1],[1,2]]，D=8−1=7。",
+      "Q=\\frac17\\begin{bmatrix}2&-1\\\\-1&4\\end{bmatrix}"
+    ],
+    "code": [
+      {
+        "id": "toy-kernel",
+        "explanation": "PyTorch 使用 linalg.inv 显式求逆；GPU 通过特征轴局部坐标得到相同距离，下一节解释这条连接。",
+        "symbols": "Q ↔ inverse；D ↔ det(C)"
+      }
+    ],
+    "pitfall": "D 很小时数值误差会被除法放大。不是任何三个数 a,b,c 都能作为有效椭圆。",
+    "question": "C=diag(4,9) 的逆是什么？",
+    "answer": "Q=diag(1/4,1/9)，不是 diag(−4,−9)。"
+  },
+  "pixel-weight": {
+    "kind": "椭圆换坐标的等价式",
+    "goal": "CPU 的 dᵀQd 怎样变成 WGSL 的 dot(local,local)？",
+    "prerequisites": [
+      "vectors",
+      "matrices",
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "把像素改写为离中心的偏移",
+        "why": "像素位置 p 与投影中心必须用同一个屏幕坐标系。离中心远近不能直接用世界距离。",
+        "source": "\\mathbf d=\\mathbf p-\\mu_{2D},\\qquad r^2=\\mathbf d^TQ\\mathbf d"
+      },
+      {
+        "title": "先把矩阵乘法完全展开",
+        "why": "Q 对称，所以中间两项相同，可以合并为 2Q12 dxdy；不是只剩一项。",
+        "source": "r^2=Q_{11}d_x^2+2Q_{12}d_xd_y+Q_{22}d_y^2"
+      },
+      {
+        "title": "在椭圆自己的两条主轴上计量",
+        "why": "C=U diag(λ₁,λ₂)Uᵀ，U 的列是互相垂直的单位轴。先用 Uᵀ 转到主轴坐标，再除以标准差 √λ；得到 local。",
+        "source": "\\mathbf l=\\operatorname{diag}(\\lambda_1^{-1/2},\\lambda_2^{-1/2})U^T\\mathbf d,\\qquad \\mathbf l^T\\mathbf l=\\mathbf d^TU\\operatorname{diag}(\\lambda_1^{-1},\\lambda_2^{-1})U^T\\mathbf d=\\mathbf d^TC^{-1}\\mathbf d"
+      },
+      {
+        "title": "让两个三角形替我们插值 local",
+        "why": "顶点放在主轴各 ±3σ 的矩形角上，并赋 local=corner×3。光栅化后，每个片元收到自己的连续局部坐标，所以直接 dot(local,local) 就能得到 r²。",
+        "source": "\\mathbf d=U\\operatorname{diag}(\\sqrt{\\lambda_1},\\sqrt{\\lambda_2})\\mathbf l,\\qquad \\alpha=o(t)e^{-\\|\\mathbf l\\|^2/2}"
+      },
+      {
+        "title": "再把实际分支写清楚",
+        "why": "shader 把 alpha 截到 0.99，低于 1/255 时丢弃；矩形外没有片元。只有未触发轴长度限幅时，这个 local 才精确对应原始 C。",
+        "source": "\\alpha_{\\rm cap}=\\min(0.99,\\alpha),\\qquad \\alpha_{\\rm cap}<1/255\\Rightarrow\\text{discard}"
+      }
+    ],
+    "example": [
+      "C=diag(4,1)，像素偏移 (2,1)，o=0.8。",
+      "\\mathbf l=(2/2,1/1)=(1,1),\\quad r^2=2,\\quad \\alpha=0.8e^{-1}\\approx0.294304"
+    ],
+    "code": [
+      {
+        "id": "fragment",
+        "explanation": "这里没有 inv(C)，因为逆变换已经隐含在顶点给出的 local 和片元插值中。",
+        "symbols": "local ↔ l；power ↔ −r²/2"
+      },
+      {
+        "id": "quad",
+        "explanation": "major_axis、minor_axis 构成 U，sigma_major/minor 是 √λ。",
+        "symbols": "corner*3 ↔ 顶点处 l"
+      }
+    ],
+    "pitfall": "local 不是 UV 纹理坐标，也不是世界坐标。它的单位是标准差，中心为 0。",
+    "question": "local=(0,0) 时 alpha 一定等于 1 吗？",
+    "answer": "不一定。空间核为 1，但仍要乘时间权重和基础 opacity，并受 0.99 上限限制。"
+  },
+  "eigenvalues": {
+    "kind": "二次方程 + 换坐标",
+    "goal": "从 a,b,c 求出椭圆的长短轴。",
+    "prerequisites": [
+      "quadratic",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "寻找变换后方向不变的向量",
+        "why": "若 Cv=λv，v 的方向不变，只拉伸 λ 倍；这就是特征向量和特征值的定义。把右侧移到左侧。",
+        "source": "(C-\\lambda I)\\mathbf v=0,\\qquad C-\\lambda I=\\begin{bmatrix}a-\\lambda&b\\\\b&c-\\lambda\\end{bmatrix}"
+      },
+      {
+        "title": "什么时候有非零的解",
+        "why": "两条方程必须不独立，否则只能 v=0；二维时条件就是行列式为 0。展开后得到普通二次方程。",
+        "source": "(a-\\lambda)(c-\\lambda)-b^2=0\\quad\\Longrightarrow\\quad\\lambda^2-(a+c)\\lambda+(ac-b^2)=0"
+      },
+      {
+        "title": "使用配方法求根",
+        "why": "把上一式的 s=a+c、p=ac−b² 代入基础课求根公式。判别式化简为 (a−c)²+4b²。",
+        "source": "\\lambda_\\pm=\\frac{a+c\\pm\\sqrt{(a+c)^2-4(ac-b^2)}}2=\\frac{a+c\\pm\\sqrt{(a-c)^2+4b^2}}2"
+      },
+      {
+        "title": "解出方向并归一化",
+        "why": "第一行是 (a−λ)vx+bvy=0，取 (vx,vy)=(b,λ−a) 恰好满足。除以长度得到单位轴；另一轴垂直于它。b=0 时按 a、c 的大小选坐标轴。",
+        "source": "\\mathbf u_+=\\frac{(b,\\lambda_+-a)^T}{\\sqrt{b^2+(\\lambda_+-a)^2}},\\qquad \\mathbf u_-=(-u_{+,y},u_{+,x})^T"
+      },
+      {
+        "title": "方差开平方才是长度",
+        "why": "在特征轴坐标中二次型是 ξ₁²/λ₁+ξ₂²/λ₂。令它等于 k²，就得到椭圆半轴长度 k√λ。",
+        "source": "\\frac{\\xi_1^2}{\\lambda_1}+\\frac{\\xi_2^2}{\\lambda_2}=k^2\\qquad\\Rightarrow\\qquad r_1=k\\sqrt{\\lambda_1},\\quad r_2=k\\sqrt{\\lambda_2}"
+      }
+    ],
+    "example": [
+      "C=[[4,1],[1,2]]；λ±=3±√2。",
+      "\\lambda_+\\approx4.414214,\\quad\\lambda_-\\approx1.585786,\\quad (3\\sigma_+,3\\sigma_-)\\approx(6.303009,3.777840)"
+    ],
+    "code": [
+      {
+        "id": "ellipse",
+        "explanation": "discriminant、lambda_major/minor 按这一求根式计算。GPU 还把 λ 下限设为 0.1、σ 上限设为 192 像素，属于实现保护。",
+        "symbols": "λ± ↔ lambda_major/minor；u± ↔ major_axis/minor_axis"
+      }
+    ],
+    "pitfall": "若 C=aI，两条轴一样长，任何正交方向都成立。此时不要归一化零向量 (b,λ−a)。",
+    "question": "C=diag(9,4)，3σ 椭圆半轴多长？",
+    "answer": "9 和 6 像素：先开平方得到 3、2，再乘 3。"
+  },
+  "support": {
+    "kind": "解指数不等式",
+    "goal": "alpha 小到可以忽略时，到底能截掉多远？",
+    "prerequisites": [
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "写出保留像素的条件",
+        "why": "设阈值 αmin>0，先忽略 clamp。o 是当前时间的峰值 opacity，r² 非负。",
+        "source": "o\\,e^{-r^2/2}\\ge\\alpha_{\\mathrm{min}}"
+      },
+      {
+        "title": "先检查有没有解",
+        "why": "核的最大值为 1，因此若 o<αmin，连中心都达不到阈值，整个 Gaussian 可跳过。否则除以正数 o。",
+        "source": "o\\ge\\alpha_{\\mathrm{min}}>0\\quad\\Longrightarrow\\quad e^{-r^2/2}\\ge\\frac{\\alpha_{\\mathrm{min}}}o"
+      },
+      {
+        "title": "取对数，再乘负数",
+        "why": "ln 单调递增，不等号不变；乘 −2 时不等号要反向。",
+        "source": "-\\frac{r^2}{2}\\ge\\ln\\frac{\\alpha_{\\mathrm{min}}}o\\quad\\Longrightarrow\\quad r^2\\le2\\ln\\frac o{\\alpha_{\\mathrm{min}}}"
+      },
+      {
+        "title": "区分理论支持域和实际矩形",
+        "why": "精确阈值边界在 local 空间是半径 rmax 的圆，回到屏幕是椭圆。当前 shader 画的是每个主轴 ±3σ 的矩形，再在片元里按 alpha 丢弃，因此两者并不相等。",
+        "source": "o=0.8,\\ \\alpha_{\\mathrm{min}}=1/255:\\quad r_{\\mathrm{max}}=\\sqrt{2\\ln204}\\approx3.261303"
+      }
+    ],
+    "example": [
+      "轴向 local=(3.1,0) 的 alpha 仍超过阈值，但超出当前 ±3 的 quad，没有片元；这显示真实的截断近似。",
+      "0.8e^{-3.1^2/2}\\approx0.006551>1/255\\approx0.003922"
+    ],
+    "code": [
+      {
+        "id": "quad",
+        "explanation": "corner×3 确定实际几何覆盖范围；它不是上述阈值公式的计算结果。",
+        "symbols": "±3σ ↔ pixel_offset 中的 3.0"
+      },
+      {
+        "id": "fragment",
+        "explanation": "alpha 低于阈值后 discard，两个判断共同决定最终覆盖。",
+        "symbols": "αmin ↔ 0.0039215686"
+      }
+    ],
+    "pitfall": "“3σ 包含所有有效像素”不成立。大 opacity 下仍可能裁掉高于阈值的尾部。",
+    "question": "o 正好等于 αmin 时，数学上哪里还能保留？",
+    "answer": "只有 r=0 的中心；实际像素网格可能没有采样点正好落在中心。"
+  },
+  "transmittance": {
+    "kind": "剩余比例的连乘",
+    "goal": "光到达第 i 层时，还剩下多少？",
+    "prerequisites": [
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "把每层理解为覆盖一部分的薄片",
+        "why": "alpha 为 0.2，就有 20% 被这层覆盖，80% 继续往后。先用这个透明合成模型建立直觉，它不要求场景真的是玻璃。",
+        "source": "T_1=1,\\qquad T_2=1-\\alpha_1"
+      },
+      {
+        "title": "下一层只作用于上一层剩下的部分",
+        "why": "若第二层也覆盖 20%，它覆盖的不是原始光的 20%，而是剩余 80% 的 20%。",
+        "source": "T_3=(1-\\alpha_1)(1-\\alpha_2)"
+      },
+      {
+        "title": "重复这一规则",
+        "why": "到达第 i 层之前已经穿过 i−1 层；∏ 是把这些剩余比例全部相乘。",
+        "source": "T_{i+1}=T_i(1-\\alpha_i),\\qquad T_i=\\prod_{j<i}(1-\\alpha_j)"
+      },
+      {
+        "title": "解释训练代码为什么先补一个 1",
+        "why": "cumprod 得到前缀连乘。需要的是当前层之前的连乘，因此数组前面补 1，再丢掉最后一项。",
+        "source": "[\\alpha_1,\\alpha_2]=[0.2,0.5]\\Rightarrow[T_1,T_2,T_3]=[1,0.8,0.4]"
+      }
+    ],
+    "example": [
+      "两层 alpha 都是 0.5，第二层得到的光为 0.5，背景得到 0.25。",
+      "T_2=0.5,\\qquad T_3=0.5\\cdot0.5=0.25"
+    ],
+    "code": [
+      {
+        "id": "toy-composite",
+        "explanation": "先近后远排列 alpha，沿 Gaussian 维度 cumprod；[:, :-1] 取到当前层之前的透射率。",
+        "symbols": "Ti ↔ transmittance；dim=1 ↔ Gaussian 维"
+      }
+    ],
+    "pitfall": "Ti 不含当前层 alpha；否则会把当前层遮挡自己一次。",
+    "question": "若第一层 alpha=1，后面的 Ti 是多少？",
+    "answer": "全部为 0；当前 shader 把单层 alpha 限到 0.99，因此实际不会由单层直接得到精确的 0。"
+  },
+  "composite": {
+    "kind": "加权相加 + 望远镜求和",
+    "goal": "每层与背景怎样一起组成最终像素？",
+    "prerequisites": [
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "先看一层和背景",
+        "why": "当前层占 alpha，其余部分透出背景。RGB 三个通道分别做同样的运算。",
+        "source": "\\mathbf C=\\alpha_1\\mathbf c_1+(1-\\alpha_1)\\mathbf c_{\\rm bg}"
+      },
+      {
+        "title": "把背景换成后面的一整幅合成结果",
+        "why": "两层时先用第二层和背景合成 B1，再把 B1 放到第一层后面。展开括号。",
+        "source": "\\mathbf C=\\alpha_1\\mathbf c_1+(1-\\alpha_1)\\alpha_2\\mathbf c_2+(1-\\alpha_1)(1-\\alpha_2)\\mathbf c_{\\rm bg}"
+      },
+      {
+        "title": "推广到 N 层",
+        "why": "第 i 层之前必须穿过前 i−1 层，所以颜色权重为 Ti αi；背景的权重是穿过全部层的 TN+1。",
+        "source": "\\mathbf C=\\sum_{i=1}^N T_i\\alpha_i\\mathbf c_i+T_{N+1}\\mathbf c_{\\rm bg}"
+      },
+      {
+        "title": "用权重和检查有没有漏项",
+        "why": "Ti αi=Ti−Ti+1；求和时中间项抵消，只剩 1−TN+1。加上背景正好为 1。",
+        "source": "\\sum_i T_i\\alpha_i+T_{N+1}=\\sum_i(T_i-T_{i+1})+T_{N+1}=T_1=1"
+      }
+    ],
+    "example": [
+      "红在前、蓝在后，两层 alpha=0.5，黑色背景。",
+      "\\mathbf C=0.5(1,0,0)+0.25(0,0,1)+0.25(0,0,0)=(0.5,0,0.25)"
+    ],
+    "code": [
+      {
+        "id": "toy-composite",
+        "explanation": "代码对 T*alpha*color 沿 Gaussian 维求和，背景为黑，所以省略了数值为 0 的背景项。",
+        "symbols": "C ↔ return；N ↔ 张量 dim=1"
+      }
+    ],
+    "pitfall": "交换层次会改变颜色。中心深度排序只是该实现的近似；相交的大 Gaussian 不保证每个像素的遮挡都准确。",
+    "question": "为什么权重不一定加起来等于 1？",
+    "answer": "如果只看 Gaussian 权重，和为 1−剩余透射率；把背景权重加进去才等于 1。"
+  },
+  "premultiplied": {
+    "kind": "同一合成式的 GPU 写法",
+    "goal": "为什么 fragment 输出 RGB×alpha，混合状态却用 One？",
+    "prerequisites": [
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "定义预乘颜色",
+        "why": "把颜色与它的覆盖率先乘好，记作 c̃。这样透明黑和普通黑在存储时也有一致的含义。",
+        "source": "\\widetilde{\\mathbf c}=\\alpha\\mathbf c"
+      },
+      {
+        "title": "把后面已经画好的结果当 destination",
+        "why": "远处先画，当前较近的一层为 source。它留下自己的预乘颜色，并遮掉 destination 的 alpha 比例。",
+        "source": "\\widetilde{\\mathbf c}_{\\rm out}=\\widetilde{\\mathbf c}_s+(1-\\alpha_s)\\widetilde{\\mathbf c}_{\\rm dst}"
+      },
+      {
+        "title": "映射到固定混合硬件的两个乘数",
+        "why": "硬件计算 src×srcFactor + dst×dstFactor。于是 srcFactor=One，dstFactor=OneMinusSrcAlpha。alpha 通道也按 over 规则累积。",
+        "source": "\\alpha_{\\rm out}=\\alpha_s+(1-\\alpha_s)\\alpha_{\\rm dst}"
+      },
+      {
+        "title": "与近到远公式核对",
+        "why": "先画远处蓝，再画近处红；展开正好得到上一式的红 0.5、蓝 0.25。顺序不同，代数结果一致。",
+        "source": "\\widetilde{\\mathbf c}_{\\rm blue}=0.5(0,0,1),\\quad \\widetilde{\\mathbf c}_{\\rm out}=0.5(1,0,0)+0.5\\,\\widetilde{\\mathbf c}_{\\rm blue}"
+      }
+    ],
+    "example": [
+      "若 shader 已输出红色 (0.5,0,0)，却又配置 SrcAlpha=0.5，会错误地再乘一次。",
+      "0.5\\times0.5=0.25\\ne0.5"
+    ],
+    "code": [
+      {
+        "id": "fragment",
+        "explanation": "返回值 vec4(rgb*alpha,alpha) 明确是预乘。",
+        "symbols": "c̃s ↔ input.color_opacity.rgb*alpha"
+      },
+      {
+        "id": "blend",
+        "explanation": "PREMULTIPLIED_ALPHA_BLENDING 与这份输出匹配；StgPass 按远到近排序，透明 splat 不写深度。",
+        "symbols": "over ↔ blend state；顺序 ↔ sort_unstable_by"
+      }
+    ],
+    "pitfall": "透明混合一般要禁用 Gaussian 自身的深度写入。与不透明场景的深度测试是另一个独立开关。",
+    "question": "预乘颜色仍要乘 Ti 吗？",
+    "answer": "逐层 GPU over 已经隐式完成遮挡；若在手写近到远累积器里，则仍需乘到达该层的 Ti。"
+  },
+  "volume-bridge": {
+    "kind": "薄层极限，非精确 GS 射线积分",
+    "goal": "连续密度为什么会产生指数透射率？",
+    "prerequisites": [
+      "integral",
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "把一段路切成 N 个薄层",
+        "why": "密度 σ 表示单位长度上的消光强度；薄层厚 Δs 足够小时，透过比例约为 1−σΔs。把总长度 l 平分。",
+        "source": "T_N=\\left(1-\\sigma\\frac lN\\right)^N"
+      },
+      {
+        "title": "让薄层越来越薄",
+        "why": "基础极限 (1+a/N)ᴺ→eᵃ，取 a=−σl。常密度下就得到指数透过率；被覆盖比例是 1−T。",
+        "source": "T=e^{-\\sigma l},\\qquad \\alpha=1-e^{-\\sigma l}"
+      },
+      {
+        "title": "密度沿路径变化时分别连乘",
+        "why": "取对数把乘法变加法，利用 ln(1−ε)≈−ε，再把细分求和变成积分。",
+        "source": "\\ln T\\approx-\\sum_j\\sigma(s_j)\\Delta s\\ \\longrightarrow\\ -\\int_{s_0}^s\\sigma(u)\\,du"
+      },
+      {
+        "title": "回到离散渲染的每一段",
+        "why": "每段内部假定密度固定，就用该段长度 Δsi 得到 alpha。相邻段按剩余比例相乘，因此和前面的合成模型接上。",
+        "source": "T(s)=\\exp\\left[-\\int_{s_0}^s\\sigma(u)\\,du\\right],\\qquad \\alpha_i=1-e^{-\\sigma_i\\Delta s_i}"
+      }
+    ],
+    "example": [
+      "σ=2 /米，一段长 0.5 米，乘积 σΔs 没有单位。",
+      "T=e^{-1}\\approx0.367879,\\qquad \\alpha=1-e^{-1}\\approx0.632121"
+    ],
+    "code": [
+      {
+        "id": "fragment",
+        "explanation": "对照源码可见，当前 renderer 直接计算 opacity*投影 Gaussian 核，没有沿每条光线积分 σ。这里只解释透明合成与体渲染的关系。",
+        "symbols": "本式 σ、Δs：当前 STG-Lite shader 没有对应字段"
+      }
+    ],
+    "pitfall": "不能把 learned opacity 当作物理消光密度 σ；两者参数、单位和积分过程不同。",
+    "question": "若把一段恒密度路程平分两半，总透过率会变吗？",
+    "answer": "不会。e^(−σl/2)×e^(−σl/2)=e^(−σl)。"
+  },
+  "time-domain": {
+    "kind": "单位换算",
+    "goal": "视频的秒、帧号、模型时间如何对齐？",
+    "prerequisites": [
+      "derivatives"
+    ],
+    "steps": [
+      {
+        "title": "先确定时间起点和尺度",
+        "why": "物理时刻 s 减去起点 s0，得到经过的秒数；除以 D 秒，得到无单位的模型时间 t。D 必须来自训练约定。",
+        "source": "t=\\frac{s-s_0}{D},\\qquad s=s_0+Dt"
+      },
+      {
+        "title": "再对齐每个 Gaussian 自己的中心时刻",
+        "why": "τ 是该 Gaussian 最活跃的模型时间。运动系数围绕 τ 展开，所以实际使用 Δt=t−τ。",
+        "source": "\\Delta t=\\frac{s-s_0}{D}-\\tau"
+      },
+      {
+        "title": "帧号需要匹配分母约定",
+        "why": "若训练器定义 t=j/N，帧率为 fps，则 s−s0=j/fps，与 D=N/fps 对齐；最后一帧 t=(N−1)/N，不等于 1。若定义 j/(N−1)，D 则不同。",
+        "source": "\\frac{j/fps}{N/fps}=\\frac jN"
+      },
+      {
+        "title": "沿代码找到时间只被换算一次",
+        "why": "浏览器 baseline 的 10 秒循环是播放约定，不能据此认定数据真实时长为 10 秒。原生 StgPass 直接接收 normalized_time，不做秒数推断。",
+        "source": "s=2,\\ s_0=0,\\ D=10,\\ \\tau=0.5\\Rightarrow t=0.2,\\ \\Delta t=-0.3"
+      }
+    ],
+    "example": [
+      "若有 100 帧、25fps，并采用 j/N，第 50 帧的模型时间为 0.5。",
+      "D=100/25=4\\ {\\rm s},\\qquad t=(50/25)/4=0.5"
+    ],
+    "code": [
+      {
+        "id": "browser-time",
+        "explanation": "当前 LOOP_SECONDS=10，用 rem_euclid 后除以它；这只描述播放器速度。",
+        "symbols": "s ↔ time_seconds；D ↔ LOOP_SECONDS"
+      },
+      {
+        "id": "host-camera",
+        "explanation": "原生接入显式传归一化时间；prepare 检查 0..1。",
+        "symbols": "t ↔ normalized_time → camera.scene.x"
+      }
+    ],
+    "pitfall": "PLY 的 32 个浮点字段没有 fps 和 capture duration，不能只看模型文件猜秒数。",
+    "question": "同一个模型以两倍播放速度播放，运动系数需要改吗？",
+    "answer": "不需要；改变输入 t 随真实时间推进的速度即可。若重新定义模型时间坐标本身，则系数必须换算。"
+  },
+  "temporal-rbf": {
+    "kind": "时间核的模型选择",
+    "goal": "为什么有的时间 Gaussian 指数没有 1/2？",
+    "prerequisites": [
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "定义到活跃时刻的相对距离",
+        "why": "Δt=t−τ；ρ 是宽度。先除以宽度再平方，时间单位约掉。STG-Lite 采用 exp(−距离²) 作为可见性包络。",
+        "source": "r_t=\\frac{t-\\tau}{\\rho},\\qquad w(t)=e^{-r_t^2}"
+      },
+      {
+        "title": "用 log-width 保证宽度为正",
+        "why": "PLY 保存 ℓτ，不是 ρ 本身。与空间 log-scale 类似，先 exp 解码。官方论文用另一种系数 sτ 乘在平方前，二者可直接换算。",
+        "source": "\\rho=e^{\\ell_\\tau},\\qquad w=e^{-\\Delta t^2/\\rho^2}=e^{-s_\\tau\\Delta t^2},\\qquad s_\\tau=\\rho^{-2}"
+      },
+      {
+        "title": "和标准 Gaussian 的宽度比较",
+        "why": "两个指数表示相同曲线时，平方项系数必须相等。注意这里的 ρ 不等于标准差 σt。",
+        "source": "\\frac1{\\rho^2}=\\frac1{2\\sigma_t^2}\\quad\\Longrightarrow\\quad\\sigma_t=\\frac{\\rho}{\\sqrt2}"
+      },
+      {
+        "title": "把基础不透明度乘上时间权重",
+        "why": "基础 opacity 表示最高可见程度；时间核只把它衰减。在中心时刻 w=1，离开中心一倍 ρ 时 w=e⁻¹。",
+        "source": "o(t)=\\operatorname{sigmoid}(\\beta)w(t),\\quad w(\\tau)=1,\\quad w(\\tau+\\rho)=e^{-1}"
+      }
+    ],
+    "example": [
+      "τ=0.5，ρ=0.25，t=0.75，β=0。",
+      "\\Delta t=0.25,\\qquad w=e^{-1}\\approx0.367879,\\qquad o(t)=0.5w\\approx0.183940"
+    ],
+    "code": [
+      {
+        "id": "activation",
+        "explanation": "注意 temporal_opacity 的指数没有 0.5；fragment 的空间 power 才有 −0.5。",
+        "symbols": "ρ ↔ temporal_scale；w ↔ temporal_opacity；o(t) ↔ opacity"
+      }
+    ],
+    "pitfall": "两个指数的 1/2 不能为了统一外观而互相抄。时间宽度字段也不是训练录像的总时长。",
+    "question": "把 ρ 加倍，在同样 Δt 下指数平方项变成几分之一？",
+    "answer": "四分之一；时间包络因此变宽。"
+  },
+  "trajectory": {
+    "kind": "多项式模型",
+    "goal": "把随时间移动的中心拆成可存储的系数。",
+    "prerequisites": [
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "从静止模型开始",
+        "why": "如果只保存 μ0，任意时刻位置都相同。这里 μ0 表示 t=τ 时的中心，并非一定是视频第一帧的位置。",
+        "source": "\\mu(\\tau)=\\mu_0"
+      },
+      {
+        "title": "加上一次运动",
+        "why": "每经过一个模型时间单位，增加 m1。三维中每个系数都是 x、y、z 三个数。",
+        "source": "\\mu(t)=\\mu_0+\\mathbf m_1\\Delta t"
+      },
+      {
+        "title": "加上弯曲和更灵活的变化",
+        "why": "二次项让速度随时间变，三次项让加速度随时间变。这是有限阶模型选择；不要求真实运动必然是三次曲线。",
+        "source": "\\mu(t)=\\mu_0+\\mathbf m_1\\Delta t+\\mathbf m_2\\Delta t^2+\\mathbf m_3\\Delta t^3"
+      },
+      {
+        "title": "逐坐标代数计算",
+        "why": "对 x 分量先平方、立方，再乘各自系数，最后相加；y、z 一样。三次轨迹也可用 Horner 顺序少做乘法，但当前 shader 直接算 dt2 方便复用。",
+        "source": "\\mu_x(t)=\\mu_{0x}+\\Delta t\\big(m_{1x}+\\Delta t(m_{2x}+\\Delta t\\,m_{3x})\\big)"
+      }
+    ],
+    "example": [
+      "μ0=(1,2,10)，m1=(2,0,0)，m2=(0,4,0)，m3=(0,0,8)，Δt=0.5。",
+      "\\mu=(1,2,10)+(1,0,0)+(0,1,0)+(0,0,1)=(2,3,11)"
+    ],
+    "code": [
+      {
+        "id": "motion",
+        "explanation": "9 个 motion 浮点跨越 vec4 边界，所以 quadratic 和 cubic 要重新拼接。",
+        "symbols": "m1 ↔ r2.xyz；m2 ↔ (r2.w,r3.x,r3.y)；m3 ↔ (r3.z,r3.w,r4.x)"
+      },
+      {
+        "id": "cpu-sample",
+        "explanation": "CPU 使用同一轨迹来剔除和排序；GPU 使用它来摆放 quad，两边必须一致。",
+        "symbols": "μ(t) ↔ position / center"
+      }
+    ],
+    "pitfall": "m2 不是加速度本身，m3 也不是三阶导数本身；还差求导产生的倍数。",
+    "question": "Δt=0 时 motion 再大，中心是什么？",
+    "answer": "仍是 μ0，因为所有非零阶项都乘了 0。"
+  },
+  "velocity": {
+    "kind": "多项式求导 + 单位换算",
+    "goal": "运动系数和实际速度、加速度差在哪？",
+    "prerequisites": [
+      "derivatives",
+      "chain"
+    ],
+    "steps": [
+      {
+        "title": "从差商验证平方、立方规则",
+        "why": "基础课已经用展开证明：t² 的导数是 2t，t³ 是 3t²。τ 固定时，Δt 对 t 的导数为 1。",
+        "source": "\\frac{d\\Delta t}{dt}=1,\\qquad \\frac{d\\Delta t^2}{dt}=2\\Delta t,\\qquad \\frac{d\\Delta t^3}{dt}=3\\Delta t^2"
+      },
+      {
+        "title": "每一项分别求导后相加",
+        "why": "μ0 是常数，导数为 0；向量系数不变，对每个分量独立做相同运算。",
+        "source": "\\frac{d\\mu}{dt}=\\mathbf m_1+2\\mathbf m_2\\Delta t+3\\mathbf m_3\\Delta t^2"
+      },
+      {
+        "title": "再求一次导数",
+        "why": "在中心时刻 Δt=0，加速度为 2m2；三阶导数为 6m3。因此若从速度、加速度、jerk 写 Taylor 系数，会出现 1/2 和 1/6。",
+        "source": "\\frac{d^2\\mu}{dt^2}=2\\mathbf m_2+6\\mathbf m_3\\Delta t,\\qquad \\frac{d^3\\mu}{dt^3}=6\\mathbf m_3"
+      },
+      {
+        "title": "从模型时间换成秒",
+        "why": "t=(s−s0)/D，因此 dt/ds=1/D。链式法则告诉我们速度除以 D；加速度除以 D²。",
+        "source": "\\frac{d\\mu}{ds}=\\frac1D\\frac{d\\mu}{dt},\\qquad \\frac{d^2\\mu}{ds^2}=\\frac1{D^2}\\frac{d^2\\mu}{dt^2}"
+      }
+    ],
+    "example": [
+      "上一例 Δt=0.5，模型时间速度为 (2,4,6)。若 D=10 秒且空间是米：",
+      "\\frac{d\\mu}{ds}=(0.2,0.4,0.6)\\ {\\rm m/s}"
+    ],
+    "code": [
+      {
+        "id": "motion",
+        "explanation": "renderer 只求位置，没有显式求 velocity。需要运动矢量或诊断速度时，应从这些 motion 字段按本式计算；不要声称当前 pass 已输出速度。",
+        "symbols": "导数来源 ↔ motion_linear/quadratic/cubic"
+      }
+    ],
+    "pitfall": "空间单位不明确时只能说“世界单位/秒”，不能直接说米/秒。",
+    "question": "D 加倍、模型不变，同一归一化时刻的物理速度怎样变？",
+    "answer": "减半。"
+  },
+  "rotation-time": {
+    "kind": "四维系数模型 + 归一化",
+    "goal": "旋转随时间变化时，为什么先相加再 normalize？",
+    "prerequisites": [
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "先在四维系数空间里走直线",
+        "why": "q0、ω 都有四个数，按分量计算 u=q0+Δtω。这里 ω 是四元数系数的变化，不是三维物理角速度。",
+        "source": "u_j(t)=q_{0j}+\\Delta t\\,\\omega_j,\\qquad j\\in\\{w,x,y,z\\}"
+      },
+      {
+        "title": "直线不保证仍在单位球面上",
+        "why": "即使 q0 是单位长度，相加后的 u 一般也不是。例如 (1,0,0,0)+(0,0,0,0.5) 的长度是 √1.25。",
+        "source": "\\|u\\|=\\sqrt{u_w^2+u_x^2+u_y^2+u_z^2}"
+      },
+      {
+        "title": "除以长度，回到单位四元数",
+        "why": "每项都除以同一个数，平方和就变成 1。要求 u≠0；归一化后送进前面的旋转矩阵。",
+        "source": "q=\\frac u{\\|u\\|},\\qquad \\|q\\|^2=\\frac{\\sum_j u_j^2}{\\|u\\|^2}=1"
+      },
+      {
+        "title": "理解角度速度不恒定",
+        "why": "归一化把系数直线投到单位球面，因此角度一般非线性变化。这个模型不是 SLERP，也不自动满足刚体角速度微分方程。",
+        "source": "q_0=(1,0,0,0),\\ \\omega=(0,0,0,1):\\quad q(t)=\\frac{(1,0,0,\\Delta t)}{\\sqrt{1+\\Delta t^2}}"
+      }
+    ],
+    "example": [
+      "Δt=0.5 时 q≈(0.894427,0,0,0.447214)，对应绕 z 旋转约 53.13°。",
+      "\\theta=2\\arctan(0.5)\\approx53.130^\\circ"
+    ],
+    "code": [
+      {
+        "id": "activation",
+        "explanation": "normalize(splat.r6 + dt*splat.r7) 正是这两步。loader 的有限值检查并不保证所有时刻 u 的范数非零；资产需满足这个前提。",
+        "symbols": "q0 ↔ r6；ω ↔ r7；q ↔ quaternion"
+      }
+    ],
+    "pitfall": "当前 shader 没有为 u=0 定义有效旋转。解释这个公式必须写出非零范数条件，不能只说 normalize 永远安全。",
+    "question": "ω=0 时旋转会随时间变化吗？",
+    "answer": "不会；始终是 normalize(q0)，前提 q0≠0。"
+  },
+  "normalization-gradient": {
+    "kind": "逐分量求导，再组成矩阵",
+    "goal": "normalize 的梯度为什么会减掉 qqᵀ？",
+    "prerequisites": [
+      "derivatives",
+      "chain",
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "先给长度一个短名字",
+        "why": "令 r=||u||。因为 r²=∑uj²，两边对某个 uj 求偏导：2r ∂r/∂uj=2uj。",
+        "source": "\\frac{\\partial r}{\\partial u_j}=\\frac{u_j}{r}"
+      },
+      {
+        "title": "对 qi=ui/r 使用商法则",
+        "why": "δij 在 i=j 时为 1，否则为 0。这只是 ui 对 uj 的偏导，不是神秘函数。",
+        "source": "\\frac{\\partial q_i}{\\partial u_j}=\\frac{\\delta_{ij}}r-\\frac{u_i}{r^2}\\frac{u_j}r=\\frac{\\delta_{ij}}r-\\frac{u_i u_j}{r^3}"
+      },
+      {
+        "title": "用 qi、qj 替换 ui/r、uj/r",
+        "why": "把所有 i,j 的项排成一张 4×4 表；对角的 δij 组成 I，qiqj 组成外积 qqᵀ。",
+        "source": "\\frac{\\partial q}{\\partial u}=\\frac{I-qq^T}{r}"
+      },
+      {
+        "title": "把时间这条链接上",
+        "why": "u=q0+(t−τ)ω，所以 du/dt=ω。右乘 ω 得到 q 的时间变化率。若变化正好沿着 q，归一化会把它完全消掉。",
+        "source": "\\frac{dq}{dt}=\\frac{I-qq^T}{r}\\omega,\\qquad (I-qq^T)q=q-q(q^Tq)=0"
+      }
+    ],
+    "example": [
+      "u=(2,0,0,0)，r=2，q=(1,0,0,0)。",
+      "\\frac{\\partial q}{\\partial u}=\\operatorname{diag}(0,1/2,1/2,1/2)"
+    ],
+    "code": [
+      {
+        "id": "activation",
+        "explanation": "GPU 的 normalize 只有前向计算。此导数用于理解训练端自动微分，本仓库 toy trainer 固定旋转，未训练 q 或 ω。",
+        "symbols": "前向 q ↔ quaternion；反向 Jacobian ↔ 教学数值检查"
+      }
+    ],
+    "pitfall": "r 接近 0 时分母放大梯度。数学上可导不意味着当前渲染 pass 有 backward kernel。",
+    "question": "只把 u 整体乘一个略大的正数，q 会变吗？",
+    "answer": "不会。沿径向的变化被 I−qqᵀ 消掉。"
+  },
+  "deformation": {
+    "kind": "另一类模型的接口定义",
+    "goal": "如果不存运动多项式，时间怎样影响 Gaussian？",
+    "prerequisites": [
+      "matrices",
+      "chain"
+    ],
+    "steps": [
+      {
+        "title": "先保存一个参考状态",
+        "why": "规范 Gaussian G⁰ 可以包含中心、log-scale、四元数、opacity 等。规范空间是共同参考，不一定是实际拍到的第一帧。",
+        "source": "\\mathcal G^0=(\\mu_0,\\ell_0,q_0,\\beta_0,\\ldots)"
+      },
+      {
+        "title": "让函数读取位置和时间",
+        "why": "Fθ 是带可学习参数 θ 的函数。最简单的网络层只是“矩阵乘输入再加偏移”，再经过非线性。例如 ReLU 逐项取 max(0,x)。实际 Wu 等方法还使用时空特征编码，不能被这个小例子替代。",
+        "source": "h=\\operatorname{ReLU}(W_1[\\mu_0;t]+b_1),\\qquad \\Delta\\mathcal G=W_2h+b_2"
+      },
+      {
+        "title": "不同输出头要在自己的参数域解码",
+        "why": "一个可选示例：中心直接加位移，log-scale 加增量后 exp，四元数相加后归一化。它只是示意，不断言所有 deformation 仓库都这样处理。",
+        "source": "\\mu=\\mu_0+\\Delta\\mu,\\quad s=e^{\\ell_0+\\Delta\\ell},\\quad q=\\operatorname{normalize}(q_0+\\Delta q)"
+      },
+      {
+        "title": "把时间分支收口到同一个三维渲染接口",
+        "why": "无论时间来自网络还是多项式，只要得到当前时刻的 μ、Σ、o、颜色，就能接投影、排序、合成。额外工作是存储网络参数、执行推理，并匹配训练时的 decoder 规则。",
+        "source": "\\mathcal G(t)=\\operatorname{Decode}(\\mathcal G^0,F_\\theta(\\mathcal G^0,t))"
+      }
+    ],
+    "example": [
+      "只看 log-scale head：s0=2，Δℓ=ln1.5。",
+      "s=e^{\\ln2+\\ln1.5}=2\\cdot1.5=3"
+    ],
+    "code": [
+      {
+        "id": "deformation-demo",
+        "explanation": "单独提供的教学函数演示这三种输出域的解码；没有接入 StgPass，也不是 Wu 4D-GS 模型加载器。",
+        "symbols": "Δμ、Δℓ、Δq ↔ deltaPosition、deltaLogScale、deltaQuaternion"
+      }
+    ],
+    "pitfall": "不能把一个网络模型的 checkpoint 改名成 STG PLY 后加载；还缺网络权重、特征网格及执行过程。",
+    "question": "log-scale 加 0.1 对真实尺度是加 0.1 吗？",
+    "answer": "不是，真实尺度乘 exp(0.1)≈1.10517。"
+  },
+  "four-dimensional": {
+    "kind": "联合变量的定义",
+    "goal": "原生 4D Gaussian 的第四维究竟存了什么？",
+    "prerequisites": [
+      "statistics",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "把空间和时间装进同一列",
+        "why": "前三个量是空间坐标，第四个是时间。均值同样有四个分量。单位可以不同，因此协方差的各块单位也不同。",
+        "source": "\\mathbf z=(x,y,z,t)^T,\\qquad \\mu_4=(\\mu_x,\\mu_y,\\mu_z,\\mu_t)^T"
+      },
+      {
+        "title": "逐项写出平均偏移乘积",
+        "why": "4×4 表中的每项都是两个坐标偏移的平均乘积。右上角三项描述各空间坐标与时间的共同变化。",
+        "source": "\\Sigma_4=\\begin{bmatrix}\\sigma_{xx}&\\sigma_{xy}&\\sigma_{xz}&\\sigma_{xt}\\\\\\sigma_{xy}&\\sigma_{yy}&\\sigma_{yz}&\\sigma_{yt}\\\\\\sigma_{xz}&\\sigma_{yz}&\\sigma_{zz}&\\sigma_{zt}\\\\\\sigma_{xt}&\\sigma_{yt}&\\sigma_{zt}&\\sigma_{tt}\\end{bmatrix}"
+      },
+      {
+        "title": "把它分成四块",
+        "why": "A 为 3×3 空间协方差；b 为 3×1 时空交叉项；c 为时间方差。bᵀ 是 1×3，因此四块能拼成 4×4。",
+        "source": "\\Sigma_4=\\begin{bmatrix}A&b\\\\b^T&c\\end{bmatrix},\\quad [A]=L^2,\\quad[b]=L\\,T,\\quad[c]=T^2"
+      },
+      {
+        "title": "保证这是一团有厚度的四维形状",
+        "why": "要求联合协方差正定。下一节会证明这等价于 c>0 且 S=A−bbᵀ/c 正定。b 的大小并非任意可取。",
+        "source": "c>0,\\qquad S=A-\\frac{bb^T}{c}\\succ0"
+      }
+    ],
+    "example": [
+      "只有 x 与时间相关的例子：A=diag(2,1,1)、b=(1,0,0)、c=1。",
+      "\\Sigma_4=\\begin{bmatrix}2&0&0&1\\\\0&1&0&0\\\\0&0&1&0\\\\1&0&0&1\\end{bmatrix}"
+    ],
+    "code": [
+      {
+        "id": "conditional-demo",
+        "explanation": "教学函数显式接收 A,b,c。当前 STG 的 32-float 记录没有这些块，不能从 r0..r7 直接假装读取它们。",
+        "symbols": "A,b,c ↔ 同名教学参数；不属于现有模型格式"
+      }
+    ],
+    "pitfall": "在三维 Gaussian 后面追加一个时间戳，并不自动得到联合 4D Gaussian。四维旋转也不是把普通三维四元数原样复用。",
+    "question": "b=0 表示什么？",
+    "answer": "在联合 Gaussian 模型中空间和时间独立；固定时刻不会移动空间中心。"
+  },
+  "conditional": {
+    "kind": "消去相关项 → 条件分布",
+    "goal": "为什么固定时间后要减去 bbᵀ/c，而不能直接用 A？",
+    "prerequisites": [
+      "statistics",
+      "matrices",
+      "quadratic"
+    ],
+    "steps": [
+      {
+        "title": "把两个变量都先减去均值",
+        "why": "令 X 表示三维空间偏移，T 表示时间偏移。它们均值为 0，协方差块分别是 A、b、c。",
+        "source": "X=\\mathbf x-\\mu_x,\\quad T=t-\\mu_t,\\quad \\mathbb E[XX^T]=A,\\quad\\mathbb E[XT]=b,\\quad\\mathbb E[T^2]=c"
+      },
+      {
+        "title": "尝试从 X 中减去一部分时间变化",
+        "why": "设 U=X−kT，希望残差 U 不再与 T 共同变化。展开平均乘积，令它为 0，就能解出 k，而不用背条件均值公式。",
+        "source": "\\mathbb E[UT]=\\mathbb E[XT]-k\\mathbb E[T^2]=b-kc=0\\quad\\Longrightarrow\\quad k=b/c"
+      },
+      {
+        "title": "展开残差的协方差",
+        "why": "四项分别取平均。两个交叉项都是 bbᵀ/c，最后一项加回来一次，因此净减去一次。",
+        "source": "\\begin{aligned}\\mathbb E[UU^T]&=\\mathbb E[(X-kT)(X-kT)^T]\\\\&=A-bk^T-kb^T+kck^T\\\\&=A-\\frac{bb^T}{c}-\\frac{bb^T}{c}+\\frac{bb^T}{c}=A-\\frac{bb^T}{c}\\end{aligned}"
+      },
+      {
+        "title": "利用联合 Gaussian 的特殊结构",
+        "why": "一般分布中“不相关”不一定等于“独立”。但 Gaussian 的指数只有二次项；下一式的分块分解会证明 U 和 T 的指数分开，所以固定 T 不改变 U 的分布。",
+        "source": "\\operatorname{Cov}\\begin{pmatrix}U\\\\T\\end{pmatrix}=\\begin{bmatrix}S&0\\\\0&c\\end{bmatrix},\\qquad S=A-bc^{-1}b^T"
+      },
+      {
+        "title": "把固定时间的偏移加回中心",
+        "why": "X=U+(b/c)T。固定时间后，后半项只是平移；残差仍是均值 0、协方差 S 的 Gaussian。",
+        "source": "\\mu_{x\\mid t}=\\mu_x+\\frac bc(t-\\mu_t),\\qquad \\Sigma_{x\\mid t}=A-\\frac{bb^T}c"
+      }
+    ],
+    "example": [
+      "标量空间也一样：Var(X)=2，Cov(X,T)=1，Var(T)=1。固定 T=3 后，均值移到 3，方差从 2 降为 1。",
+      "\\mathbb E[X\\mid T=3]=3,\\qquad \\operatorname{Var}(X\\mid T)=2-1=1"
+    ],
+    "code": [
+      {
+        "id": "conditional-demo",
+        "explanation": "逐项构造 shiftedMean 和 A[i][j]−b[i]*b[j]/c；本函数供手算验证，不改变 STG renderer。",
+        "symbols": "条件均值 ↔ mean；S ↔ covariance"
+      }
+    ],
+    "pitfall": "条件分布与边缘分布不同。忽略时间得到空间边缘 A；知道时间后得到更窄的条件协方差 S。",
+    "question": "单个固定 4D Gaussian 的条件协方差会随 t 改变吗？",
+    "answer": "不会，它只由 A,b,c 决定；中心随 t 线性变化，时间权重随 t 变化。"
+  },
+  "four-factorization": {
+    "kind": "矩阵配方的完整证明",
+    "goal": "空间条件核和时间核为什么能相乘？",
+    "prerequisites": [
+      "quadratic",
+      "matrices",
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "构造一个可撤销的换坐标",
+        "why": "令 k=b/c、S=A−bbᵀ/c；下三角块矩阵 L 把独立残差 U 和时间 T 组合成 X=U+kT。",
+        "source": "L=\\begin{bmatrix}I&k\\\\0&1\\end{bmatrix},\\quad L^{-1}=\\begin{bmatrix}I&-k\\\\0&1\\end{bmatrix},\\quad \\begin{bmatrix}X\\\\T\\end{bmatrix}=L\\begin{bmatrix}U\\\\T\\end{bmatrix}"
+      },
+      {
+        "title": "亲手乘开验证分块协方差",
+        "why": "先乘左边两张表，再乘 Lᵀ；右上是 kc=b，左上是 S+kckᵀ=A。这也证明 c>0、S 正定时联合协方差正定。",
+        "source": "L\\begin{bmatrix}S&0\\\\0&c\\end{bmatrix}L^T=\\begin{bmatrix}S+kck^T&kc\\\\ck^T&c\\end{bmatrix}=\\begin{bmatrix}A&b\\\\b^T&c\\end{bmatrix}"
+      },
+      {
+        "title": "把逆矩阵放进二次型",
+        "why": "乘积求逆要倒序。L⁻¹[X;T]=[X−kT;T]，因此不需要展开整个 4×4 逆矩阵，就能把交叉项消掉。",
+        "source": "\\begin{bmatrix}X\\\\T\\end{bmatrix}^{T}\\Sigma_4^{-1}\\begin{bmatrix}X\\\\T\\end{bmatrix}=(X-kT)^TS^{-1}(X-kT)+\\frac{T^2}{c}"
+      },
+      {
+        "title": "指数中的加法变成核的乘法",
+        "why": "乘上 −1/2 后取 exp，用 exp(a+b)=exp(a)exp(b)。第一部分以 μx+kT 为中心，第二部分只依赖时间。",
+        "source": "G_4(\\mathbf x,t)=\\exp\\left[-\\frac12(\\mathbf x-\\mu_{x\\mid t})^TS^{-1}(\\mathbf x-\\mu_{x\\mid t})\\right]\\exp\\left[-\\frac{(t-\\mu_t)^2}{2c}\\right]"
+      },
+      {
+        "title": "如果使用概率密度，常数也能分开",
+        "why": "det(L)=1，所以 det(Σ4)=det(S)c。归一化常数同样分成三维和一维两份；本页渲染核没有使用这些常数。",
+        "source": "\\det\\Sigma_4=c\\det S,\\qquad (2\\pi)^{-2}(\\det\\Sigma_4)^{-1/2}=(2\\pi)^{-3/2}(\\det S)^{-1/2}(2\\pi c)^{-1/2}"
+      }
+    ],
+    "example": [
+      "前面的例子取 t=1、空间点 (1,0,0)。它正好位于条件空间中心，因此空间核为 1。",
+      "G_4((1,0,0),1)=1\\cdot e^{-1/2}\\approx0.606531"
+    ],
+    "code": [
+      {
+        "id": "conditional-demo",
+        "explanation": "timeWeight=exp(−0.5*dt²/c) 必须保留；它和条件中心、条件协方差一起给到后续三维 renderer 才能表达这个联合核。",
+        "symbols": "时间边缘核 ↔ timeWeight"
+      }
+    ],
+    "pitfall": "只移动中心、丢掉时间权重，会让本应随时间淡出的 primitive 永远保持相同峰值。",
+    "question": "这条时间核与 STG-Lite 的 ρ 怎样对应？",
+    "answer": "若只匹配时间曲线，ρ=√(2c)；这不意味着两种完整表示等价。"
+  },
+  "conditional-example": {
+    "kind": "逐项代入验算",
+    "goal": "用一个可手算的 4×4 例子把条件化走完。",
+    "prerequisites": [
+      "matrices",
+      "quadratic"
+    ],
+    "steps": [
+      {
+        "title": "先算外积，不把它误写成点积",
+        "why": "b 是三维列，bbᵀ 是 3×3；只有左上角为 1。",
+        "source": "b=(1,0,0)^T,\\quad c=1,\\quad bb^T/c=\\begin{bmatrix}1&0&0\\\\0&0&0\\\\0&0&0\\end{bmatrix}"
+      },
+      {
+        "title": "相减得到条件协方差",
+        "why": "A 的第一个方差从 2 减到 1，其余保持 1。因此固定时间后的空间核是单位球。",
+        "source": "S=\\operatorname{diag}(2,1,1)-\\operatorname{diag}(1,0,0)=I_3"
+      },
+      {
+        "title": "条件中心随时间移动",
+        "why": "四维均值取 0，b/c=(1,0,0)。所以中心沿 x 轴以每模型时间单位 1 个世界单位移动。",
+        "source": "\\mu_{x\\mid t}=(t,0,0)^T,\\qquad w_t=e^{-t^2/2}"
+      },
+      {
+        "title": "直接用逆矩阵再验一次",
+        "why": "x,t 对应的 2×2 块 [[2,1],[1,1]] 的逆是 [[1,−1],[−1,2]]；二次型配方后恰好是 (x−t)²+t²。再加 y²、z²。",
+        "source": "2t^2-2xt+x^2+y^2+z^2=(x-t)^2+y^2+z^2+t^2"
+      }
+    ],
+    "example": [
+      "t=2、x=2、y=z=0，空间在中心、时间偏离 2；两种路线都给同一个结果。",
+      "G_4=e^{-\\frac12(4)}=e^{-2}\\approx0.135335"
+    ],
+    "code": [
+      {
+        "id": "conditional-demo",
+        "explanation": "可以在下载的教学模块中直接调用这个 A,b,c；数值检查同时比较完整四维二次型与分解后的两个核。",
+        "symbols": "A=diag(2,1,1)；b=[1,0,0]；c=1"
+      }
+    ],
+    "pitfall": "这个例子有线性轨迹和固定形状，不能拿来证明单个联合 4D Gaussian 能表达 STG 的任意三次轨迹。",
+    "question": "若误用 A 当条件协方差，哪个轴会过宽？",
+    "answer": "x 轴，标准差会从 1 错变成 √2。"
+  },
+  "spherical-harmonics": {
+    "kind": "基函数定义 → 有限展开",
+    "goal": "SH 不是魔法颜色：它是“几个方向图案乘系数再相加”。",
+    "prerequisites": [
+      "integral",
+      "derivatives",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "先把相机方向化为单位向量",
+        "why": "颜色可以随观察方向变化。假设方向函数只依赖 v；SH 选择一组球面上的标准图案 Y，RGB 系数分别控制每张图案的贡献。有限阶展开是一种近似表示。",
+        "source": "\\mathbf v=\\frac{\\mu-\\mathbf C_w}{\\|\\mu-\\mathbf C_w\\|},\\qquad \\mathbf c(\\mathbf v)\\approx\\sum_{\\ell=0}^L\\sum_{m=-\\ell}^{\\ell}\\mathbf a_{\\ell m}Y_{\\ell m}(\\mathbf v)"
+      },
+      {
+        "title": "从常数图案推导 DC 的系数",
+        "why": "为了让一张图案的“平方总量”为 1，常数 k 必须满足球面面积 4π 乘 k²=1。因此 Y00=1/√(4π)。",
+        "source": "\\int_{S^2}k^2\\,d\\Omega=4\\pi k^2=1\\quad\\Longrightarrow\\quad Y_{00}=\\frac1{\\sqrt{4\\pi}}\\approx0.282095"
+      },
+      {
+        "title": "一阶图案来自 x、y、z",
+        "why": "球面对三个轴完全对称，且 x²+y²+z²=1，因此三个平方的球面积分都为 4π/3。各乘 √(3/4π) 后平方总量为 1。按 Graphdeco 的实数约定，一阶顺序是 −y,z,−x。",
+        "source": "\\int x^2\\,d\\Omega=\\int y^2\\,d\\Omega=\\int z^2\\,d\\Omega=\\frac{4\\pi}{3},\\quad (Y_{1,-1},Y_{10},Y_{11})=\\sqrt{\\frac3{4\\pi}}(-y,z,-x)"
+      },
+      {
+        "title": "高阶图案也有明确的生成规则",
+        "why": "想继续往上，可用 Legendre 多项式的定义：ℓ! 表示从 1 连乘到 ℓ，0!=1；d^ℓ 表示连续求导 ℓ 次。代入 ℓ=0,1,2 就得到下面三项。",
+        "source": "P_\\ell(z)=\\frac1{2^\\ell\\ell!}\\frac{d^\\ell}{dz^\\ell}(z^2-1)^\\ell,\\qquad P_0=1,\\quad P_1=z,\\quad P_2=\\frac{3z^2-1}{2}"
+      },
+      {
+        "title": "把纬度图案和经度图案组合",
+        "why": "对 m≥0，先求关联多项式；再乘 sin(mφ) 或 cos(mφ) 与归一化常数。这里明确采用含 (−1)^m 的约定，避免源码之间符号不一致。",
+        "source": "\\begin{gathered}P_\\ell^m(z)=(-1)^m(1-z^2)^{m/2}\\frac{d^mP_\\ell}{dz^m},\\qquad N_{\\ell m}=\\sqrt{\\frac{2\\ell+1}{4\\pi}\\frac{(\\ell-m)!}{(\\ell+m)!}}\\\\Y_{\\ell0}=N_{\\ell0}P_\\ell(\\cos\\theta),\\quad Y_{\\ell m}=\\sqrt2N_{\\ell m}P_\\ell^m(\\cos\\theta)\\cos(m\\phi)\\ (m>0)\\\\Y_{\\ell,-m}=\\sqrt2N_{\\ell m}P_\\ell^m(\\cos\\theta)\\sin(m\\phi)\\ (m>0)\\end{gathered}"
+      },
+      {
+        "title": "为什么系数可以逐项求",
+        "why": "这些图案按上述归一化满足正交性：同一图案的乘积积分为 1，不同图案为 0。将展开式乘 Ykn 再积分，其余项消失，只剩对应系数。GS 实际通常直接优化系数；无需运行时积分。高阶正交性的完整证明可继续读 NIST DLMF，运行时只要评估多项式。",
+        "source": "\\int Y_{\\ell m}Y_{kn}\\,d\\Omega=\\delta_{\\ell k}\\delta_{mn}\\quad\\Longrightarrow\\quad \\mathbf a_{kn}=\\int\\mathbf c(\\mathbf v)Y_{kn}(\\mathbf v)\\,d\\Omega"
+      },
+      {
+        "title": "回到具体文件，先检查有没有 SH",
+        "why": "本项目 STG-Lite 的 f_dc_0..2 直接保存 RGB。静态 Graphdeco 3DGS 的 DC 则通常按 C0*a00+0.5 转成颜色。相同名字不是相同格式。",
+        "source": "\\text{static 3DGS DC:}\\quad \\mathbf c=0.28209479\\,\\mathbf a_{00}+0.5"
+      }
+    ],
+    "example": [
+      "只用 DC 表示红通道 0.8，在静态 3DGS 约定下系数约 1.06347；当前 Lite 则直接存 0.8。",
+      "a_{00}=(0.8-0.5)/0.28209479\\approx1.063472"
+    ],
+    "code": [
+      {
+        "id": "sh-demo",
+        "explanation": "教学模块实现到一阶：C0*a0 + C1*(−y*a1+z*a2−x*a3)。它是用于检查 SH 系数的独立示例，未接入 Lite。",
+        "symbols": "ℓ≤1 的四项 ↔ coefficients[0..3]"
+      },
+      {
+        "id": "quad",
+        "explanation": "真实 shader 读取 r4.yzw 后 clamp，没有求 SH。",
+        "symbols": "当前 RGB ↔ splat.r4.yzw"
+      }
+    ],
+    "pitfall": "SH 表示观察方向相关颜色，不等于可重光照材质。方向反向、基底排序或符号不同都会改变奇数阶贡献。",
+    "question": "最高阶 L=3 一共需要多少个 RGB 系数？",
+    "answer": "每阶 2ℓ+1 个，总数 1+3+5+7=16，也就是 (L+1)²。"
+  },
+  "feature-splatting": {
+    "kind": "颜色合成推广到特征",
+    "goal": "为什么有的 STG 先画特征，再通过网络得到颜色？",
+    "prerequisites": [
+      "vectors",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "把三个颜色数字换成 D 个特征数字",
+        "why": "alpha 仍由几何与时间决定，前缀透射率也相同。只把每层的 RGB 列换成长一点的特征列。",
+        "source": "\\mathbf f_i(t)\\in\\mathbb R^D,\\qquad F_d(\\mathbf p,t)=\\sum_iT_i\\alpha_i f_{i,d}(t)"
+      },
+      {
+        "title": "每个通道独立做同样的加权和",
+        "why": "堆起来就是 F=∑Tiαifi。若背景特征不为 0，也要像颜色一样加上剩余透射率乘背景特征。这里概念式默认背景特征为 0。",
+        "source": "\\mathbf F=\\sum_iT_i\\alpha_i\\mathbf f_i"
+      },
+      {
+        "title": "用 decoder 把特征和方向变成颜色",
+        "why": "示意网络先拼接 F 与观察方向，矩阵乘法加偏移，再做非线性，最后输出三维。真实 STG 的特征分组和输入应按论文与 checkpoint 配套实现。",
+        "source": "\\mathbf h=\\operatorname{ReLU}(W_1[\\mathbf F;\\mathbf v]+b_1),\\qquad \\mathbf C=D_\\theta(\\mathbf F,\\mathbf v)"
+      },
+      {
+        "title": "解释为什么不能随意交换先后顺序",
+        "why": "非线性函数一般不满足 D(a+b)=D(a)+D(b)。所以“先解码每个 Gaussian 再合成颜色”不一定等于“先合成特征再解码”。",
+        "source": "D(x)=x^2:\\quad D(0.5\\cdot1+0.5\\cdot3)=4\\ne0.5D(1)+0.5D(3)=5"
+      }
+    ],
+    "example": [
+      "两层特征 (1,2)、(3,0)，alpha 都为 0.5、近到远，黑背景特征。",
+      "\\mathbf F=0.5(1,2)+0.25(3,0)=(1.25,1)"
+    ],
+    "code": [
+      {
+        "id": "feature-demo",
+        "explanation": "教学函数复用透明合成计算任意 D 维特征；示例 decoder 的权重只是手写练习，不是 STG 训练权重。",
+        "symbols": "F ↔ compositeFeatures 返回值"
+      },
+      {
+        "id": "fragment",
+        "explanation": "Lite 的特殊情况直接合成三通道 RGB，没有 feature render target 或 MLP 调用。",
+        "symbols": "D=3 且直接颜色 ↔ 当前 color_opacity.rgb"
+      }
+    ],
+    "pitfall": "加载完整版 STG 需要匹配特征通道、时间编码、decoder 权重和输入约定，不能只保留三个 f_dc 字段。",
+    "question": "只有线性 decoder 就能随意交换合成和解码吗？",
+    "answer": "纯线性且背景处理一致时可以；有偏置时还要考虑权重之和，不能省略背景后直接搬过去。"
+  },
+  "objective": {
+    "kind": "误差度量的选择",
+    "goal": "渲染得到图像之后，训练到底在减少哪个数字？",
+    "prerequisites": [
+      "statistics",
+      "derivatives",
+      "chain"
+    ],
+    "steps": [
+      {
+        "title": "把预测和目标逐通道相减",
+        "why": "把所有参与训练的像素通道排成 M 个数。L1 取误差绝对值再平均；MSE 先平方再平均。二者都非负，完全一致时为 0，但它们不是同一个损失。",
+        "source": "e_j=\\widehat I_j-I_j,\\qquad L_1=\\frac1M\\sum_j|e_j|,\\qquad L_{\\rm MSE}=\\frac1M\\sum_j e_j^2"
+      },
+      {
+        "title": "为什么还可能看局部结构",
+        "why": "只比较单个像素会忽略局部亮度和对比度关系。SSIM 先在窗口内求均值、方差与协方差，再构造相似度；下面给出一种常见加权窗口版本，权重 wn 非负且和为 1。",
+        "source": "\\begin{gathered}\\mu_a=\\sum_nw_na_n,\\quad \\sigma_a^2=\\sum_nw_n(a_n-\\mu_a)^2,\\quad \\sigma_{ab}=\\sum_nw_n(a_n-\\mu_a)(b_n-\\mu_b)\\\\\\operatorname{SSIM}(a,b)=\\frac{(2\\mu_a\\mu_b+C_1)(2\\sigma_{ab}+C_2)}{(\\mu_a^2+\\mu_b^2+C_1)(\\sigma_a^2+\\sigma_b^2+C_2)}\\end{gathered}"
+      },
+      {
+        "title": "说明 SSIM 是定义，不是假装能唯一推出来",
+        "why": "亮度项利用 2ab=a²+b²−(a−b)²：均值差越小，比例越接近 1。结构项利用两个中心化信号的平方差展开得到类似性质。C1、C2 是防止小分母的正常数；窗口和边界处理由实现决定。",
+        "source": "\\frac{2\\mu_a\\mu_b+C_1}{\\mu_a^2+\\mu_b^2+C_1}=1-\\frac{(\\mu_a-\\mu_b)^2}{\\mu_a^2+\\mu_b^2+C_1}"
+      },
+      {
+        "title": "把相似度转成要最小化的损失",
+        "why": "1−SSIM 在相似度最高时最小。λ 是两种误差的权重，R(θ) 是额外正则，例如限制运动大小；不需要时为 0。这是常见训练目标的结构，不是所有 4DGS 的统一公式。",
+        "source": "L=(1-\\lambda)L_1+\\lambda(1-\\operatorname{SSIM})+\\mathcal R(\\theta),\\qquad \\mathcal R=\\gamma\\sum_i\\|\\mathbf m_i\\|^2\\ \\text{(example)}"
+      },
+      {
+        "title": "当前 toy trainer 使用更容易核对的 MSE",
+        "why": "平方的导数是 2e，目标图像视为常量；除以 M 得到每个预测通道的起始梯度。L1 在非零误差处则只取符号，零点使用选定的次梯度。",
+        "source": "\\frac{\\partial L_{\\rm MSE}}{\\partial\\widehat I_j}=\\frac{2(\\widehat I_j-I_j)}M,\\qquad \\frac{\\partial L_1}{\\partial\\widehat I_j}=\\frac{\\operatorname{sign}(e_j)}M\\quad(e_j\\ne0)"
+      },
+      {
+        "title": "把误差传回去，再更新",
+        "why": "zero_grad 清除上一轮梯度；backward 按链式法则累计；step 使用优化器修改参数。教学页面的一步演示用 SGD 便于手算，实际 train_toy_stg.py 用 Adam。",
+        "source": "\\theta_{\\rm new}=\\theta-\\eta\\nabla_\\theta L\\qquad\\text{(SGD teaching step)}"
+      }
+    ],
+    "example": [
+      "预测 (0.6,0.2,0.1)，目标 (0.5,0.3,0.1)，三通道平均。",
+      "L_{\\rm MSE}=(0.1^2+(-0.1)^2+0)/3=0.0066667,\\quad \\nabla_{\\widehat I}L=(0.0666667,-0.0666667,0)"
+    ],
+    "code": [
+      {
+        "id": "train-loop",
+        "explanation": "实际代码 square().mean() 是 MSE，没有 SSIM 或运动正则。Adam 的 fitted 列表决定哪些变量会被训练。",
+        "symbols": "L ↔ loss；∇L ↔ .grad；参数更新 ↔ optimizer.step()"
+      }
+    ],
+    "pitfall": "不能把某次 loss 下降直接等同于真实场景重建质量。当前数据是合成图像，旋转和尺度固定，也没有 SfM 与 densification。",
+    "question": "为什么 backward 后画面可能完全没变？",
+    "answer": "backward 只算梯度；尚未 optimizer.step，或者变量不在优化器参数列表里。"
+  },
+  "mean-gradient": {
+    "kind": "指数链式法则",
+    "goal": "把 Gaussian 中心挪向一个像素，alpha 会怎样变？",
+    "prerequisites": [
+      "derivatives",
+      "chain",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "把指数部分命名为 E",
+        "why": "固定 C、o，令 d=p−μ。Q 对称，先按 x、y 分量把 E 展开，避免直接背矩阵求导规则。",
+        "source": "E=-\\frac12(Q_{11}d_x^2+2Q_{12}d_xd_y+Q_{22}d_y^2),\\qquad \\alpha=o\\,e^E"
+      },
+      {
+        "title": "对中心 x 分量求导",
+        "why": "dx 对 μx 的导数是 −1，dy 不变。平方导数的 2 与前面的 1/2 抵消，两个负号又抵消。",
+        "source": "\\frac{\\partial E}{\\partial\\mu_x}=-\\frac12\\left(2Q_{11}d_x(-1)+2Q_{12}d_y(-1)\\right)=Q_{11}d_x+Q_{12}d_y"
+      },
+      {
+        "title": "对中心 y 分量同样计算",
+        "why": "合起来正好就是矩阵 Q 乘偏移 d。",
+        "source": "\\frac{\\partial E}{\\partial\\mu_y}=Q_{12}d_x+Q_{22}d_y,\\qquad \\nabla_\\mu E=Qd"
+      },
+      {
+        "title": "外层指数再乘一次自己",
+        "why": "exp 的导数还是 exp，o 视为常量，因此外层导数 o exp(E) 恰好等于 alpha。",
+        "source": "\\nabla_\\mu\\alpha=\\frac{\\partial\\alpha}{\\partial E}\\nabla_\\mu E=\\alpha Qd"
+      },
+      {
+        "title": "注意这只是局部偏导",
+        "why": "中心的真实三维位置还会改变投影大小、方向外观和排序。此处锁住 C，下一条完整链式公式再把其他路径加回来。",
+        "source": "\\delta\\alpha\\approx(\\alpha Qd)^T\\delta\\mu"
+      }
+    ],
+    "example": [
+      "C=diag(4,1)、d=(2,1)、o=0.8，alpha≈0.294304。",
+      "Qd=(0.5,1)^T,\\quad \\nabla_\\mu\\alpha\\approx(0.147152,0.294304)^T"
+    ],
+    "code": [
+      {
+        "id": "toy-kernel",
+        "explanation": "delta=pixel−uv、inverse=inv(covariance)、exp(power) 组成这条路径；PyTorch 自动微分负责同样的计算。",
+        "symbols": "μ ↔ uv；d ↔ delta；Q ↔ inverse"
+      }
+    ],
+    "pitfall": "把 d 写成 μ−p 却仍使用正号，会把梯度方向反过来。clamp 或 discard 的分段梯度也不在此式内。",
+    "question": "像素恰好在中心，均值偏导是多少？",
+    "answer": "0，因为 d=0；峰值附近向任意方向小挪动的影响从二阶开始。"
+  },
+  "cov-gradient": {
+    "kind": "逆矩阵微分，拆成代数步骤",
+    "goal": "怎样知道把椭圆变宽会让某个像素变亮多少？",
+    "prerequisites": [
+      "matrices",
+      "derivatives",
+      "chain"
+    ],
+    "steps": [
+      {
+        "title": "从逆矩阵的定义出发",
+        "why": "Q=C⁻¹，所以 CQ=I。让 C 增加很小的 δC，Q 增加 δQ，乘开后减去 CQ=I。",
+        "source": "(C+\\delta C)(Q+\\delta Q)=I\\quad\\Longrightarrow\\quad C\\delta Q+\\delta C Q+\\delta C\\delta Q=0"
+      },
+      {
+        "title": "只保留一次小量",
+        "why": "δCδQ 是二次小量，在导数极限中消失。左乘 Q 得到 δQ=−QδCQ。这是逆矩阵求导的来源。",
+        "source": "C\\delta Q+\\delta C Q\\approx0\\quad\\Longrightarrow\\quad\\delta Q\\approx-Q\\,\\delta C\\,Q"
+      },
+      {
+        "title": "把它代入指数的变化",
+        "why": "固定 d，E=−dᵀQd/2。两个负号抵消；令 v=Qd，则结果只剩 vᵀδCv/2。",
+        "source": "\\delta E=-\\frac12d^T\\delta Qd\\approx\\frac12d^TQ\\,\\delta C\\,Qd=\\frac12v^T\\delta C v"
+      },
+      {
+        "title": "逐元素读出系数",
+        "why": "把 vᵀδCv 展开为 ∑ij vi vj δCij。每个 δCij 前面的系数就是 E 对那个矩阵元素的偏导；再乘指数导数 alpha。",
+        "source": "\\delta\\alpha\\approx\\frac\\alpha2\\sum_{ij}v_iv_j\\delta C_{ij}\\quad\\Longrightarrow\\quad\\frac{\\partial\\alpha}{\\partial C}=\\frac\\alpha2vv^T=\\frac\\alpha2Qdd^TQ"
+      },
+      {
+        "title": "实际只存一个 b 时要加两项",
+        "why": "C12 和 C21 同时等于 b；b 增加会同时改变两个元素。因此 db 的导数是两项之和，不能只读矩阵右上角。",
+        "source": "C=\\begin{bmatrix}a&b\\\\b&c\\end{bmatrix}:\\quad \\frac{\\partial\\alpha}{\\partial(a,b,c)}=\\left(\\frac\\alpha2v_x^2,\\ \\alpha v_xv_y,\\ \\frac\\alpha2v_y^2\\right)"
+      }
+    ],
+    "example": [
+      "继续用 alpha≈0.294304、v=(0.5,1)。",
+      "\\frac{\\partial\\alpha}{\\partial(a,b,c)}\\approx(0.036788,0.147152,0.147152)"
+    ],
+    "code": [
+      {
+        "id": "toy-kernel",
+        "explanation": "torch.linalg.inv 的反向传播与这条逆矩阵规则一致；WGSL 仅负责前向，没有对应训练 backward。",
+        "symbols": "C ↔ covariance；∂α/∂C ↔ autograd 中间梯度"
+      }
+    ],
+    "pitfall": "该式用于峰值归一的核。若额外含 det(C) 的概率密度归一化因子，其导数还有一项，不能照抄。",
+    "question": "像素位于中心时，只变宽度会改变未归一化核的峰值吗？",
+    "answer": "不会。d=0，协方差梯度为 0；它仍等于 o。"
+  },
+  "opacity-gradient": {
+    "kind": "sigmoid 的导数",
+    "goal": "为什么训练 opacity 用 logit，而梯度里出现 1−o？",
+    "prerequisites": [
+      "derivatives",
+      "chain",
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "把 sigmoid 写成倒数",
+        "why": "令 o=(1+e⁻ᵝ)⁻¹。外层倒数求导给负号，内层 e⁻ᵝ 又给负号，两者抵消。",
+        "source": "\\frac{do}{d\\beta}=-(1+e^{-\\beta})^{-2}(-e^{-\\beta})=\\frac{e^{-\\beta}}{(1+e^{-\\beta})^2}"
+      },
+      {
+        "title": "把结果改写成 o 的乘积",
+        "why": "一个分母给 o，剩下的比例等于 1−o。",
+        "source": "1-o=\\frac{e^{-\\beta}}{1+e^{-\\beta}},\\qquad \\frac{do}{d\\beta}=o(1-o)"
+      },
+      {
+        "title": "乘上固定的时间核和空间核",
+        "why": "令 K=w(t)G(p)，与 β 无关；alpha=oK。求导得到 K o(1−o)，把 Ko 换回 alpha。",
+        "source": "\\frac{\\partial\\alpha}{\\partial\\beta}=K\\,o(1-o)=\\alpha(1-o)"
+      },
+      {
+        "title": "再接像素损失的上游梯度",
+        "why": "β 改变 alpha，alpha 改变像素，像素改变 loss。每个受影响像素的贡献都要累加。",
+        "source": "\\frac{\\partial L}{\\partial\\beta_i}=\\sum_p\\frac{\\partial L}{\\partial\\alpha_i(p)}\\,\\alpha_i(p)(1-o_i)"
+      }
+    ],
+    "example": [
+      "β=0，o=0.5，K=0.6，所以 alpha=0.3。",
+      "\\frac{\\partial\\alpha}{\\partial\\beta}=0.3(1-0.5)=0.15"
+    ],
+    "code": [
+      {
+        "id": "toy-kernel",
+        "explanation": "opacity_logits 参与 torch.sigmoid；导出时写回原始 logit，GPU 再解码。",
+        "symbols": "β ↔ opacity_logits；o ↔ torch.sigmoid(...)"
+      }
+    ],
+    "pitfall": "这里 1−o 用基础 sigmoid opacity，不是 1−alpha，也不是 1−时间衰减后的 opacity。",
+    "question": "为什么 β 非常大时难以继续训练 opacity？",
+    "answer": "sigmoid 接近 1，o(1−o) 接近 0，梯度饱和。"
+  },
+  "full-chain": {
+    "kind": "多条路径的链式法则",
+    "goal": "训练位置时，为什么只乘 Jᵀ 会漏梯度？",
+    "prerequisites": [
+      "chain",
+      "matrices"
+    ],
+    "steps": [
+      {
+        "title": "先画出同一位置的两条出口",
+        "why": "三维中心同时决定屏幕均值 μ2D=π(μc) 和 Jacobian J(μc)；后者又决定 C。暂时固定颜色、opacity 和世界协方差。",
+        "source": "\\mu_c\\to\\mu_{2D}\\to\\alpha\\to L,\\qquad \\mu_c\\to J\\to C\\to\\alpha\\to L"
+      },
+      {
+        "title": "先对一个三维坐标分量展开",
+        "why": "比如 x：loss 随两个均值分量和四个协方差元素变化；每条路径都是“上游梯度×局部斜率”，最后相加。若只存 a,b,c，则按三个独立量写等价求和。",
+        "source": "\\frac{\\partial L}{\\partial x}=\\sum_{j=1}^2\\frac{\\partial L}{\\partial\\mu_{2D,j}}\\frac{\\partial\\mu_{2D,j}}{\\partial x}+\\sum_{a,b=1}^2\\frac{\\partial L}{\\partial C_{ab}}\\frac{\\partial C_{ab}}{\\partial x}"
+      },
+      {
+        "title": "把 x,y,z 三条式子排成列",
+        "why": "vec 只是按固定顺序把矩阵元素排成向量；一旦两边使用相同顺序，就能把逐项求和写成矩阵乘法。转置负责把输出梯度送回输入。",
+        "source": "\\nabla_{\\mu_c}L=J^T\\nabla_{\\mu_{2D}}L+\\left(\\frac{\\partial\\operatorname{vec}C}{\\partial\\mu_c}\\right)^T\\nabla_{\\operatorname{vec}C}L"
+      },
+      {
+        "title": "C 的变化本身也有左右两条路",
+        "why": "C=JΣcJᵀ+εI；δJ 可以出现在左边，也可以出现在右边。Σc 暂时固定，ε 是常数。",
+        "source": "\\delta C=(\\delta J)\\Sigma_cJ^T+J\\Sigma_c(\\delta J)^T"
+      },
+      {
+        "title": "直接给一个均值路径为零的例子",
+        "why": "球位于光轴上，x=y=0，均匀世界尺度 s。前后移动不会改变屏幕中心，但投影方差 f²s²/z² 会改变。因此只保留第一项会把深度梯度误算成 0。",
+        "source": "C=(f^2s^2/z^2+\\varepsilon)I_2,\\qquad \\frac{\\partial C}{\\partial z}=-\\frac{2f^2s^2}{z^3}I_2"
+      },
+      {
+        "title": "其余可训练参数也沿自己的边连接",
+        "why": "回到世界位置需左乘 Rcwᵀ。若训练 log-scale，Σ=∑akakᵀ 且 ak=e^ℓk rk，对 ℓk 求导得到 2akakᵀ；若训练旋转，还需接四元数矩阵及 normalize 的导数。",
+        "source": "\\nabla_{\\mu_w}L=R_{cw}^T\\nabla_{\\mu_c}L,\\qquad \\frac{\\partial\\Sigma}{\\partial\\ell_k}=2a_ka_k^T"
+      }
+    ],
+    "example": [
+      "f=100、s=0.1、z=10，投影方差=1.3；深度变化率为 −0.2。",
+      "C=1.3I_2,\\qquad \\partial C/\\partial z=-0.2I_2"
+    ],
+    "code": [
+      {
+        "id": "toy-project",
+        "explanation": "xyz 同时进入 uv 和 jacobian，这就是两条计算图路径。不要 detach jacobian 后仍声称训练的是完整位置梯度。",
+        "symbols": "μc ↔ xyz；μ2D ↔ uv；C ↔ covariance"
+      }
+    ],
+    "pitfall": "实际若颜色依赖观察方向，还要补颜色路径；若 opacity、旋转依赖时间，也要补对应时间路径。排序和硬可见性变化是分段边界。",
+    "question": "在哪段代码最容易漏掉第二条路径？",
+    "answer": "预先缓存或 detach J、C 的训练实现；当前 toy 的 J 由可导 xyz 重新计算。"
+  },
+  "composite-gradient": {
+    "kind": "分离前缀、本层和尾部",
+    "goal": "让前景更不透明，也会挡住后景；梯度怎样同时记住两件事？",
+    "prerequisites": [
+      "chain",
+      "vectors"
+    ],
+    "steps": [
+      {
+        "title": "固定顺序，只观察第 i 层",
+        "why": "Ai 表示前面各层已经贡献的颜色；Ti 是到达本层前的透射率；Bi 是从本层之后开始独立合成的尾部颜色，包含背景。",
+        "source": "\\mathbf C=\\mathbf A_i+T_i\\left[\\alpha_i\\mathbf c_i+(1-\\alpha_i)\\mathbf B_i\\right]"
+      },
+      {
+        "title": "锁住其他层，对 alpha 求导",
+        "why": "Ai、Ti、ci、Bi 都视为常量。第一项贡献 ci，第二项贡献 −Bi。",
+        "source": "\\frac{\\partial\\mathbf C}{\\partial\\alpha_i}=T_i(\\mathbf c_i-\\mathbf B_i)"
+      },
+      {
+        "title": "锁住 alpha，对当前颜色求导",
+        "why": "RGB 各通道独立相乘，当前颜色的每一通道只改变输出的同一通道，因此 Jacobian 是系数乘 I3。",
+        "source": "\\frac{\\partial\\mathbf C}{\\partial\\mathbf c_i}=T_i\\alpha_iI_3"
+      },
+      {
+        "title": "接上标量 loss",
+        "why": "像素 loss 的 RGB 梯度是三维列；对 alpha 的梯度是它与颜色差做点积。这样颜色差的正负才正确参与参数更新。",
+        "source": "\\frac{\\partial L}{\\partial\\alpha_i}=(\\nabla_{\\mathbf C}L)^TT_i(\\mathbf c_i-\\mathbf B_i),\\qquad \\nabla_{\\mathbf c_i}L=T_i\\alpha_i\\nabla_{\\mathbf C}L"
+      }
+    ],
+    "example": [
+      "前景红、后景蓝 alpha=0.5、黑背景；第一层 T1=1，B1=(0,0,0.5)。",
+      "\\frac{\\partial\\mathbf C}{\\partial\\alpha_1}=(1,0,-0.5)^T"
+    ],
+    "code": [
+      {
+        "id": "toy-composite",
+        "explanation": "autograd 穿过 alpha 的直接颜色贡献和 cumprod 的遮挡贡献；手写 backward 时两者都要保留。",
+        "symbols": "Ai/Bi ↔ 合成链前缀/后缀；Ti ↔ transmittance"
+      }
+    ],
+    "pitfall": "Bi 是未乘 Ti 的尾部合成颜色。若先乘了前缀再代公式，就把 Ti 乘了两次。",
+    "question": "前景颜色和后方合成颜色完全一样时，alpha 的颜色梯度是多少？",
+    "answer": "0；增加遮挡不会改变这一个像素的颜色。"
+  },
+  "time-gradient": {
+    "kind": "时间链的逐项求导",
+    "goal": "时间、宽度、运动系数分别怎样接收梯度？",
+    "prerequisites": [
+      "derivatives",
+      "chain",
+      "exp"
+    ],
+    "steps": [
+      {
+        "title": "给时间核的指数命名",
+        "why": "E=−Δt²/ρ²；固定 τ、ρ 时，Δt 对 t 的导数是 1。先求 E 的导数，再乘外层 w。",
+        "source": "\\frac{dE}{dt}=-\\frac{2\\Delta t}{\\rho^2},\\qquad \\frac{dw}{dt}=w\\frac{dE}{dt}=-\\frac{2\\Delta t}{\\rho^2}w"
+      },
+      {
+        "title": "对 log-width 求导，不是直接对宽度求导",
+        "why": "把 ρ=e^ℓτ 代入，E=−Δt²e^(−2ℓτ)。指数求导带出 −2，与前面负号抵消。",
+        "source": "\\frac{\\partial E}{\\partial\\ell_\\tau}=2\\Delta t^2e^{-2\\ell_\\tau}=\\frac{2\\Delta t^2}{\\rho^2},\\qquad \\frac{\\partial w}{\\partial\\ell_\\tau}=\\frac{2\\Delta t^2}{\\rho^2}w"
+      },
+      {
+        "title": "时间中心的符号相反",
+        "why": "Δt=t−τ，对 τ 的偏导为 −1；所以只看时间核这条路，τ 的导数与 t 相反。若 τ 同时进入运动，还必须累加运动路径。",
+        "source": "\\frac{\\partial w}{\\partial\\tau}=\\frac{2\\Delta t}{\\rho^2}w"
+      },
+      {
+        "title": "运动系数只出现在一次乘法里",
+        "why": "第 k 阶系数每个分量乘同一个 Δt^k；只影响同一空间分量，因此 Jacobian 是这个标量乘 I3。",
+        "source": "\\frac{\\partial\\mu}{\\partial\\mathbf m_k}=\\Delta t^kI_3,\\qquad \\nabla_{\\mathbf m_k}L=\\Delta t^k\\nabla_\\mu L"
+      },
+      {
+        "title": "时间变化同时走多条路",
+        "why": "一条改 opacity，一条改位置，还有旋转和可能的特征时间分支。数学导数存在不代表实现一定传递；detach 会有意切断某条边。",
+        "source": "\\frac{dL}{dt}=\\frac{\\partial L}{\\partial w}\\frac{dw}{dt}+(\\nabla_\\mu L)^T\\frac{d\\mu}{dt}+(\\nabla_q L)^T\\frac{dq}{dt}+\\cdots"
+      }
+    ],
+    "example": [
+      "Δt=ρ=0.25 时 w=e⁻¹。",
+      "\\frac{dw}{dt}=-8e^{-1}\\approx-2.943036,\\qquad \\frac{\\partial w}{\\partial\\ell_\\tau}=2e^{-1}\\approx0.735759"
+    ],
+    "code": [
+      {
+        "id": "motion",
+        "explanation": "GPU 前向分别计算 dt、center、quaternion、temporal_opacity；当前 toy 只训练线性 motion，没有训练 τ、ρ 或 ω。",
+        "symbols": "τ ↔ r0.w；ℓτ ↔ r1.x；mk ↔ motion 字段"
+      }
+    ],
+    "pitfall": "时间宽度达到 max(exp(log-width),1e−6) 的保护区后，关于 log-width 的实际分支导数不再是未裁剪公式。",
+    "question": "Δt=0 时，一次 motion 参数从这一时刻的图像得到什么位置梯度？",
+    "answer": "0，因为 ∂μ/∂m1=Δt I=0；需要其他时刻来约束运动。"
+  },
+  "finite-difference": {
+    "kind": "用两次前向验证反向",
+    "goal": "怎样不用相信手推或 autograd，就独立检查一个梯度？",
+    "prerequisites": [
+      "derivatives",
+      "chain"
+    ],
+    "steps": [
+      {
+        "title": "一次只改一个参数",
+        "why": "ek 表示只有第 k 项为 1 的向量。固定图像、相机、时间、其他参数，分别把 θk 增加 h 和减少 h。",
+        "source": "L_+=L(\\theta+h e_k),\\qquad L_-=L(\\theta-h e_k)"
+      },
+      {
+        "title": "用中间对称的两点求斜率",
+        "why": "两次参数相差 2h，所以分母是 2h。它近似中心处的变化率。",
+        "source": "g_{\\rm FD}=\\frac{L_+-L_-}{2h}\\approx\\frac{\\partial L}{\\partial\\theta_k}"
+      },
+      {
+        "title": "解释为什么对称差分更准确",
+        "why": "平滑函数局部展开的二次项在相减时抵消；除以 2h 后剩下的主要误差是 h² 级别。O(h²) 表示误差随 h² 缩小的量级，不是精确常数。",
+        "source": "L(\\theta\\pm h)=L(\\theta)\\pm hL^{\\prime}+\\frac{h^2}{2}L^{\\prime\\prime}\\pm\\frac{h^3}{6}L^{\\prime\\prime\\prime}+\\cdots\\quad\\Rightarrow\\quad g_{\\rm FD}=L^{\\prime}+O(h^2)"
+      },
+      {
+        "title": "不要把 h 越小越好当口诀",
+        "why": "过大的 h 有截断误差，过小的 h 会把相近浮点数相减，舍入误差被放大。用 float64，比较 1e−4、1e−5、1e−6 多组，而不是只挑一个看起来好的结果。",
+        "source": "E_{\\rm abs}=|g_{\\rm analytic}-g_{\\rm FD}|,\\qquad E_{\\rm scaled}=\\frac{E_{\\rm abs}}{\\max(1,|g_{\\rm analytic}|,|g_{\\rm FD}|)}"
+      },
+      {
+        "title": "确保两次前向处在同一个光滑分支",
+        "why": "深度换序、clip/cutoff 边界、alpha 上限、零范数会使局部光滑假设失效。不要通过放宽容差隐藏这类变化；先选稳定例子，再单独测试分支。",
+        "source": "L(\\theta)=(\\theta-3)^2,\\quad\\theta=1:\\quad g_{\\rm FD}=\\frac{(-2+h)^2-(-2-h)^2}{2h}=-4"
+      }
+    ],
+    "example": [
+      "把解析梯度用于一次小更新后，再跑前向。下降只能作为额外检查，不能替代逐参数有限差分。",
+      "\\theta_{\\rm new}=1-0.1(-4)=1.4,\\qquad L:4\\to2.56"
+    ],
+    "code": [
+      {
+        "id": "finite-check",
+        "explanation": "现有数值检查分别验证均值、协方差独立项、logit、时间和归一化导数。新增像素实验还检查包含 C 路径的完整位置梯度。",
+        "symbols": "gFD ↔ finiteJacobian；解析值 ↔ expected"
+      }
+    ],
+    "pitfall": "单个标量通过检查不等于完整 CUDA/WGSL backward 正确。本页检查数学与教学代码，当前 WGSL 没有训练 backward。",
+    "question": "analytic=0、finite difference≈0 时只算相对误差有什么问题？",
+    "answer": "分母接近 0，比例会失真；需要绝对误差与带尺度下限的误差一起看。"
+  }
+}
