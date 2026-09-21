@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "lessons": [
+    {
+      "id": "01-the-whole-story",
+      "title": {
+        "en": "From photographs to a scene you can move through",
+        "zh": "从照片，到可以自由观察的场景"
+      },
+      "phase": 0
+    },
+    {
+      "id": "02-a-soft-primitive",
+      "title": {
+        "en": "Why a Gaussian is a soft brush",
+        "zh": "为什么 Gaussian 像一支柔和的画笔"
+      },
+      "phase": 0
+    },
+    {
+      "id": "03-camera-to-ellipse",
+      "title": {
+        "en": "How a 3D brush lands on a 2D screen",
+        "zh": "三维画笔怎样落到二维屏幕上"
+      },
+      "phase": 0
+    },
+    {
+      "id": "04-many-splats-one-pixel",
+      "title": {
+        "en": "How overlapping splats become one pixel",
+        "zh": "许多重叠的 Splat 怎样变成一个像素"
+      },
+      "phase": 0
+    },
+    {
+      "id": "05-direction-becomes-color",
+      "title": {
+        "en": "One direction, three independent color sums",
+        "zh": "一个方向，三组独立的颜色求和"
+      },
+      "phase": 1
+    },
+    {
+      "id": "06-add-time",
+      "title": {
+        "en": "What the fourth dimension actually changes",
+        "zh": "第四个维度到底改变了什么"
+      },
+      "phase": 1
+    },
+    {
+      "id": "07-prepare-observations",
+      "title": {
+        "en": "Good training starts before the first gradient",
+        "zh": "好训练从第一步梯度之前就开始"
+      },
+      "phase": 2
+    },
+    {
+      "id": "08-follow-the-gradient",
+      "title": {
+        "en": "How a pixel tells a parameter to move",
+        "zh": "一个像素怎样告诉参数该往哪改"
+      },
+      "phase": 2
+    },
+    {
+      "id": "09-run-a-training-loop",
+      "title": {
+        "en": "Watch a model actually learn",
+        "zh": "看着一个模型真正学起来"
+      },
+      "phase": 2
+    },
+    {
+      "id": "10-grow-and-prune",
+      "title": {
+        "en": "Why training sometimes adds or removes Gaussians",
+        "zh": "为什么训练有时要增删 Gaussian"
+      },
+      "phase": 2
+    },
+    {
+      "id": "11-export-the-contract",
+      "title": {
+        "en": "A model file is a promise to the renderer",
+        "zh": "模型文件是对渲染器的一份约定"
+      },
+      "phase": 3
+    },
+    {
+      "id": "12-build-and-explain",
+      "title": {
+        "en": "Train, export, render—and defend every step",
+        "zh": "训练、导出、渲染，并解释每一步"
+      },
+      "phase": 3
+    }
+  ]
+}

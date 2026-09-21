@@ -5,6 +5,8 @@ An independent Rust/WASM, wgpu, and WGSL browser renderer for the official CVPR 
 - Live viewer: https://gaussian.pajama.studio
 - Repository: https://github.com/pajama-studio/4dgaussian
 
+Start learning: [4DGS Zero to Hero](https://4dgaussian.pajama.studio/learn/) — 12 bilingual lessons, 60 explanatory steps, live arithmetic experiments and answer-specific feedback, from image formation through training/export to Rust/wgpu. The existing [math handbook](https://4dgaussian.pajama.studio/math/) supplies the full derivations and larger interactive labs. See [course implementation and validation](docs/preparation/zero-to-hero.md).
+
 Chinese study materials: [GS courses and derivations](docs/preparation/09-courses.md), [end-to-end preparation handbook](docs/preparation/README.md), and [local validation / remaining work](docs/preparation/07-validation.md). The handbook includes a synthetic training/export experiment, a native wgpu host, and a small compute rasterizer with CPU pixel comparisons.
 
 The demo uses 108,317 learned Gaussians from the 21-camera Neural 3D Video capture. It implements temporal opacity, cubic motion, quaternion evolution, anisotropic screen-space covariance, CPU visibility/global ordering, and premultiplied Gaussian compositing. The source records stay GPU-resident; each frame uploads only ordered 32-bit indices. A comparison mode synchronizes the calibrated `cam00` render with the official RGB video at selectable playback rates. Feature-gated GPU timestamp queries measure the raster pass through an asynchronous three-slot readback ring.

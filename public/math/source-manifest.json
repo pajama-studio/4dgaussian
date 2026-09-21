@@ -45,6 +45,11 @@
       "path": "public/math/training.mjs",
       "sha256": "b8db8cb6882aa0eb396960da6d96c852f2ac9a4744b956a53858db7197003b12",
       "href": "code/public-math-training.mjs.txt"
+    },
+    {
+      "path": "public/learn/models.mjs",
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "code/public-learn-models.mjs.txt"
     }
   ],
   "excerpts": {
@@ -285,6 +290,55 @@
       "last": 50,
       "sha256": "b8db8cb6882aa0eb396960da6d96c852f2ac9a4744b956a53858db7197003b12",
       "href": "/math/code/public-math-training.mjs.html#L42"
+    },
+    "course-kernel": {
+      "path": "public/learn/models.mjs",
+      "first": 3,
+      "last": 3,
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "/math/code/public-learn-models.mjs.html#L3"
+    },
+    "course-camera": {
+      "path": "public/learn/models.mjs",
+      "first": 4,
+      "last": 7,
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "/math/code/public-learn-models.mjs.html#L4"
+    },
+    "course-composite": {
+      "path": "public/learn/models.mjs",
+      "first": 8,
+      "last": 14,
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "/math/code/public-learn-models.mjs.html#L8"
+    },
+    "course-gradient": {
+      "path": "public/learn/models.mjs",
+      "first": 15,
+      "last": 20,
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "/math/code/public-learn-models.mjs.html#L15"
+    },
+    "course-duplication": {
+      "path": "public/learn/models.mjs",
+      "first": 21,
+      "last": 21,
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "/math/code/public-learn-models.mjs.html#L21"
+    },
+    "course-resize": {
+      "path": "public/learn/models.mjs",
+      "first": 22,
+      "last": 22,
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "/math/code/public-learn-models.mjs.html#L22"
+    },
+    "course-budget": {
+      "path": "public/learn/models.mjs",
+      "first": 23,
+      "last": 23,
+      "sha256": "dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457",
+      "href": "/math/code/public-learn-models.mjs.html#L23"
     }
   }
 }

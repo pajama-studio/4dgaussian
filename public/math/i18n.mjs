@@ -99,7 +99,7 @@ export function setLanguage(next, { remember = true, preservePosition = true } =
     const href = link.getAttribute('href');
     if (href.startsWith('#') || link.hasAttribute('download')) continue;
     const url = new URL(href, location.href);
-    if (url.origin !== location.origin || !/^\/math\/(?:$|code\/.*\.html$)/.test(url.pathname)) continue;
+    if (url.origin !== location.origin || !/^(?:\/math\/(?:$|code\/.*\.html$)|\/learn\/.*)$/.test(url.pathname)) continue;
     url.searchParams.set('lang', next);
     link.setAttribute('href', url.pathname + url.search + url.hash);
   }

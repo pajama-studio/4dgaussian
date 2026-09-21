@@ -1,0 +1,24 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>public/learn/models.mjs · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>public/learn/models.mjs</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>dbe94eb71cdfa68a0715bba809f53c6f12564b7fbe97a08e7fc72b04119e0457</code></p><p><a href="public-learn-models.mjs.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>// Pure arithmetic used by course controls and independent numerical checks.</span>
+<span id="L2"><a href="#L2" aria-label="Line 2">2</a>export const sigmoid=x=&gt;1/(1+Math.exp(-x));</span>
+<span id="L3"><a href="#L3" aria-label="Line 3">3</a>export function kernel(x,scale,opacity=1){return opacity*Math.exp(-0.5*(x/scale)**2);}</span>
+<span id="L4"><a href="#L4" aria-label="Line 4">4</a>export function cameraSample(x,z,f,scale=0.2){</span>
+<span id="L5"><a href="#L5" aria-label="Line 5">5</a> const u=64+f*x/z,j=[f/z,-f*x/(z*z)];</span>
+<span id="L6"><a href="#L6" aria-label="Line 6">6</a> return {u,variance:scale**2*(j[0]**2+j[1]**2)+0.3,width:Math.sqrt(scale**2*(j[0]**2+j[1]**2)+0.3)};</span>
+<span id="L7"><a href="#L7" aria-label="Line 7">7</a>}</span>
+<span id="L8"><a href="#L8" aria-label="Line 8">8</a>export function composite(a,b,reverse=false){</span>
+<span id="L9"><a href="#L9" aria-label="Line 9">9</a> const layers=reverse?[[b,[0,0,1],'B'],[a,[1,0,0],'A']]:[[a,[1,0,0],'A'],[b,[0,0,1],'B']];</span>
+<span id="L10"><a href="#L10" aria-label="Line 10">10</a> let remaining=1;const color=[0,0,0],weights=[];</span>
+<span id="L11"><a href="#L11" aria-label="Line 11">11</a> for(const [alpha,rgb,id] of layers){const weight=remaining*alpha;weights.push({id,weight});rgb.forEach((v,c)=&gt;color[c]+=weight*v);remaining*=1-alpha;}</span>
+<span id="L12"><a href="#L12" aria-label="Line 12">12</a> const over=[0,0,0];for(const [alpha,rgb] of [...layers].reverse())rgb.forEach((v,c)=&gt;over[c]=alpha*v+(1-alpha)*over[c]);</span>
+<span id="L13"><a href="#L13" aria-label="Line 13">13</a> return {color,over,weights,remaining};</span>
+<span id="L14"><a href="#L14" aria-label="Line 14">14</a>}</span>
+<span id="L15"><a href="#L15" aria-label="Line 15">15</a>export function scalarGradient(beta,rate=1){</span>
+<span id="L16"><a href="#L16" aria-label="Line 16">16</a> const c=.8,target=.6,alpha=sigmoid(beta),prediction=c*alpha,loss=(prediction-target)**2;</span>
+<span id="L17"><a href="#L17" aria-label="Line 17">17</a> const gradient=2*(prediction-target)*c*alpha*(1-alpha),next=beta-rate*gradient;</span>
+<span id="L18"><a href="#L18" aria-label="Line 18">18</a> const lossAt=x=&gt;(c*sigmoid(x)-target)**2,epsilon=1e-4;</span>
+<span id="L19"><a href="#L19" aria-label="Line 19">19</a> return {alpha,prediction,loss,gradient,next,nextLoss:lossAt(next),finite:(lossAt(beta+epsilon)-lossAt(beta-epsilon))/(2*epsilon)};</span>
+<span id="L20"><a href="#L20" aria-label="Line 20">20</a>}</span>
+<span id="L21"><a href="#L21" aria-label="Line 21">21</a>export function duplication(alpha){return {unchanged:1-(1-alpha)**2,halved:1-(1-alpha/2)**2,child:1-Math.sqrt(1-alpha),preserved:alpha};}</span>
+<span id="L22"><a href="#L22" aria-label="Line 22">22</a>export function resizeSample(r,wrong=false){return {focal:wrong?600:600*r,principal:400*r,expected:460*r,actual:(wrong?600:600*r)*.1+400*r};}</span>
+<span id="L23"><a href="#L23" aria-label="Line 23">23</a>export function memoryBudget(count,visible,fps){return {records:count*128,indices:count*visible*4,perSecond:count*visible*4*fps};}</span>
+<span id="L24"><a href="#L24" aria-label="Line 24">24</a></span></code></pre></main></body></html>

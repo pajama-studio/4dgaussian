@@ -39,6 +39,13 @@ const refs = {
   'training-data': ['public/math/training.mjs', 'export function createTrainingData', 'export function evaluateTraining'],
   'training-batch': ['public/math/training.mjs', 'export function evaluateTraining', 'export function trainingIteration'],
   'training-step': ['public/math/training.mjs', 'export function trainingIteration', 'return {beforeRecords,before,afterRecords,after,rate};'],
+  'course-kernel': ['public/learn/models.mjs', 'export function kernel(', 'opacity*Math.exp'],
+  'course-camera': ['public/learn/models.mjs', 'export function cameraSample(', 'export function composite('],
+  'course-composite': ['public/learn/models.mjs', 'export function composite(', 'export function scalarGradient('],
+  'course-gradient': ['public/learn/models.mjs', 'export function scalarGradient(', 'export function duplication('],
+  'course-duplication': ['public/learn/models.mjs', 'export function duplication(', 'child:1-Math.sqrt'],
+  'course-resize': ['public/learn/models.mjs', 'export function resizeSample(', 'expected:460*r'],
+  'course-budget': ['public/learn/models.mjs', 'export function memoryBudget(', 'perSecond:count'],
 };
 export async function buildSources(root, output) {
   await mkdir(new URL('code/', output), { recursive: true });

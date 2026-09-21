@@ -323,3 +323,7 @@ code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.9e
   .lesson-kind,.source-location,.prerequisites a,.derivation-steps h4,.code-connections>h4,.checkpoint summary { color:#493362; }
   .trace-colors { break-inside:avoid; }.trace-colors i { print-color-adjust:exact; -webkit-print-color-adjust:exact; }#trace-output td { color:#333; }
 }
+
+.course-entry a{display:inline-flex;padding:12px 18px;border:1px solid #bace3c;border-radius:9px;color:#d2ec4c;text-decoration:none;background:#222518}
+
+@media(max-width:760px){.math-topbar nav a[href^="/learn/"]{display:none}}
