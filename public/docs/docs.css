@@ -90,9 +90,6 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .refs a:hover { color: var(--ink); border-color: var(--purple); }
 
 .interactive-card { border: 1px solid rgba(155,109,224,.48); border-radius: 14px; background: #0f0f13; overflow: hidden; }
-.lab-tabs { display: flex; gap: 2px; padding: 10px; border-bottom: 1px solid var(--line); }
-.lab-tabs button { padding: 9px 13px; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 7px; font: 700 9px ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
-.lab-tabs button[aria-selected="true"] { color: var(--ink); border-color: rgba(155,109,224,.52); background: var(--purple-soft); }
 .lab-layout { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(260px,.55fr); min-height: 430px; }
 .lab-stage { position: relative; min-width: 0; overflow: hidden; background: #060609; border-right: 1px solid var(--line); cursor: grab; touch-action: none; }
 .lab-stage:active { cursor: grabbing; }
@@ -113,7 +110,6 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .lab-copy dt, .contract-results dt, .blend-controls dt { color: var(--muted); font: 700 8px ui-monospace, monospace; text-transform: uppercase; }
 .lab-copy dd, .contract-results dd, .blend-controls dd { margin: 0; color: #d0cdd4; font-size: 10px; line-height: 1.45; }
 .lab-controls { padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; border-top: 1px solid var(--line); }
-.lab-controls label.is-static { opacity: .4; }
 .lab-controls label, .blend-controls label, .memory-controls label { display: grid; gap: 8px; }
 .lab-controls label span, .blend-controls label span, .memory-controls label span { display: flex; justify-content: space-between; color: var(--muted); font: 650 9px ui-monospace, monospace; text-transform: uppercase; }
 input[type="range"] { width: 100%; accent-color: var(--purple); }
@@ -380,8 +376,6 @@ input[type="range"] { width: 100%; accent-color: var(--purple); }
   .four-up, .method-grid, .contract-stack, .concept-row, .ray-equations, .math-grid, .metric-groups, .evidence-banner, .implementation-flow, .glossary-grid, .sources-list, .memory-results, .numbered-flow.six-flow, .failure-grid { grid-template-columns: 1fr; }
   .sources-list h3 { grid-column: auto; }
   .summary-grid article, .method-grid article { min-height: 180px; }
-  .lab-tabs { overflow-x: auto; }
-  .lab-tabs button { white-space: nowrap; }
   .lab-stage { min-height: 300px; }
   .lab-controls { grid-template-columns: 1fr; }
   .lab-actions { display: grid; grid-template-columns: 1fr 1fr; }

@@ -39,6 +39,6 @@ for(const s of manifest.sources){
  assert.equal(s.sha256,createHash('sha256').update(raw).digest('hex'));
  assert.equal(await readFile(new URL('relight/code/'+s.slug+'.txt',root),'utf8'),raw);
 }
-const consumers=['app.js','docs/representation-3d.js','build/lab.mjs','relight/lab.mjs'];
+const consumers=['app.js','docs/stg-sample.js','build/lab.mjs','relight/lab.mjs'];
 for(const file of consumers){const raw=await readFile(new URL(file,root),'utf8');assert.ok(raw.includes('.js?v=relight-1')&&raw.includes('.wasm?v=relight-1'),'Mismatched wasm cache version '+file);}
 console.log('PASS: 8 bilingual relighting lessons, '+formulas+' MathML equations, '+links+' internal links/assets, 6 matching source snapshots, shared WASM versions.');

@@ -16,25 +16,23 @@ const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 },
 const desktopErrors = collectErrors(desktop);
 await desktop.goto(url, { waitUntil: "domcontentloaded" });
 await desktop.locator("#pipeline").scrollIntoViewIfNeeded();
-await desktop.waitForFunction(() => window.__representation3D?.ready, null, { timeout: 30_000 });
-const pointState = await desktop.evaluate(() => ({ ...window.__representation3D, activeMode: window.__representation3D.activeMode }));
-await desktop.locator('[data-representation="nerf"]').click();
-const nerfTitle = await desktop.locator("#rep-title").textContent();
-await desktop.waitForTimeout(250);
-await desktop.locator('[data-representation="gaussian"]').click();
-await desktop.waitForTimeout(250);
-const gaussianTitle = await desktop.locator("#rep-title").textContent();
-await desktop.locator('[data-representation="stg"]').click();
-await desktop.locator("#demo-time").fill("0.82");
+await desktop.waitForFunction(() => window.__stgSampleState?.ready, null, { timeout: 30_000 });
+const sampleState = await desktop.evaluate(() => ({ ...window.__stgSampleState,
+  removedModeButtons: document.querySelectorAll('[data-representation]').length,
+  sampleCanvases: document.querySelectorAll('#stg-sample-stage canvas').length
+}));
+await desktop.locator("#demo-time").press("Home");
+await desktop.locator("#demo-time").press("ArrowRight");
 const stgTitle = await desktop.locator("#rep-title").textContent();
-const stageBox = await desktop.locator("#representation-stage").boundingBox();
-const yawBefore = await desktop.evaluate(() => window.__representation3D.yaw);
+const scrubbedTime = await desktop.locator("#demo-time-output").textContent();
+const stageBox = await desktop.locator("#stg-sample-stage").boundingBox();
+const yawBefore = await desktop.evaluate(() => window.__stgSampleState.yaw);
 await desktop.mouse.move(stageBox.x + stageBox.width * .55, stageBox.y + stageBox.height * .5);
 await desktop.mouse.down();
 await desktop.mouse.move(stageBox.x + stageBox.width * .68, stageBox.y + stageBox.height * .56, { steps: 5 });
 await desktop.mouse.up();
 await desktop.waitForTimeout(250);
-const gpuState = await desktop.evaluate(() => ({ activeMode: window.__representation3D.activeMode, yaw: window.__representation3D.yaw, visibleSplats: window.__representation3D.visibleSplats, webGpu: window.__representation3D.webGpu }));
+const gpuState = await desktop.evaluate(() => ({ representation: window.__stgSampleState.representation, yaw: window.__stgSampleState.yaw, visibleSplats: window.__stgSampleState.visibleSplats, webGpu: window.__stgSampleState.webGpu }));
 
 await desktop.locator("#contract").scrollIntoViewIfNeeded();
 await desktop.locator("#contract-preset").selectOption("stg");
@@ -69,7 +67,7 @@ const desktopState = await desktop.evaluate(() => ({
   referenceGroups: document.querySelectorAll(".refs").length,
   externalReferences: document.querySelectorAll('.refs a[href^="http"], .sources-list a[href^="http"]').length,
   language: document.documentElement.lang,
-  representationPixels: document.querySelector("#gaussian-lab-canvas").width * document.querySelector("#gaussian-lab-canvas").height,
+  representationPixels: document.querySelector("#stg-sample-canvas").width * document.querySelector("#stg-sample-canvas").height,
   blendPixels: document.querySelector("#blend-canvas").width * document.querySelector("#blend-canvas").height,
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
 }));
@@ -80,28 +78,26 @@ const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, de
 const mobileErrors = collectErrors(mobile);
 await mobile.goto(url, { waitUntil: "domcontentloaded" });
 await mobile.locator("#pipeline").scrollIntoViewIfNeeded();
-await mobile.waitForFunction(() => window.__representation3D?.ready, null, { timeout: 30_000 });
-await mobile.locator('[data-representation="gaussian"]').click();
-await mobile.waitForTimeout(300);
+await mobile.waitForFunction(() => window.__stgSampleState?.ready, null, { timeout: 30_000 });
 const mobileState = await mobile.evaluate(() => ({
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
   title: document.querySelector("#rep-title")?.textContent,
-  canvasWidth: document.querySelector("#gaussian-lab-canvas")?.width,
+  canvasWidth: document.querySelector("#stg-sample-canvas")?.width,
   tocHidden: getComputedStyle(document.querySelector(".toc")).display === "none",
 }));
 await mobile.screenshot({ path: "/tmp/gaussian-docs-mobile.png", fullPage: false });
 
 await browser.close();
 
-const result = { url, desktop: desktopState, representation: { pointState, gaussianTitle, gpuState, yawBefore }, paperFigures, faqState, dynamicExplorer, interactive: { nerfTitle, stgTitle, contractOutcome, blendBefore, blendAfter, memory }, mobile: mobileState, desktopErrors, mobileErrors };
+const result = { url, desktop: desktopState, sample: { sampleState, gpuState, yawBefore }, paperFigures, faqState, dynamicExplorer, interactive: { stgTitle, scrubbedTime, contractOutcome, blendBefore, blendAfter, memory }, mobile: mobileState, desktopErrors, mobileErrors };
 console.log(JSON.stringify(result, null, 2));
 
 if (desktopErrors.length || mobileErrors.length) throw new Error("Field guide emitted browser errors");
 if (desktopState.language !== "en" || desktopState.sections !== 14 || desktopState.referenceGroups < 10 || desktopState.externalReferences < 30) throw new Error("Field guide structure/reference coverage failed");
 if (desktopState.overflow > 0 || mobileState.overflow > 0 || !mobileState.tocHidden) throw new Error("Field guide responsive layout failed");
-if (pointState.pointCount !== 108317 || pointState.activeMode !== "point") throw new Error("Actual point-cloud asset did not initialize");
-if (!nerfTitle.includes("Ray-marched") || !gaussianTitle.includes("Static Gaussian") || !stgTitle.includes("Spacetime") || !contractOutcome.includes("time")) throw new Error("Representation or contract interactions failed");
-if (gpuState.activeMode !== "stg" || gpuState.yaw === yawBefore) throw new Error("3D orbit interaction failed");
+if (!sampleState.webGpu || !sampleState.assetLoaded || sampleState.representation !== "stg-lite" || sampleState.removedModeButtons !== 0 || sampleState.sampleCanvases !== 1) throw new Error("Sample must initialize only the actual STG renderer");
+if (!stgTitle.includes("Spacetime") || scrubbedTime !== "0.01 s" || !contractOutcome.includes("time")) throw new Error("STG time or contract interactions failed");
+if (gpuState.representation !== "stg-lite" || gpuState.yaw === yawBefore) throw new Error("3D orbit interaction failed");
 if (gpuState.webGpu && gpuState.visibleSplats <= 0) throw new Error("WebGPU Gaussian path rendered no splats");
 if (paperFigures.length !== 3 || paperFigures.some(figure => !figure.loaded)) throw new Error("Classic-paper figures failed to load");
 if (faqState.title !== "FAQ" || faqState.mentionsInterview) throw new Error("Reader-facing FAQ still contains interview framing");

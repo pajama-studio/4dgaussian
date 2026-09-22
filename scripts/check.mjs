@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 
-for (const file of ["public/index.html", "public/styles.css", "public/app.js", "public/stream-player.js", "public/docs/index.html", "public/docs/docs.css", "public/docs/docs.js", "public/docs/representation-3d.js", "src/lib.rs", "src/splat.wgsl"]) {
+for (const file of ["public/index.html", "public/styles.css", "public/app.js", "public/stream-player.js", "public/docs/index.html", "public/docs/docs.css", "public/docs/docs.js", "public/docs/stg-sample.js", "src/lib.rs", "src/splat.wgsl"]) {
   const body = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
   if (!body.trim()) throw new Error(`${file} is empty`);
 }
@@ -11,8 +11,8 @@ const streamModuleCheck = spawnSync(process.execPath, ["--check", "public/stream
 if (streamModuleCheck.status !== 0) throw new Error(streamModuleCheck.stderr || streamModuleCheck.stdout);
 const docsModuleCheck = spawnSync(process.execPath, ["--check", "public/docs/docs.js"], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
 if (docsModuleCheck.status !== 0) throw new Error(docsModuleCheck.stderr || docsModuleCheck.stdout);
-const representationModuleCheck = spawnSync(process.execPath, ["--check", "public/docs/representation-3d.js"], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
-if (representationModuleCheck.status !== 0) throw new Error(representationModuleCheck.stderr || representationModuleCheck.stdout);
+const stgSampleModuleCheck = spawnSync(process.execPath, ["--check", "public/docs/stg-sample.js"], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
+if (stgSampleModuleCheck.status !== 0) throw new Error(stgSampleModuleCheck.stderr || stgSampleModuleCheck.stdout);
 const wasm = await readFile(new URL("../public/pkg/pajama_gaussian_lab_bg.wasm", import.meta.url));
 if (wasm.length < 1000) throw new Error("WASM bundle is unexpectedly small");
 const model = await readFile(new URL("../public/data/n3d-sear-steak-stg-lite.ply.gz", import.meta.url));

@@ -1,49 +1,7 @@
-import { mountRepresentation3D } from "/docs/representation-3d.js";
+import { mountStgSample } from "/docs/stg-sample.js";
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
-
-const representation = {
-  point: {
-    kicker: "Explicit samples",
-    title: "Point-cloud rasterization",
-    description: "The camera projects XYZ samples. A depth buffer resolves visibility; point size or surfel footprint determines whether gaps remain.",
-    legend: "Projected point samples · depth tested",
-    facts: [["Stored", "XYZ plus attributes"], ["Per frame", "Cull · project · depth test"], ["Not implied", "Surface or radiance field"]],
-    steps: ["Decode points", "Transform and cull", "Project", "Depth test", "Shade pixels"]
-  },
-  nerf: {
-    kicker: "Implicit continuous field",
-    title: "Ray-marched volume rendering",
-    description: "Every output pixel launches a ray. Samples query density and view-dependent color, then transmittance-weighted integration produces one pixel.",
-    legend: "One ray · many field samples · one integrated pixel",
-    facts: [["Stored", "Weights or feature grids"], ["Per frame", "Generate rays · query · integrate"], ["Main cost", "Samples × field evaluations"]],
-    steps: ["Generate ray", "Skip empty space", "Query field", "Integrate samples", "Write pixel"]
-  },
-  gaussian: {
-    kicker: "Explicit radiance primitives",
-    title: "3D Gaussian splatting",
-    description: "Anisotropic 3D Gaussians project to translucent 2D ellipses. Visibility and order determine how their footprints composite into the image.",
-    legend: "Project covariance · order · evaluate ellipse · blend",
-    facts: [["Stored", "Mean · covariance · opacity · SH"], ["Per frame", "Cull · project · order · splat"], ["Main cost", "Sort/bin · overdraw · bandwidth"]],
-    steps: ["Cull splats", "Project covariance", "Bin and order", "Evaluate footprint", "Alpha composite"]
-  },
-  stg: {
-    kicker: "Time-conditioned primitives",
-    title: "Spacetime Gaussian splatting",
-    description: "Time changes each primitive's support, position, and rotation before the ordinary splat pipeline. Drag time to expose temporal culling and motion.",
-    legend: "Evaluate t · temporal cull · project · order · blend",
-    facts: [["Stored", "Gaussian plus temporal parameters"], ["Per frame", "Evaluate t before splatting"], ["Contract", "Specific to one dynamic method"]],
-    steps: ["Evaluate time", "Temporal cull", "Project covariance", "Reorder", "Alpha composite"]
-  }
-};
-
-const repCanvas = $("#representation-canvas");
-const repTime = $("#demo-time");
-const repDepth = $("#demo-depth");
-let activeRepresentation = "point";
-let demoPlaying = false;
-let lastAnimationTime = 0;
 
 function canvasContext(canvas) {
   const rect = canvas.getBoundingClientRect();
@@ -73,174 +31,6 @@ function clearStage(ctx, width, height) {
   for (let y = 20; y < height; y += 40) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
   }
-}
-
-function drawCamera(ctx, x, y, sceneX, height) {
-  ctx.save();
-  ctx.strokeStyle = "rgba(196,219,34,.62)";
-  ctx.fillStyle = "rgba(196,219,34,.16)";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(x - 18, y - 15); ctx.lineTo(x + 16, y - 8); ctx.lineTo(x + 16, y + 8); ctx.lineTo(x - 18, y + 15); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x + 16, y - 8); ctx.lineTo(sceneX, height * .16); ctx.moveTo(x + 16, y + 8); ctx.lineTo(sceneX, height * .84); ctx.strokeStyle = "rgba(196,219,34,.18)"; ctx.stroke();
-  ctx.fillStyle = "rgba(196,219,34,.8)"; ctx.font = "9px ui-monospace, monospace"; ctx.fillText("CAMERA", x - 23, y + 34);
-  ctx.restore();
-}
-
-function toyPoint(i, count, time, depth, width, height) {
-  const angle = i * 2.399963 + time * .35;
-  const ring = Math.sqrt((i + .5) / count);
-  const wobble = Math.sin(i * 1.71 + time * Math.PI * 2) * 8;
-  return {
-    x: width * .66 + Math.cos(angle) * (112 * ring + wobble) / depth,
-    y: height * .5 + Math.sin(angle) * (150 * ring) / depth,
-    z: (Math.sin(angle * .7) + 1) * .5,
-    hue: i % 3
-  };
-}
-
-function drawPointCloud(ctx, width, height, time, depth) {
-  const sceneX = width * .45;
-  drawCamera(ctx, width * .1, height * .5, sceneX, height);
-  const points = Array.from({ length: 115 }, (_, i) => toyPoint(i, 115, time, depth, width, height)).sort((a, b) => b.z - a.z);
-  for (const point of points) {
-    const radius = 1.7 + (1 - point.z) * 2.2;
-    ctx.fillStyle = point.hue === 0 ? "#a879e8" : point.hue === 1 ? "#c4db22" : "#dad7df";
-    ctx.globalAlpha = .42 + (1 - point.z) * .48;
-    ctx.beginPath(); ctx.arc(point.x, point.y, radius, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = "#9d9aa3"; ctx.font = "10px ui-monospace, monospace"; ctx.fillText("DISCRETE XYZ SAMPLES", width * .58, height * .88);
-}
-
-function densityAt(x, y, width, height, time) {
-  const cx1 = width * (.62 + Math.sin(time * Math.PI * 2) * .025);
-  const cy1 = height * .42;
-  const cx2 = width * .72;
-  const cy2 = height * .64;
-  const d1 = ((x - cx1) ** 2) / 10000 + ((y - cy1) ** 2) / 5200;
-  const d2 = ((x - cx2) ** 2) / 6200 + ((y - cy2) ** 2) / 8200;
-  return Math.exp(-d1) * .86 + Math.exp(-d2) * .7;
-}
-
-function drawNerf(ctx, width, height, time, depth) {
-  const cameraX = width * .08;
-  const cameraY = height * .5;
-  drawCamera(ctx, cameraX, cameraY, width * .37, height);
-  const imageX = width * .91;
-  ctx.fillStyle = "rgba(155,109,224,.12)";
-  ctx.beginPath(); ctx.ellipse(width * .66, height * .5, 150 / depth, 160 / depth, -.2, 0, Math.PI * 2); ctx.fill();
-  const rayCount = 9;
-  for (let rayIndex = 0; rayIndex < rayCount; rayIndex += 1) {
-    const targetY = height * (.22 + rayIndex * .07);
-    ctx.strokeStyle = rayIndex === 4 ? "rgba(196,219,34,.7)" : "rgba(168,121,232,.16)";
-    ctx.lineWidth = rayIndex === 4 ? 1.4 : 1;
-    ctx.beginPath(); ctx.moveTo(cameraX + 16, cameraY); ctx.lineTo(imageX, targetY); ctx.stroke();
-    if (rayIndex === 4) {
-      let transmittance = 1;
-      for (let sample = 0; sample < 22; sample += 1) {
-        const u = .27 + sample / 29;
-        const x = cameraX + (imageX - cameraX) * u;
-        const y = cameraY + (targetY - cameraY) * u;
-        const sigma = densityAt(x, y, width, height, time);
-        const alpha = Math.min(.42, sigma * .34);
-        transmittance *= 1 - alpha;
-        ctx.globalAlpha = .28 + alpha;
-        ctx.fillStyle = sigma > .55 ? "#c4db22" : "#a879e8";
-        ctx.beginPath(); ctx.arc(x, y, 2.2 + sigma * 3.4, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = `rgba(196,219,34,${Math.max(.18, 1 - transmittance)})`;
-      ctx.fillRect(imageX + 8, targetY - 8, 18, 16);
-    }
-  }
-  ctx.fillStyle = "#9d9aa3"; ctx.font = "10px ui-monospace, monospace"; ctx.fillText("SAMPLES ALONG A RAY", width * .54, height * .88);
-}
-
-function ellipseGradient(ctx, x, y, rx, ry, color, alpha, rotation) {
-  ctx.save();
-  ctx.translate(x, y); ctx.rotate(rotation); ctx.scale(rx, ry);
-  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
-  gradient.addColorStop(0, color.replace("ALPHA", String(alpha)));
-  gradient.addColorStop(.55, color.replace("ALPHA", String(alpha * .45)));
-  gradient.addColorStop(1, color.replace("ALPHA", "0"));
-  ctx.fillStyle = gradient;
-  ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
-}
-
-function drawGaussians(ctx, width, height, time, depth, dynamic) {
-  drawCamera(ctx, width * .1, height * .5, width * .42, height);
-  const count = 22;
-  const items = Array.from({ length: count }, (_, i) => {
-    const baseAngle = i * 2.399963;
-    const temporalCenter = (i % 9) / 8;
-    const temporalWeight = dynamic ? Math.exp(-Math.pow((time - temporalCenter) / .27, 2)) : 1;
-    const motion = dynamic ? Math.sin(time * Math.PI * 2 + i * .73) * 22 : 0;
-    return {
-      x: width * .66 + Math.cos(baseAngle) * (95 + (i % 4) * 10) / depth + motion,
-      y: height * .5 + Math.sin(baseAngle) * (125 + (i % 3) * 8) / depth + (dynamic ? Math.cos(time * Math.PI * 2 + i) * 13 : 0),
-      rx: (24 + (i % 5) * 7) / depth,
-      ry: (11 + (i % 4) * 5) / depth,
-      rotation: baseAngle * .42 + (dynamic ? time * .6 : 0),
-      depth: Math.sin(baseAngle) * .5 + .5,
-      alpha: (.23 + (i % 4) * .035) * temporalWeight,
-      color: i % 3 === 0 ? "rgba(196,219,34,ALPHA)" : "rgba(155,109,224,ALPHA)"
-    };
-  }).filter(item => item.alpha > .012).sort((a, b) => b.depth - a.depth);
-  for (const item of items) ellipseGradient(ctx, item.x, item.y, item.rx, item.ry, item.color, item.alpha, item.rotation);
-  if (width > 540) {
-    ctx.fillStyle = "#9d9aa3"; ctx.font = "10px ui-monospace, monospace";
-    ctx.fillText(dynamic ? "TIME-EVALUATED SPLATS" : "ANISOTROPIC SPLATS", width * .51, height * .88);
-  }
-}
-
-function drawRepresentation() {
-  if (!repCanvas) return;
-  const { ctx, width, height } = canvasContext(repCanvas);
-  clearStage(ctx, width, height);
-  const time = Number(repTime.value);
-  const depth = Number(repDepth.value);
-  if (activeRepresentation === "point") drawPointCloud(ctx, width, height, time, depth);
-  if (activeRepresentation === "nerf") drawNerf(ctx, width, height, time, depth);
-  if (activeRepresentation === "gaussian") drawGaussians(ctx, width, height, time, depth, false);
-  if (activeRepresentation === "stg") drawGaussians(ctx, width, height, time, depth, true);
-}
-
-function renderRepresentationCopy() {
-  const data = representation[activeRepresentation];
-  $("#rep-kicker").textContent = data.kicker;
-  $("#rep-title").textContent = data.title;
-  $("#rep-description").textContent = data.description;
-  $("#stage-legend").textContent = data.legend;
-  $("#rep-facts").innerHTML = data.facts.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join("");
-  $("#pipeline-steps").innerHTML = data.steps.map((step, index) => `<li><b>${String(index + 1).padStart(2, "0")}</b><span>${step}</span></li>`).join("");
-  $$("[data-representation]").forEach(button => button.setAttribute("aria-selected", String(button.dataset.representation === activeRepresentation)));
-  drawRepresentation();
-}
-
-$$("[data-representation]").forEach(button => button.addEventListener("click", () => {
-  if (!repCanvas) return;
-  activeRepresentation = button.dataset.representation;
-  renderRepresentationCopy();
-}));
-repTime?.addEventListener("input", () => { $("#demo-time-output").textContent = Number(repTime.value).toFixed(2); drawRepresentation(); });
-repDepth?.addEventListener("input", () => { $("#demo-depth-output").textContent = `${Number(repDepth.value).toFixed(2)}×`; drawRepresentation(); });
-$("#demo-play")?.addEventListener("click", event => {
-  if (!repCanvas) return;
-  demoPlaying = !demoPlaying;
-  event.currentTarget.setAttribute("aria-pressed", String(demoPlaying));
-  event.currentTarget.textContent = demoPlaying ? "Pause time" : "Play time";
-  lastAnimationTime = performance.now();
-  if (demoPlaying) requestAnimationFrame(animateDemo);
-});
-function animateDemo(now) {
-  if (!demoPlaying) return;
-  const delta = Math.min(.05, (now - lastAnimationTime) / 1000);
-  lastAnimationTime = now;
-  repTime.value = String((Number(repTime.value) + delta * .18) % 1);
-  $("#demo-time-output").textContent = Number(repTime.value).toFixed(2);
-  drawRepresentation();
-  requestAnimationFrame(animateDemo);
 }
 
 const contracts = {
@@ -442,18 +232,20 @@ if ("IntersectionObserver" in window) {
   sections.forEach(section => observer.observe(section));
 }
 
-const resizeObserver = new ResizeObserver(() => { drawRepresentation(); drawBlendLab(); });
-if (repCanvas) resizeObserver.observe(repCanvas.parentElement);
+const resizeObserver = new ResizeObserver(drawBlendLab);
 if ($("#blend-canvas")) resizeObserver.observe($("#blend-canvas").parentElement);
 
-renderRepresentationCopy();
 renderBridge("training");
 renderDynamicFamily("spacetime");
 renderContract();
 drawBlendLab();
 updateMemoryBudget();
-mountRepresentation3D().catch(error => {
+mountStgSample().catch(error => {
   console.error(error);
   const loading = $("#lab-loading");
-  if (loading) loading.querySelector("span").textContent = "3D lab unavailable: " + error.message;
+  if (loading) {
+    loading.querySelector("i").hidden = true;
+    loading.querySelector("span").textContent = "STG sample unavailable: " + (error.message || String(error));
+  }
+  $("#lab-render-badge").textContent = "STG unavailable";
 });
