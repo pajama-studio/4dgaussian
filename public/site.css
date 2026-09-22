@@ -1,0 +1,156 @@
+/* Shared reading system. Loaded last; individual experiments retain their layout. */
+:root { --reading-size:16px; --reading-ink:#d3cedb; --reading-muted:#b4adbf; --reading-accent:#d2e98a; --reading-edge:#3b3444; }
+html { scroll-padding-top:100px; }
+body { font-family:Inter,system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+body :is(button,select,summary) { cursor:pointer; }
+body :is(button,select) { min-height:44px; }
+body :is(a,button,input,select,summary,[tabindex]):focus-visible { outline:2px solid var(--reading-accent); outline-offset:4px; }
+body :is(h1,h2,h3) { text-wrap:balance; }
+body :is(.math-hero,.doc-hero,.course-hero,.build-hero,.intro) { padding-block:38px; background:none; }
+body :is(.math-hero,.doc-hero,.math-section,.doc-section) { padding-inline:clamp(22px,3.5vw,56px); }
+body :is(.math-hero h1,.doc-hero h1,.course-hero h1,.build-hero h1,.intro h1),html[lang=en] body .math-hero h1 { font-size:clamp(30px,3.4vw,48px); line-height:1.2; letter-spacing:-.035em; max-width:25ch; margin:12px 0 22px; }
+body :is(.lesson-hero h1,.build-article h1) { font-size:clamp(28px,3vw,40px); line-height:1.25; letter-spacing:-.025em; }
+body .lab-header h1 { font-size:clamp(28px,3vw,40px); line-height:1.25; }
+body :is(.section-title h2,.section-heading h2) { font-size:clamp(25px,2.5vw,32px); line-height:1.3; letter-spacing:-.02em; }
+body :is(.math-section,.doc-section) { padding-block:40px; }
+body :is(.section-heading,.section-title) { margin-bottom:24px; }
+body .section-title { grid-template-columns:26px minmax(0,1fr); gap:12px; }
+body .section-intro { margin:0 0 28px; }
+body :is(.hero-lede,.lede,.intro>p) { font-size:18px; line-height:1.75; max-width:65ch; margin-block:16px 24px; }
+body :is(.math-section,.doc-section,.build-article,.explanation,.checkpoint,.course-hero,.build-hero,.boundary) p:not(.eyebrow):not(.micro):not(.hero-en):not(.section-number),body .section-intro { font-size:var(--reading-size); line-height:1.85; color:var(--reading-ink); }
+body :is(.math-section,.doc-section,.build-article)>p,body .derivation-steps p { max-width:72ch; }
+body :is(.lab-copy p,.lab-top p:not(.eyebrow),.note p,.callout p,.symbol-grid p,.worked p,.lesson-card p,.build-card p) { font-size:var(--reading-size); line-height:1.75; color:var(--reading-ink); }
+body :is(.micro,.equation-note,.lab-controls label,.lab-panel label,.foundation p,.step-panel p,.exercise-list,.code-bridge p) { font-size:max(14px,calc(var(--reading-size) - 1px)); line-height:1.75; }
+body :is(.eyebrow,.section-heading .eyebrow,.section-title p,.phase-label,.toc-caption) { font-size:11px; line-height:1.6; letter-spacing:.07em; }
+body :is(.math-toc nav a,.toc nav a,.syllabus li a) { font-size:14px; line-height:1.5; min-height:44px; align-items:center; }
+body :is(.math-toc,.toc) { padding-inline:20px; top:72px; height:calc(100vh - 72px); }
+body :is(.math-layout,.doc-shell) { max-width:1440px; grid-template-columns:240px minmax(0,1fr); }
+body .layout { max-width:1440px; grid-template-columns:224px minmax(0,1fr); gap:36px; padding-block:30px; }
+body :is(.math-hero,.doc-hero) .hero-meta,body .hero-en,body .toc-footnote,body .toc-note,body .course-facts { display:none; }
+body .doc-section.core-topic::before { display:none; }
+body .doc-section.core-topic { background:none; }
+body .course-entry { margin-block:8px; }
+body .course-entry a { font-size:14px; border:0; padding:6px 0; background:none; color:#c9b6e4; }
+body .hero-flow { padding-top:20px; }
+body .hero-flow strong { font-size:21px; }
+body .hero-flow small { font-size:12px; }
+body .lab-orbit-hint { font-size:11px; }
+body .lab-copy :is(dt,dd) { font-size:13px; line-height:1.7; }
+body .route-flow>div { font-size:14px; }
+body .gaussian-inspector { font-size:14px; }
+body .gaussian-inspector :is(p,label,select,summary) { font-size:14px; line-height:1.75; }
+body .gaussian-inspector :is(dt,dd,table,output,.inspector-numeric) { font-size:12px; line-height:1.75; }
+body .inspector-heading h2 { font-size:20px; }
+body .inspector-language button { font-size:12px; }
+body .inspector-shortcuts button { font-size:12px!important; }
+body .copy-equation { font-size:12px; }
+body .lesson-controls { gap:10px; }
+body .lesson-controls select { max-width:100%; }
+body .build-toc { padding:14px 0; border-block:1px solid var(--reading-edge); }
+body .build-toc a { min-height:36px; display:inline-flex; align-items:center; }
+body .section-refs a,body .refs a,body .references a { font-size:14px; line-height:1.75; }
+body :is(.math-section,.doc-section) table { font-size:max(14px,calc(var(--reading-size) - 1px)); }
+body :is(.math-section,.doc-section) :is(td,th) { color:var(--reading-ink); line-height:1.7; }
+body .exercise-list strong { margin-inline-end:.3em; }
+body :is(.docs-cta,.evidence) h2 { font-size:clamp(26px,3vw,36px); line-height:1.3; }
+body :is(.docs-cta,.evidence-grid,.details-grid,.edge-cards) p { font-size:16px; line-height:1.8; color:var(--reading-ink); }
+body :is(.baseline-links a,.sidebar-note p,.player-heading p,.evidence summary) { font-size:14px; }
+body .self-check { margin:14px 0 28px; padding-bottom:18px; border-bottom:1px solid var(--reading-edge); }
+body .self-check details { padding:0; border:0; margin:0 0 12px; }
+body .self-check summary { font-size:14px; color:#cfb6e6; min-height:44px; padding-block:8px; }
+body .self-check p { max-width:65ch; }
+body .self-check-mark { min-height:44px; font-size:14px; color:#dcd1e8; border:1px solid #51445e; background:#1b1721; border-radius:8px; padding:8px 12px; }
+body .self-check-mark[aria-pressed=true] { color:var(--reading-accent); border-color:#a9be72; }
+body .self-check-status { color:var(--reading-muted); font-size:14px; }
+body .supplement { margin:24px 0; border-block:1px solid var(--reading-edge); padding:0; background:none; border-radius:0; }
+body .supplement>summary { padding:14px 0; min-height:48px; font-size:14px; color:var(--reading-muted); }
+body .supplement>div { padding-bottom:16px; }
+body .supplement :is(.refs,.section-refs) { border:0; padding:0 0 16px; margin:0; }
+body .supplement p { font-size:14px; }
+
+/* One consistent entrance to the whole site; printing and language stay nearby. */
+body.site-ready :is(.topbar,.math-topbar,.doc-topbar) { height:auto; min-height:72px; padding:10px clamp(16px,3vw,40px); gap:16px; flex-wrap:nowrap; }
+body.site-ready :is(.topbar,.math-topbar,.doc-topbar)>.brand,body.site-ready .doc-brand { margin-right:auto; }
+body.site-ready :is(.topbar,.math-topbar,.doc-topbar) nav { width:auto; margin:0; gap:10px; display:flex; order:0; }
+body.site-ready :is(.topbar,.math-topbar,.doc-topbar) nav>a,body.site-ready .topbar-actions>.docs-link { display:none; }
+body.site-ready .topbar-actions { gap:12px; }
+body.site-ready :is(.language,.language-switch) button { font-size:13px; min-height:44px; padding:6px 10px; }
+body.site-ready .brand { letter-spacing:0; }
+body.site-ready :is(.brand small,.doc-brand small) { font-size:11px; }
+body .site-explore,body .reader-bar button,body .reader-pagination button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; border:1px solid #51445e; border-radius:8px; padding:8px 14px; background:#1b1721; color:#e9e1f3; font-family:inherit; font-size:14px; font-weight:500; line-height:1.4; }
+body .site-explore:hover,body .reader-bar button:hover,body .reader-pagination button:hover { border-color:var(--reading-accent); }
+body .reader-bar { display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:18px 0; border-bottom:1px solid var(--reading-edge); }
+body :is(.math-layout,.doc-shell) .reader-bar { margin-inline:clamp(22px,3.5vw,56px); }
+body .reader-label { font-size:13px; color:var(--reading-muted); margin-right:auto; }
+body .reader-bar select { background:#19151f; color:#eee8f5; border:1px solid #51445e; border-radius:8px; padding:8px 12px; max-width:min(380px,100%); flex:1; min-width:150px; font-size:14px; }
+body .reader-bar button[aria-pressed=true] { border-color:#a9be72; color:var(--reading-accent); }
+body .reader-pagination { display:flex; justify-content:space-between; gap:16px; padding:24px clamp(22px,3.5vw,56px) 40px; }
+body .reader-pagination button { max-width:48%; text-align:left; }
+body .reader-pagination button:last-child { margin-left:auto; color:var(--reading-accent); }
+body .reader-pagination button:disabled { opacity:.4; cursor:default; }
+body .reader-start { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:20px 0; }
+body .reader-start a { display:inline-flex; align-items:center; min-height:44px; padding:10px 16px; border-radius:8px; color:#18200d; background:var(--reading-accent); font-size:15px; font-weight:650; text-decoration:none; }
+body .reader-start small { font-size:14px; color:var(--reading-muted); }
+body .reader-jumps { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 24px; }
+body .reader-jumps a { display:inline-flex; align-items:center; min-height:44px; font-size:14px; padding:8px 13px; border:1px solid var(--reading-edge); border-radius:8px; text-decoration:none; color:#ddcee9; }
+body.reader-section .math-hero,body.reader-section .doc-hero { display:none; }
+body.reader-section .reader-bar { margin-bottom:0; }
+body.training-focus .reader-bar,body.training-focus .reader-pagination { display:none; }
+body.site-ready .intro { padding-block:30px; gap:30px; }
+body.site-ready .intro h1 { max-width:22ch; }
+
+/* Native modal: keyboard focus, Escape and focus return are browser-managed. */
+body .site-dialog { width:min(700px,calc(100vw - 28px)); max-height:85dvh; padding:24px; border:1px solid #655173; border-radius:16px; background:#151219; color:#f1ebf7; box-shadow:0 24px 90px #0008; }
+body .site-dialog::backdrop { background:#08060bc9; backdrop-filter:blur(5px); }
+body .site-dialog-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+body .site-dialog h2 { font-size:22px; margin:0; }
+body .site-dialog button { font-size:14px; border:1px solid #51445e; background:#211b2a; color:#eae0f3; padding:8px 12px; border-radius:8px; }
+body .site-dialog label { display:block; font-size:14px; margin-bottom:8px; color:var(--reading-muted); }
+body .site-dialog input { width:100%; background:#0d0b11; border:1px solid #71607f; padding:12px 14px; border-radius:8px; color:#fff; font-size:16px; min-height:48px; }
+body .site-results { list-style:none; padding:0; margin:14px 0 0; }
+body .site-results a { display:block; text-decoration:none; padding:14px; border-radius:8px; color:#eee6f4; }
+body .site-results a:hover,body .site-results a:focus-visible { background:#2a2233; }
+body .site-results strong { font-size:16px; font-weight:600; display:block; }
+body .site-results small { color:#b9afc4; display:block; font-size:14px; line-height:1.55; margin-top:4px; }
+body .site-result-count { color:#b9afc4; font-size:13px; margin:12px 0; }
+body .site-dialog-help { border-top:1px solid var(--reading-edge); padding-top:14px; color:#b9afc4; font-size:13px; margin-bottom:0; }
+[data-reader-section][hidden] { display:none!important; }
+@media(max-width:1100px) {
+  body .layout { display:block; max-width:1000px; }
+  body .math-layout,body .doc-shell { display:block; }
+  body.site-ready .math-toc,body.site-ready .toc { display:none; }
+}
+@media(max-width:760px) {
+  html { scroll-padding-top:94px; }
+  body.site-ready :is(.topbar,.math-topbar,.doc-topbar) { gap:8px; padding:10px 14px; min-height:68px; flex-wrap:wrap; }
+  body.site-ready :is(.topbar,.math-topbar,.doc-topbar) nav { display:contents; }
+  body.site-ready :is(.brand,.doc-brand) strong { font-size:12px; }
+  body.site-ready :is(.brand small,.doc-brand small,.runtime,.topbar .brand>span) { display:none; }
+  body.site-ready :is(.language,.language-switch) { padding:2px; }
+  body.site-ready :is(.language,.language-switch) button { padding:6px 8px; font-size:12px; }
+  body .site-explore { font-size:13px; padding:8px 10px; }
+  body.site-ready :is(#print-math,#print-guide) { display:none; }
+  body :is(.math-hero,.doc-hero,.math-section,.doc-section) { padding:28px 20px; }
+  body :is(.math-hero h1,.doc-hero h1,.course-hero h1,.build-hero h1,.intro h1),html[lang=en] body .math-hero h1 { font-size:32px; }
+  body .section-heading { gap:10px; flex-wrap:wrap; }
+  body .priority { display:none; }
+  body .reader-bar { padding-block:14px; }
+  body :is(.math-layout,.doc-shell) .reader-bar { margin-inline:20px; }
+  body .reader-label { width:100%; }
+  body .reader-bar:not(:has(select)) .reader-label { width:auto; }
+  body .syllabus { margin-bottom:16px; }
+  body .reader-bar select { width:100%; max-width:none; flex-basis:100%; }
+  body .hero-flow { grid-template-columns:1fr 1fr; }
+  body .hero-flow>span { display:none; }
+  body .hero-flow>a { padding:8px 0; }
+  body .site-dialog { padding:18px; }
+  body .intro { grid-template-columns:1fr; }
+  body .reader-pagination { padding-inline:20px; gap:10px; }
+}
+@media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+@media print {
+  body :is(.reader-bar,.reader-pagination,.reader-start,.reader-jumps,.site-dialog,.site-explore,.self-check-mark) { display:none!important; }
+  body [data-reader-section][hidden] { display:block!important; }
+  body.reader-section :is(.math-hero,.doc-hero) { display:block; }
+  body :is(.math-section,.doc-section,.build-article,.explanation,.checkpoint) p:not(.eyebrow) { color:#111; font-size:11pt; }
+}

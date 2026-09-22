@@ -13,6 +13,17 @@ const docsModuleCheck = spawnSync(process.execPath, ["--check", "public/docs/doc
 if (docsModuleCheck.status !== 0) throw new Error(docsModuleCheck.stderr || docsModuleCheck.stdout);
 const stgSampleModuleCheck = spawnSync(process.execPath, ["--check", "public/docs/stg-sample.js"], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
 if (stgSampleModuleCheck.status !== 0) throw new Error(stgSampleModuleCheck.stderr || stgSampleModuleCheck.stdout);
+const sharedModuleCheck = spawnSync(process.execPath, ["--check", "public/site.mjs"], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
+if (sharedModuleCheck.status !== 0) throw new Error(sharedModuleCheck.stderr || sharedModuleCheck.stdout);
+const destinations = JSON.parse(await readFile(new URL('../public/site-map.json', import.meta.url), 'utf8'));
+for (const destination of destinations) {
+  if (!destination.en || !destination.zh) throw new Error('Navigation entry needs both languages');
+  const target = new URL(destination.href, 'https://local.test');
+  const file = target.pathname.endsWith('/') ? target.pathname+'index.html' : target.pathname;
+  const body = await readFile(new URL('../public'+file, import.meta.url), 'utf8');
+  if (target.hash && !body.includes('id="'+target.hash.slice(1)+'"')) throw new Error('Broken navigation anchor '+destination.href);
+  if (!body.includes('/site.css') || !body.includes('/site.mjs')) throw new Error('Shared navigation missing from '+destination.href);
+}
 const wasm = await readFile(new URL("../public/pkg/pajama_gaussian_lab_bg.wasm", import.meta.url));
 if (wasm.length < 1000) throw new Error("WASM bundle is unexpectedly small");
 const model = await readFile(new URL("../public/data/n3d-sear-steak-stg-lite.ply.gz", import.meta.url));

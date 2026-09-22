@@ -53,7 +53,9 @@ function revealHash() {
     parent = parent.parentElement;
   }
   // Opening an earlier folded block can shift the target after native hash scroll.
-  requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+  if (!(document.body.classList.contains('reader-section') && target.matches('.math-section'))) {
+    requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+  }
 }
 document.querySelector('#jump-equation').addEventListener('change', event => {
   if (event.target.value) { location.hash = event.target.value; revealHash(); }
@@ -72,7 +74,7 @@ const chapters = [...document.querySelectorAll('main>section[id]')];
 function updateReading() {
   const height = document.documentElement.scrollHeight - innerHeight;
   document.querySelector('#reading-progress').style.width = (height > 0 ? Math.min(100, scrollY / height * 100) : 0) + '%';
-  const current = chapters.filter(section => section.getBoundingClientRect().top <= 160).at(-1);
+  const current = chapters.filter(section => section.getClientRects().length && section.getBoundingClientRect().top <= 160).at(-1);
   for (const link of toc) {
     if (current && link.hash === '#' + current.id) link.setAttribute('aria-current', 'location');
     else link.removeAttribute('aria-current');

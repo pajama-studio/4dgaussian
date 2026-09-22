@@ -15,6 +15,7 @@ function collectErrors(page) {
 const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
 const desktopErrors = collectErrors(desktop);
 await desktop.goto(url, { waitUntil: "domcontentloaded" });
+if (await desktop.locator('#reader-mode').getAttribute('aria-pressed') === 'false') await desktop.locator('#reader-mode').click();
 await desktop.locator("#pipeline").scrollIntoViewIfNeeded();
 await desktop.waitForFunction(() => window.__stgSampleState?.ready, null, { timeout: 30_000 });
 const sampleState = await desktop.evaluate(() => ({ ...window.__stgSampleState,

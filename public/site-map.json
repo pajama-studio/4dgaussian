@@ -1,0 +1,346 @@
+[
+  {
+    "href": "/learn/",
+    "en": "Start learning",
+    "zh": "从零学习",
+    "detail": "12 lessons · concepts, experiments and self-checks",
+    "detailZh": "12 节课程 · 原理、实验与自测",
+    "group": "course"
+  },
+  {
+    "href": "/build/",
+    "en": "Build a viewer",
+    "zh": "构建 Viewer",
+    "detail": "Rust / wgpu · from a pixel to a moving scene",
+    "detailZh": "Rust / wgpu · 从像素到动态场景",
+    "group": "engineering"
+  },
+  {
+    "href": "/math/",
+    "en": "Math notebook",
+    "zh": "数学手册",
+    "detail": "Step-by-step derivations and live calculations",
+    "detailZh": "逐步推导与实时计算",
+    "group": "math"
+  },
+  {
+    "href": "/relight/",
+    "en": "Understand relighting",
+    "zh": "理解重打光",
+    "detail": "Light, materials and a working GPU experiment",
+    "detailZh": "光照、材质与 GPU 实验",
+    "group": "relighting"
+  },
+  {
+    "href": "/docs/",
+    "en": "Rendering field guide",
+    "zh": "渲染指南",
+    "detail": "Representations, data contracts and the pipeline",
+    "detailZh": "场景表示、数据约定与渲染管线 · 英文",
+    "group": "reference"
+  },
+  {
+    "href": "/",
+    "en": "Explore the live viewer",
+    "zh": "探索实时 Viewer",
+    "detail": "Inspect a real STG-Lite model",
+    "detailZh": "观察真实 STG-Lite 模型 · 英文",
+    "group": "viewer"
+  },
+  {
+    "href": "/learn/01-the-whole-story/",
+    "en": "From photographs to a scene you can move through",
+    "zh": "从照片，到可以自由观察的场景",
+    "detail": "Theory lesson 01",
+    "detailZh": "原理课 01",
+    "group": "course"
+  },
+  {
+    "href": "/learn/02-a-soft-primitive/",
+    "en": "Why a Gaussian is a soft brush",
+    "zh": "为什么 Gaussian 像一支柔和的画笔",
+    "detail": "Theory lesson 02",
+    "detailZh": "原理课 02",
+    "group": "course"
+  },
+  {
+    "href": "/learn/03-camera-to-ellipse/",
+    "en": "How a 3D brush lands on a 2D screen",
+    "zh": "三维画笔怎样落到二维屏幕上",
+    "detail": "Theory lesson 03",
+    "detailZh": "原理课 03",
+    "group": "course"
+  },
+  {
+    "href": "/learn/04-many-splats-one-pixel/",
+    "en": "How overlapping splats become one pixel",
+    "zh": "许多重叠的 Splat 怎样变成一个像素",
+    "detail": "Theory lesson 04",
+    "detailZh": "原理课 04",
+    "group": "course"
+  },
+  {
+    "href": "/learn/05-direction-becomes-color/",
+    "en": "One direction, three independent color sums",
+    "zh": "一个方向，三组独立的颜色求和",
+    "detail": "Theory lesson 05",
+    "detailZh": "原理课 05",
+    "group": "course"
+  },
+  {
+    "href": "/learn/06-add-time/",
+    "en": "What the fourth dimension actually changes",
+    "zh": "第四个维度到底改变了什么",
+    "detail": "Theory lesson 06",
+    "detailZh": "原理课 06",
+    "group": "course"
+  },
+  {
+    "href": "/learn/07-prepare-observations/",
+    "en": "Good training starts before the first gradient",
+    "zh": "好训练从第一步梯度之前就开始",
+    "detail": "Theory lesson 07",
+    "detailZh": "原理课 07",
+    "group": "course"
+  },
+  {
+    "href": "/learn/08-follow-the-gradient/",
+    "en": "How a pixel tells a parameter to move",
+    "zh": "一个像素怎样告诉参数该往哪改",
+    "detail": "Theory lesson 08",
+    "detailZh": "原理课 08",
+    "group": "course"
+  },
+  {
+    "href": "/learn/09-run-a-training-loop/",
+    "en": "Watch a model actually learn",
+    "zh": "看着一个模型真正学起来",
+    "detail": "Theory lesson 09",
+    "detailZh": "原理课 09",
+    "group": "course"
+  },
+  {
+    "href": "/learn/10-grow-and-prune/",
+    "en": "Why training sometimes adds or removes Gaussians",
+    "zh": "为什么训练有时要增删 Gaussian",
+    "detail": "Theory lesson 10",
+    "detailZh": "原理课 10",
+    "group": "course"
+  },
+  {
+    "href": "/learn/11-export-the-contract/",
+    "en": "A model file is a promise to the renderer",
+    "zh": "模型文件是对渲染器的一份约定",
+    "detail": "Theory lesson 11",
+    "detailZh": "原理课 11",
+    "group": "course"
+  },
+  {
+    "href": "/learn/12-build-and-explain/",
+    "en": "Train, export, render—and defend every step",
+    "zh": "训练、导出、渲染，并解释每一步",
+    "detail": "Theory lesson 12",
+    "detailZh": "原理课 12",
+    "group": "course"
+  },
+  {
+    "href": "/build/01-start-with-a-pixel/",
+    "en": "Start with your first pixel",
+    "zh": "从一个像素开始搭建",
+    "detail": "Engineering chapter 01",
+    "detailZh": "工程篇 01",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/02-window-to-gpu/",
+    "en": "Connect a window to the GPU",
+    "zh": "把窗口连接到 GPU",
+    "detail": "Engineering chapter 02",
+    "detailZh": "工程篇 02",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/03-your-first-triangle/",
+    "en": "Teach the GPU to draw a triangle",
+    "zh": "教 GPU 画出第一个三角形",
+    "detail": "Engineering chapter 03",
+    "detailZh": "工程篇 03",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/04-numbers-into-gpu-memory/",
+    "en": "Move numbers from Rust into GPU memory",
+    "zh": "把 Rust 中的数字送进 GPU 内存",
+    "detail": "Engineering chapter 04",
+    "detailZh": "工程篇 04",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/05-soft-splats-and-alpha/",
+    "en": "Turn a rectangle into a soft splat",
+    "zh": "把矩形变成柔软的 Gaussian",
+    "detail": "Engineering chapter 05",
+    "detailZh": "工程篇 05",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/06-camera-and-ellipses/",
+    "en": "Give the splat a camera and a 3D shape",
+    "zh": "为 splat 加上相机与三维形状",
+    "detail": "Engineering chapter 06",
+    "detailZh": "工程篇 06",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/07-load-a-real-model/",
+    "en": "Load a real model without guessing its meaning",
+    "zh": "明确数据含义，再加载真实模型",
+    "detail": "Engineering chapter 07",
+    "detailZh": "工程篇 07",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/08-make-time-explicit/",
+    "en": "Make time an explicit rendering input",
+    "zh": "让时间成为输入",
+    "detail": "Engineering chapter 08",
+    "detailZh": "工程篇 08",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/09-training-to-runtime/",
+    "en": "Trace one learned number all the way to a pixel",
+    "zh": "追踪一个学到的参数，直到最终像素",
+    "detail": "Engineering chapter 09",
+    "detailZh": "工程篇 09",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/10-cross-platform-engine-pass/",
+    "en": "Integrate one pass into two hosts—and your engine",
+    "zh": "让同一个 pass 接入两个宿主和自研引擎",
+    "detail": "Engineering chapter 10",
+    "detailZh": "工程篇 10",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/11-profile-and-compute/",
+    "en": "Measure first, then design a compute rasterizer",
+    "zh": "先测量，再设计 compute 光栅器",
+    "detail": "Engineering chapter 11",
+    "detailZh": "工程篇 11",
+    "group": "engineering"
+  },
+  {
+    "href": "/build/12-prove-and-ship/",
+    "en": "Prove it works, then ship and explain it",
+    "zh": "验证、交付，并把它讲明白",
+    "detail": "Engineering chapter 12",
+    "detailZh": "工程篇 12",
+    "group": "engineering"
+  },
+  {
+    "href": "/relight/01-light-and-color/",
+    "en": "A color is not a material",
+    "zh": "颜色不等于材质",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/relight/02-count-the-light/",
+    "en": "Count the light, one direction at a time",
+    "zh": "把每个方向的光加起来",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/relight/03-a-moving-highlight/",
+    "en": "Build a moving highlight",
+    "zh": "做出会移动的高光",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/relight/04-shading-to-splats/",
+    "en": "Send light through the splat pipeline",
+    "zh": "让反射光走完 splat 管线",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/relight/05-sh-lighting/",
+    "en": "Use SH for light, not just appearance",
+    "zh": "SH 不只表达外观，也能表达光照",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/relight/06-learn-the-material/",
+    "en": "Learn materials without learning the wrong thing",
+    "zh": "怎样学习材质，避免把光学错",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/relight/07-moving-normals/",
+    "en": "Add time without breaking the light",
+    "zh": "加入时间，别让光照出错",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/relight/08-engine-roadmap/",
+    "en": "Bring relighting into the engine",
+    "zh": "把重打光接进引擎",
+    "detail": "Relighting lesson",
+    "detailZh": "重打光课程",
+    "group": "relighting"
+  },
+  {
+    "href": "/math/#pixel-lab",
+    "en": "Follow one pixel",
+    "zh": "追踪一个像素",
+    "detail": "Change inputs · inspect every intermediate value",
+    "detailZh": "改变输入，观察每一步的数值",
+    "group": "lab"
+  },
+  {
+    "href": "/math/?view=training#training-lab",
+    "en": "Train step by step",
+    "zh": "逐步模拟训练",
+    "detail": "Render → loss → gradient → update",
+    "detailZh": "渲染 → 损失 → 梯度 → 更新",
+    "group": "lab"
+  },
+  {
+    "href": "/math/#sh-lab",
+    "en": "Spherical harmonics in 3D",
+    "zh": "三维球谐函数",
+    "detail": "SH · RGB channels · rotate the basis lobes",
+    "detailZh": "SH · RGB 通道 · 旋转观察基函数",
+    "group": "lab"
+  },
+  {
+    "href": "/build/lab/",
+    "en": "GPU milestones",
+    "zh": "GPU 里程碑",
+    "detail": "Eight stages in the shared Rust/wgpu renderer",
+    "detailZh": "共享 Rust/wgpu 渲染器的八个阶段",
+    "group": "lab"
+  },
+  {
+    "href": "/relight/lab/",
+    "en": "Move the light",
+    "zh": "移动光源",
+    "detail": "Material, light and normal experiments",
+    "detailZh": "材质、光源与法线实验",
+    "group": "lab"
+  }
+]
