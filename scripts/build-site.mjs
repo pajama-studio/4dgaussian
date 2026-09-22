@@ -13,11 +13,11 @@ const destinations = [
 ];
 const entries = [
   ...destinations,
-  ...lessons.map(l => ({ href: `/learn/${l.id}/`, ...l.title, detail: 'Theory lesson ' + l.id.slice(0, 2), detailZh: '原理课 ' + l.id.slice(0, 2), group: 'course' })),
-  ...posts.map(p => ({ href: `/build/${p.id}/`, ...p.title, detail: 'Engineering chapter ' + p.id.slice(0, 2), detailZh: '工程篇 ' + p.id.slice(0, 2), group: 'engineering' })),
-  ...chapters.map(c => ({ href: `/relight/${c.id}/`, ...c.title, detail: 'Relighting lesson', detailZh: '重打光课程', group: 'relighting' })),
+  ...lessons.map(l => ({ href: `/learn/${l.id}/`, ...l.title, detail: 'Theory lesson ' + l.id.slice(0, 2), detailZh: '原理课 ' + l.id.slice(0, 2), keywords: [l.lab,l.goal.en,l.goal.zh].join(' '), group: 'course' })),
+  ...posts.map(p => ({ href: `/build/${p.id}/`, ...p.title, detail: 'Engineering chapter ' + p.id.slice(0, 2), detailZh: '工程篇 ' + p.id.slice(0, 2), keywords: [p.goal.en,p.goal.zh].join(' '), group: 'engineering' })),
+  ...chapters.map(c => ({ href: `/relight/${c.id}/`, ...c.title, detail: 'Relighting lesson', detailZh: '重打光课程', keywords: [c.goal.en,c.goal.zh].join(' '), group: 'relighting' })),
   { href: '/math/#pixel-lab', en: 'Follow one pixel', zh: '追踪一个像素', detail: 'Change inputs · inspect every intermediate value', detailZh: '改变输入，观察每一步的数值', group: 'lab' },
-  { href: '/math/?view=training#training-lab', en: 'Train step by step', zh: '逐步模拟训练', detail: 'Render → loss → gradient → update', detailZh: '渲染 → 损失 → 梯度 → 更新', group: 'lab' },
+  { href: '/math/?view=training#training-lab', en: 'Training, step by step', zh: '逐步模拟训练', detail: 'Render → loss → gradient → update', detailZh: '渲染 → 损失 → 梯度 → 更新', group: 'lab' },
   { href: '/math/#sh-lab', en: 'Spherical harmonics in 3D', zh: '三维球谐函数', detail: 'SH · RGB channels · rotate the basis lobes', detailZh: 'SH · RGB 通道 · 旋转观察基函数', group: 'lab' },
   { href: '/build/lab/', en: 'GPU milestones', zh: 'GPU 里程碑', detail: 'Eight stages in the shared Rust/wgpu renderer', detailZh: '共享 Rust/wgpu 渲染器的八个阶段', group: 'lab' },
   { href: '/relight/lab/', en: 'Move the light', zh: '移动光源', detail: 'Material, light and normal experiments', detailZh: '材质、光源与法线实验', group: 'lab' },

@@ -74,7 +74,7 @@ if (main && header) {
   function renderResults() {
     const terms = search.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
     const all = destinations.length ? destinations : fallback;
-    const matches = terms.length ? [...all, ...localEntries()].filter(e => terms.every(q => [e.en,e.zh,e.detail,e.detailZh].join(' ').toLocaleLowerCase().includes(q))) : all.slice(0,6);
+    const matches = terms.length ? [...all, ...localEntries()].filter(e => terms.every(q => [e.en,e.zh,e.detail,e.detailZh,e.keywords].join(' ').toLocaleLowerCase().includes(q))) : all.slice(0,6);
     const shown = matches.slice(0,40);
     results.replaceChildren(...shown.map(entry => {
       const li = make('li'), a = make('a'); a.href = withLanguage(entry.href);

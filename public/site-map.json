@@ -53,6 +53,7 @@
     "zh": "从照片，到可以自由观察的场景",
     "detail": "Theory lesson 01",
     "detailZh": "原理课 01",
+    "keywords": "pipeline Explain what is learned, what is rendered, and why the two use the same forward function. 说清楚模型学什么、渲染算什么，以及为什么二者共用同一个前向函数。",
     "group": "course"
   },
   {
@@ -61,6 +62,7 @@
     "zh": "为什么 Gaussian 像一支柔和的画笔",
     "detail": "Theory lesson 02",
     "detailZh": "原理课 02",
+    "keywords": "kernel Build the Gaussian weight from subtraction, division, squaring and an exponential; then understand covariance. 用减法、除法、平方和指数搭出高斯权重，再理解协方差。",
     "group": "course"
   },
   {
@@ -69,6 +71,7 @@
     "zh": "三维画笔怎样落到二维屏幕上",
     "detail": "Theory lesson 03",
     "detailZh": "原理课 03",
+    "keywords": "camera Derive perspective from similar triangles and see why projecting shape needs a Jacobian. 从相似三角形推透视，理解为什么投影形状需要 Jacobian。",
     "group": "course"
   },
   {
@@ -77,6 +80,7 @@
     "zh": "许多重叠的 Splat 怎样变成一个像素",
     "detail": "Theory lesson 04",
     "detailZh": "原理课 04",
+    "keywords": "composite Compute front-to-back transmittance, explain ordering, and map the result to GPU blending. 算清前到后的透射率、解释排序，并对应 GPU 混合。",
     "group": "course"
   },
   {
@@ -85,6 +89,7 @@
     "zh": "一个方向，三组独立的颜色求和",
     "detail": "Theory lesson 05",
     "detailZh": "原理课 05",
+    "keywords": "sh Read SH as weighted directional patterns and explain why separate channels produce a colored sphere. 把 SH 看成方向图案的加权组合，解释独立通道为什么能组成彩色球。",
     "group": "course"
   },
   {
@@ -93,6 +98,7 @@
     "zh": "第四个维度到底改变了什么",
     "detail": "Theory lesson 06",
     "detailZh": "原理课 06",
+    "keywords": "time Evaluate an STG-Lite record at a timestamp and distinguish it from deformation and joint 4D Gaussians. 在某个时间求值 STG-Lite，并分清形变与联合四维高斯。",
     "group": "course"
   },
   {
@@ -101,6 +107,7 @@
     "zh": "好训练从第一步梯度之前就开始",
     "detail": "Theory lesson 07",
     "detailZh": "原理课 07",
+    "keywords": "data Assemble an image–camera–time training sample and prevent coordinate, resizing and evaluation mistakes. 组成图像—相机—时间训练样本，避免坐标、缩放和评估错误。",
     "group": "course"
   },
   {
@@ -109,6 +116,7 @@
     "zh": "一个像素怎样告诉参数该往哪改",
     "detail": "Theory lesson 08",
     "detailZh": "原理课 08",
+    "keywords": "gradient Derive a complete scalar gradient and connect its chain rule to the real splat evaluator. 推完一条完整的标量梯度链，再对应真实 Splat 求值器。",
     "group": "course"
   },
   {
@@ -117,6 +125,7 @@
     "zh": "看着一个模型真正学起来",
     "detail": "Theory lesson 09",
     "detailZh": "原理课 09",
+    "keywords": "train Run genuine updates, distinguish forward/backward/optimizer stages, and read what the loss does and does not prove. 运行真实更新，分清前向、反向、优化器，并正确解读损失曲线。",
     "group": "course"
   },
   {
@@ -125,6 +134,7 @@
     "zh": "为什么训练有时要增删 Gaussian",
     "detail": "Theory lesson 10",
     "detailZh": "原理课 10",
+    "keywords": "density Distinguish optimizing existing parameters from changing representation capacity, without treating clone/split as exact preservation. 分清调整现有参数与改变表示容量，并理解复制或分裂并不严格保图像不变。",
     "group": "course"
   },
   {
@@ -133,6 +143,7 @@
     "zh": "模型文件是对渲染器的一份约定",
     "detail": "Theory lesson 11",
     "detailZh": "原理课 11",
+    "keywords": "record Trace a trained number through a binary record, activation and shader field; distinguish export from a resumable checkpoint. 把训练数字追踪到二进制记录、激活值和 shader 字段，分清导出文件与训练检查点。",
     "group": "course"
   },
   {
@@ -141,6 +152,7 @@
     "zh": "训练、导出、渲染，并解释每一步",
     "detail": "Theory lesson 12",
     "detailZh": "原理课 12",
+    "keywords": "budget Run the repository’s end-to-end exercise and explain how to integrate and profile its Rust/wgpu render pass. 跑通仓库端到端练习，说清 Rust/wgpu 渲染通道的接入与性能测量。",
     "group": "course"
   },
   {
@@ -149,6 +161,7 @@
     "zh": "从一个像素开始搭建",
     "detail": "Engineering chapter 01",
     "detailZh": "工程篇 01",
+    "keywords": "Create the project, run a known milestone, and name who owns every part of the frame. 建立项目，运行确定的里程碑，说清一帧中每个部分由谁负责。",
     "group": "engineering"
   },
   {
@@ -157,6 +170,7 @@
     "zh": "把窗口连接到 GPU",
     "detail": "Engineering chapter 02",
     "detailZh": "工程篇 02",
+    "keywords": "Initialize both hosts, handle resizing, and follow a frame’s lifetime without confusing a window with a texture. 初始化两个宿主，处理尺寸变化，分清窗口与纹理，追踪一帧的生命周期。",
     "group": "engineering"
   },
   {
@@ -165,6 +179,7 @@
     "zh": "教 GPU 画出第一个三角形",
     "detail": "Engineering chapter 03",
     "detailZh": "工程篇 03",
+    "keywords": "Connect shader stages, draw calls and interpolation to visible pixels. 把 shader 阶段、draw call、插值与实际像素连接起来。",
     "group": "engineering"
   },
   {
@@ -173,6 +188,7 @@
     "zh": "把 Rust 中的数字送进 GPU 内存",
     "detail": "Engineering chapter 04",
     "detailZh": "工程篇 04",
+    "keywords": "Build the Rust/WGSL data contract and draw one quad per instance. 建立 Rust/WGSL 数据约定，让每个实例绘制一个四边形。",
     "group": "engineering"
   },
   {
@@ -181,6 +197,7 @@
     "zh": "把矩形变成柔软的 Gaussian",
     "detail": "Engineering chapter 05",
     "detailZh": "工程篇 05",
+    "keywords": "Implement Gaussian falloff, premultiplied alpha and order-dependent composition. 实现高斯衰减、预乘透明度以及依赖顺序的合成。",
     "group": "engineering"
   },
   {
@@ -189,6 +206,7 @@
     "zh": "为 splat 加上相机与三维形状",
     "detail": "Engineering chapter 06",
     "detailZh": "工程篇 06",
+    "keywords": "Connect world/view/clip coordinates, the projection derivative and a screen-space ellipse. 打通世界、观察、裁剪坐标，连接投影导数与屏幕椭圆。",
     "group": "engineering"
   },
   {
@@ -197,6 +215,7 @@
     "zh": "明确数据含义，再加载真实模型",
     "detail": "Engineering chapter 07",
     "detailZh": "工程篇 07",
+    "keywords": "Decode a specific model contract, upload persistent records, and render the pretrained fixture. 解码具体模型约定，上传常驻记录，渲染预训练数据。",
     "group": "engineering"
   },
   {
@@ -205,6 +224,7 @@
     "zh": "让时间成为输入",
     "detail": "Engineering chapter 08",
     "detailZh": "工程篇 08",
+    "keywords": "Evaluate motion and temporal opacity, then keep camera, sort and playback synchronized. 计算运动与时间透明度，让相机、排序及播放保持同步。",
     "group": "engineering"
   },
   {
@@ -213,6 +233,7 @@
     "zh": "追踪一个学到的参数，直到最终像素",
     "detail": "Engineering chapter 09",
     "detailZh": "工程篇 09",
+    "keywords": "Connect capture, optimization, export and runtime without confusing a viewer with a trainer. 连接采集、优化、导出与运行时，分清 viewer 和训练器的职责。",
     "group": "engineering"
   },
   {
@@ -221,6 +242,7 @@
     "zh": "让同一个 pass 接入两个宿主和自研引擎",
     "detail": "Engineering chapter 10",
     "detailZh": "工程篇 10",
+    "keywords": "Define a reusable rendering boundary, then account for depth, color and device ownership in an existing engine. 定义可复用渲染边界，并在现有引擎里处理深度、色彩与设备所有权。",
     "group": "engineering"
   },
   {
@@ -229,6 +251,7 @@
     "zh": "先测量，再设计 compute 光栅器",
     "detail": "Engineering chapter 11",
     "detailZh": "工程篇 11",
+    "keywords": "Separate bottlenecks and connect today’s quad renderer to a future tile-based backend. 区分性能瓶颈，并把当前 quad 渲染器连接到未来的 tile 后端。",
     "group": "engineering"
   },
   {
@@ -237,6 +260,7 @@
     "zh": "验证、交付，并把它讲明白",
     "detail": "Engineering chapter 12",
     "detailZh": "工程篇 12",
+    "keywords": "Produce repeatable evidence, a reviewable deployment and a concise engineering explanation. 形成可复现证据、可审阅部署以及清楚的工程讲解。",
     "group": "engineering"
   },
   {
@@ -245,6 +269,7 @@
     "zh": "颜色不等于材质",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Separate camera motion, light motion and material changes. 分清转相机、转光源与改材质。",
     "group": "relighting"
   },
   {
@@ -253,6 +278,7 @@
     "zh": "把每个方向的光加起来",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Build the rendering equation from multiplication and addition. 从乘法与加法搭出渲染方程。",
     "group": "relighting"
   },
   {
@@ -261,6 +287,7 @@
     "zh": "做出会移动的高光",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Read every factor in the actual GGX shader. 读懂实际 GGX shader 的每一个因子。",
     "group": "relighting"
   },
   {
@@ -269,6 +296,7 @@
     "zh": "让反射光走完 splat 管线",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Follow two GPU passes and their color spaces. 走通两个 GPU pass 与颜色空间。",
     "group": "relighting"
   },
   {
@@ -277,6 +305,7 @@
     "zh": "SH 不只表达外观，也能表达光照",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Understand lighting coefficients, transfer and TranSplat. 理解光照系数、传输与 TranSplat。",
     "group": "relighting"
   },
   {
@@ -285,6 +314,7 @@
     "zh": "怎样学习材质，避免把光学错",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Trace inverse rendering from observations to a relightable asset. 从观测数据走到可重打光资产。",
     "group": "relighting"
   },
   {
@@ -293,6 +323,7 @@
     "zh": "加入时间，别让光照出错",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Derive inverse-transpose normals and dynamic visibility. 推导逆转置法线与动态可见性。",
     "group": "relighting"
   },
   {
@@ -301,6 +332,7 @@
     "zh": "把重打光接进引擎",
     "detail": "Relighting lesson",
     "detailZh": "重打光课程",
+    "keywords": "Separate working capabilities from the next implementation milestones. 区分已实现能力与后续实现里程碑。",
     "group": "relighting"
   },
   {
@@ -313,7 +345,7 @@
   },
   {
     "href": "/math/?view=training#training-lab",
-    "en": "Train step by step",
+    "en": "Training, step by step",
     "zh": "逐步模拟训练",
     "detail": "Render → loss → gradient → update",
     "detailZh": "渲染 → 损失 → 梯度 → 更新",
