@@ -167,7 +167,6 @@
   "1000f2c1f4e1": "PROJECT CORE",
   "3e712ea04ff0": "The following equations use this project’s actual PLY/WGSL parameterization. Normalized time t does not automatically mean physical seconds.",
   "471667413864": "Physical seconds and model time",
-  "7a438996a52f": "D must come from a documented time convention. For a loader using frame/N, it typically aligns with N/fps, not arbitrarily with the final frame’s timestamp. The current research-model PLY contains no fps or duration; the player’s 10-second mapping still needs provenance verification.",
   "662936371475": "The STG-Lite temporal kernel",
   "1670baf93c91": "There is no 1/2 in this exponent. Expressing the same kernel with a standard Gaussian deviation gives σt=ρ/√2. The paper writes exp(−sτ·Δt²), where sτ=ρ⁻² here. The code also applies a lower bound to ρ.",
   "b1242c8126c6": "A cubic motion trajectory",
@@ -337,5 +336,6 @@
   "请复制已选中的 LaTeX": "Copy the selected LaTeX",
   "Zero to Hero · 12 lessons · 从零到实战 →": "Zero to Hero · 12 lessons · Start the guided course →",
   "构建跨平台 Viewer · 12 篇工程博客 + 8 个 GPU 实验 →": "Build a cross-platform viewer · 12 engineering chapters + 8 GPU milestones →",
-  "Gaussian Relighting · 光照、材质与动态形变 →": "Gaussian Relighting · light, materials and deformation →"
+  "Gaussian Relighting · 光照、材质与动态形变 →": "Gaussian Relighting · light, materials and deformation →",
+  "70b070f4f054": "D must come from a documented time convention. For a loader using frame/N, it typically aligns with N/fps, not arbitrarily with the final frame’s timestamp. The research-model PLY contains no fps or duration; the verified official 50-frame training configuration gives D=50/30 seconds for Sear."
 }

@@ -1,0 +1,253 @@
+{
+  "schema": "pajama.training-input-inspection.v1",
+  "revision": "17d0f77ec65516102806d038d83bcc0583ea0aab",
+  "bytes": 4063313316,
+  "verifiedFiles": 24,
+  "videos": [
+    {
+      "path": "cube/videos/cam00.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam01.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam03.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam02.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam04.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam05.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam06.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam07.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam08.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam09.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam10.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam11.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam12.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam13.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam14.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam15.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam16.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam17.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam18.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam19.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "cube/videos/cam20.mp4",
+      "frames": 6000,
+      "durationSeconds": 200,
+      "width": 2560,
+      "height": 1440
+    }
+  ],
+  "calibration": {
+    "cameraId": 1,
+    "model": "PINHOLE",
+    "width": 2521,
+    "height": 1418,
+    "fx": 1840.1365691451574,
+    "fy": 1841.8621307222388,
+    "cx": 1260.5,
+    "cy": 709
+  },
+  "poses": [
+    {
+      "name": "20.png",
+      "cameraId": 1
+    },
+    {
+      "name": "19.png",
+      "cameraId": 1
+    },
+    {
+      "name": "18.png",
+      "cameraId": 1
+    },
+    {
+      "name": "17.png",
+      "cameraId": 1
+    },
+    {
+      "name": "16.png",
+      "cameraId": 1
+    },
+    {
+      "name": "15.png",
+      "cameraId": 1
+    },
+    {
+      "name": "14.png",
+      "cameraId": 1
+    },
+    {
+      "name": "13.png",
+      "cameraId": 1
+    },
+    {
+      "name": "00.png",
+      "cameraId": 1
+    },
+    {
+      "name": "01.png",
+      "cameraId": 1
+    },
+    {
+      "name": "02.png",
+      "cameraId": 1
+    },
+    {
+      "name": "03.png",
+      "cameraId": 1
+    },
+    {
+      "name": "04.png",
+      "cameraId": 1
+    },
+    {
+      "name": "06.png",
+      "cameraId": 1
+    },
+    {
+      "name": "05.png",
+      "cameraId": 1
+    },
+    {
+      "name": "07.png",
+      "cameraId": 1
+    },
+    {
+      "name": "08.png",
+      "cameraId": 1
+    },
+    {
+      "name": "09.png",
+      "cameraId": 1
+    },
+    {
+      "name": "10.png",
+      "cameraId": 1
+    },
+    {
+      "name": "11.png",
+      "cameraId": 1
+    },
+    {
+      "name": "12.png",
+      "cameraId": 1
+    }
+  ],
+  "dimensionsMatch": false,
+  "note": "Metadata checks only; pose-to-video correspondence, synchronization and reconstruction quality still require decoded-frame validation."
+}

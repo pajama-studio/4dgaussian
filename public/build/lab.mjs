@@ -1,4 +1,4 @@
-import init, { WorkshopRenderer } from '/pkg/pajama_gaussian_lab.js?v=relight-1';
+import init, { WorkshopRenderer } from '/pkg/pajama_gaussian_lab.js?v=stream-2';
 
 const byId = id => document.getElementById(id);
 const canvas = byId('gpu-view');
@@ -124,7 +124,7 @@ document.addEventListener('build-language', describe);
 describe();
 try {
   if (!navigator.gpu) throw new Error(say('WebGPU is unavailable. Open this page in a WebGPU-capable browser or run the native example.', 'WebGPU 不可用。请使用支持 WebGPU 的浏览器，或运行桌面示例。'));
-  await init({ module_or_path: '/pkg/pajama_gaussian_lab_bg.wasm?v=relight-1' });
+  await init({ module_or_path: '/pkg/pajama_gaussian_lab_bg.wasm?v=stream-2' });
   renderer = await WorkshopRenderer.create(canvas);
   describe(); requestAnimationFrame(animate);
 } catch (error) { fatal(error); }

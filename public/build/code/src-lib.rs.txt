@@ -3,6 +3,7 @@
 mod inspection;
 pub mod relight;
 pub mod stg_pass;
+pub mod stg_prepare;
 pub mod workshop;
 pub mod workshop_surface;
 #[cfg(target_arch = "wasm32")]
@@ -10,18 +11,17 @@ mod workshop_web;
 
 use bytemuck::{Pod, Zeroable};
 use glam::{Mat4, Vec3};
-use std::cmp::Ordering;
+
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering as AtomicOrdering};
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use web_time::Instant;
-#[cfg(target_arch = "wasm32")]
 use wgpu::util::DeviceExt;
 
 const LOOP_SECONDS: f32 = 10.0;
 const FLOATS_PER_SPLAT: usize = 32;
 const BYTES_PER_SPLAT: usize = FLOATS_PER_SPLAT * std::mem::size_of::<f32>();
-const MAX_SPLATS: usize = 160_000;
+const MAX_SPLATS: usize = 4_000_000;
 const GPU_TIMESTAMP_BYTES: u64 = 2 * std::mem::size_of::<u64>() as u64;
 const GPU_TIMESTAMP_READBACK_SLOTS: usize = 3;
 const SCENE_TARGET: Vec3 = Vec3::new(0.0, 3.5, 14.0);
@@ -172,8 +172,11 @@ pub struct GaussianRenderer {
     bind_group: wgpu::BindGroup,
     camera_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
-    source: Vec<ResearchSplat>,
-    frame: Vec<(f32, u32)>,
+    preparation: stg_prepare::StgPreparation,
+    last_time: Option<f32>,
+    last_presented: Option<(f32, Mat4, Mat4, [f32; 4], u32, u32)>,
+    render_on_demand: bool,
+    submitted_frames: u32,
     inspection_records: Vec<[f32; FLOATS_PER_SPLAT]>,
     inspection_frame: Option<inspection::InspectionFrame>,
     sorted_indices: Vec<u32>,
@@ -225,6 +228,13 @@ impl GaussianRenderer {
             .request_device(&device_descriptor)
             .await
             .map_err(js_error)?;
+        if (parsed.payload_end - parsed.payload_offset) as u64
+            > device.limits().max_storage_buffer_binding_size as u64
+        {
+            return Err(JsValue::from_str(
+                "Resident STG window exceeds GPU storage limit; request a smaller time range",
+            ));
+        }
         let caps = surface.get_capabilities(&adapter);
         let format = caps
             .formats
@@ -258,7 +268,7 @@ impl GaussianRenderer {
         });
         let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("stg-depth-order"),
-            size: (MAX_SPLATS * std::mem::size_of::<u32>()) as u64,
+            size: (parsed.source.len() * std::mem::size_of::<u32>()) as u64,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -361,8 +371,11 @@ impl GaussianRenderer {
             bind_group,
             camera_buffer,
             index_buffer,
-            source: parsed.source,
-            frame: Vec::with_capacity(source_count),
+            preparation: stg_prepare::StgPreparation::new(parsed.source),
+            last_time: None,
+            last_presented: None,
+            render_on_demand: true,
+            submitted_frames: 0,
             inspection_records: ply_bytes[parsed.payload_offset..parsed.payload_end]
                 .chunks_exact(BYTES_PER_SPLAT)
                 .map(|bytes| {
@@ -379,6 +392,62 @@ impl GaussianRenderer {
         })
     }
 
+    /// Atomically replace the resident temporal window on the existing device.
+    /// The caller must merge overlapping chunks by original ID before calling.
+    #[wasm_bindgen(js_name = replaceSource)]
+    pub fn replace_source(&mut self, ply_data: js_sys::Uint8Array) -> Result<(), JsValue> {
+        let bytes = ply_data.to_vec();
+        let parsed = parse_stg_ply(&bytes).map_err(js_error)?;
+        let payload = &bytes[parsed.payload_offset..parsed.payload_end];
+        if payload.len() as u64 > self.device.limits().max_storage_buffer_binding_size as u64 {
+            return Err(JsValue::from_str(
+                "Resident window exceeds GPU storage limit",
+            ));
+        }
+        let source = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("stream-resident-records"),
+                contents: payload,
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+        let indices = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("stream-resident-order"),
+            size: (parsed.source.len() * 4) as u64,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let bindings = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("stream-resident-bindings"),
+            layout: &self.pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: self.camera_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: source.as_entire_binding(),
+                },
+            ],
+        });
+        let records = payload
+            .chunks_exact(128)
+            .map(|b| {
+                std::array::from_fn(|i| f32::from_le_bytes(b[i * 4..i * 4 + 4].try_into().unwrap()))
+            })
+            .collect();
+        self.preparation = stg_prepare::StgPreparation::new(parsed.source);
+        self.inspection_records = records;
+        self.inspection_frame = None;
+        self.last_time = None;
+        self.last_presented = None;
+        self.sorted_indices.clear();
+        self.index_buffer = indices;
+        self.bind_group = bindings;
+        Ok(())
+    }
+
     pub fn render(
         &mut self,
         time_seconds: f32,
@@ -390,7 +459,6 @@ impl GaussianRenderer {
         calibrated_camera: js_sys::Float32Array,
     ) -> Result<(), JsValue> {
         let prepare_started = Instant::now();
-        self.inspection_frame = None;
         let width = width.max(1);
         let height = height.max(1);
         if self.config.width != width || self.config.height != height {
@@ -457,27 +525,19 @@ impl GaussianRenderer {
         let view_proj = projection * view;
         let normalized_time = time_seconds.rem_euclid(LOOP_SECONDS) / LOOP_SECONDS;
 
-        self.frame.clear();
-        for (index, source) in self.source.iter().enumerate() {
-            let (center, opacity) = source.sample(normalized_time);
-            if opacity < 1.0 / 255.0 {
-                continue;
-            }
-            let clip = view_proj * center.extend(1.0);
-            if clip.w <= 0.0 {
-                continue;
-            }
-            let ndc = clip.truncate() / clip.w;
-            if ndc.x.abs() > 1.35 || ndc.y.abs() > 1.35 || ndc.z < 0.0 || ndc.z > 1.0 {
-                continue;
-            }
-            let depth = -(view * center.extend(1.0)).z;
-            self.frame.push((depth, index as u32));
+        let presented_key = (normalized_time, view, projection, viewport, width, height);
+        if self.render_on_demand && self.last_presented == Some(presented_key) {
+            self.telemetry.prepare_ms = prepare_started.elapsed().as_secs_f64() * 1000.0;
+            self.telemetry.sort_ms = 0.0;
+            self.telemetry.upload_bytes = 0;
+            return Ok(());
         }
-        let sort_started = Instant::now();
-        self.frame
-            .sort_unstable_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(Ordering::Equal));
-        self.telemetry.sort_ms = sort_started.elapsed().as_secs_f64() * 1000.0;
+        self.inspection_frame = None;
+        let variant = 9;
+        self.preparation
+            .prepare(normalized_time, view, projection, variant);
+        self.last_time = Some(normalized_time);
+        self.telemetry.sort_ms = self.preparation.sort_ms;
 
         let camera = CameraUniform {
             view_proj: view_proj.to_cols_array_2d(),
@@ -491,17 +551,22 @@ impl GaussianRenderer {
         };
         self.queue
             .write_buffer(&self.camera_buffer, 0, bytemuck::bytes_of(&camera));
-        self.sorted_indices.clear();
-        self.sorted_indices
-            .extend(self.frame.iter().map(|(_, index)| *index));
-        self.queue.write_buffer(
-            &self.index_buffer,
-            0,
-            bytemuck::cast_slice(&self.sorted_indices),
-        );
+        if !self.preparation.cache_hit {
+            self.sorted_indices.clear();
+            self.sorted_indices
+                .extend_from_slice(self.preparation.indices());
+            self.queue.write_buffer(
+                &self.index_buffer,
+                0,
+                bytemuck::cast_slice(&self.sorted_indices),
+            );
+        }
         self.telemetry.visible = self.sorted_indices.len() as u32;
-        self.telemetry.upload_bytes =
-            (self.sorted_indices.len() * std::mem::size_of::<u32>()) as u32;
+        self.telemetry.upload_bytes = if self.preparation.cache_hit {
+            0
+        } else {
+            (self.sorted_indices.len() * 4) as u32
+        };
         self.telemetry.prepare_ms = prepare_started.elapsed().as_secs_f64() * 1000.0;
 
         let inspection_frame = inspection::InspectionFrame {
@@ -610,8 +675,25 @@ impl GaussianRenderer {
                 });
         }
         self.queue.present(frame);
+        self.last_presented = Some(presented_key);
+        self.submitted_frames = self.submitted_frames.wrapping_add(1);
         self.inspection_frame = Some(inspection_frame);
         Ok(())
+    }
+
+    /// Hosts with external canvas invalidation may request an explicit redraw.
+    #[wasm_bindgen(js_name = invalidate)]
+    pub fn invalidate(&mut self) {
+        self.last_presented = None;
+    }
+    #[wasm_bindgen(js_name = setRenderOnDemand)]
+    pub fn set_render_on_demand(&mut self, enabled: bool) {
+        self.render_on_demand = enabled;
+        self.invalidate();
+    }
+    #[wasm_bindgen(getter, js_name = submittedFrames)]
+    pub fn submitted_frames(&self) -> u32 {
+        self.submitted_frames
     }
 
     #[wasm_bindgen(getter, js_name = prepareMs)]
@@ -654,7 +736,7 @@ impl GaussianRenderer {
 
     #[wasm_bindgen(getter, js_name = sourceCount)]
     pub fn source_count(&self) -> u32 {
-        self.source.len() as u32
+        self.preparation.len() as u32
     }
 
     #[wasm_bindgen(js_name = splatRecord)]
@@ -684,7 +766,7 @@ impl GaussianRenderer {
             .map_or_else(Vec::new, |frame| {
                 inspection::pick(
                     &self.inspection_records,
-                    &self.frame,
+                    self.preparation.ordered(),
                     frame,
                     glam::Vec2::new(x, y),
                 )

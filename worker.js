@@ -1,5 +1,8 @@
+import { streamApi } from './stream-api.mjs';
 export default {
   async fetch(request, env) {
+    const stream = await streamApi(request, env);
+    if (stream) return stream;
     const response = await env.ASSETS.fetch(request);
     const secured = new Response(response.body, response);
     const pathname = new URL(request.url).pathname;

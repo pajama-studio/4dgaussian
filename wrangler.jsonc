@@ -3,6 +3,8 @@
   "name": "pajama-gaussian-lab",
   "main": "worker.js",
   "compatibility_date": "2026-09-15",
+  "r2_buckets": [{ "binding": "GAUSSIAN_STREAMS", "bucket_name": "pajama-gaussian-streams" }],
+  "observability": { "enabled": true, "traces": { "enabled": true, "head_sampling_rate": 0.1 } },
   "routes": [
     { "pattern": "gaussian.pajama.studio", "custom_domain": true },
     { "pattern": "4dgaussian.pajama.studio", "custom_domain": true }

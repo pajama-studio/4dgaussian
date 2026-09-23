@@ -32,7 +32,7 @@ const withLanguage = href => {
 if (main && header) {
   document.body.classList.add('site-ready');
   const section = location.pathname.split('/')[1] || 'viewer';
-  const names = { math:['Math notebook','数学手册'], docs:['Rendering field guide','渲染指南'], learn:['Learn 4D Gaussian Splatting','学习 4D Gaussian Splatting'], build:['Build a viewer','构建 Viewer'], relight:['Gaussian relighting','Gaussian 重打光'], viewer:['Live viewer','实时 Viewer'] };
+  const names = { streaming:['Temporal streaming','时序流式加载'], math:['Math notebook','数学手册'], docs:['Rendering field guide','渲染指南'], learn:['Learn 4D Gaussian Splatting','学习 4D Gaussian Splatting'], build:['Build a viewer','构建 Viewer'], relight:['Gaussian relighting','Gaussian 重打光'], viewer:['Live viewer','实时 Viewer'] };
   const explore = label(button('site-explore'), 'Explore', '目录');
   label(explore, 'Explore & search', '目录与搜索', 'aria-label');
   explore.setAttribute('aria-haspopup', 'dialog');

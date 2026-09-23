@@ -11,7 +11,7 @@ Chinese study materials: [GS courses and derivations](docs/preparation/09-course
 
 The demo uses 108,317 learned Gaussians from the 21-camera Neural 3D Video capture. It implements temporal opacity, cubic motion, quaternion evolution, anisotropic screen-space covariance, CPU visibility/global ordering, and premultiplied Gaussian compositing. The source records stay GPU-resident; each frame uploads only ordered 32-bit indices. A comparison mode synchronizes the calibrated `cam00` render with the official RGB video at selectable playback rates. Feature-gated GPU timestamp queries measure the raster pass through an asynchronous three-slot readback ring.
 
-An explicitly source-only `02_Flames` preview tests on-demand Media Source delivery with nine two-second fMP4 fragments. It is kept separate from the active reconstruction: the matching official model has 332,865 splats and remains a candidate for the progressive model-delivery/GPU-preprocess stage.
+An explicitly source-only `02_Flames` preview tests on-demand Media Source delivery with nine two-second fMP4 fragments. It is kept separate from the active reconstruction: the matching official model has 332,865 splats and is now rendered separately in the [temporal streaming lab](https://4dgaussian.pajama.studio/streaming/).
 
 The v0.8 interface is a two-column workbench: the left side selects the live 4D fixture or segmented source preview, and the right side owns the active player. Selecting the source preview suspends STG rendering rather than consuming GPU time behind a hidden canvas. The checked-in Pajama Studio mark is reused for the favicon, header and footer.
 
@@ -20,6 +20,12 @@ Long-form technical material lives at `/docs/` instead of competing with the pla
 Shared reading and navigation live in `public/site.css` and `public/site.mjs`: adjustable text, a bilingual course search, section-by-section handbook reading, expandable references, lesson shortcuts, and a six-item math self-check. Preferences and review marks stay in browser local storage. `scripts/build-site.mjs` builds the search index from the course sources as part of `npm run build:math`; edit generated page structure in its `scripts/build-*.mjs` generator. Rendering and training calculations remain in their existing modules.
 
 The bilingual [Gaussian inspector](https://4dgaussian.pajama.studio/?inspect=1#workbench) places a selected primitive beside the live scene. Click a pixel or enter a PLY row ID, inspect all 32 stored fields, track the same ID over time, rotate its magnified ellipsoid and SH plots, and export its record and evaluated state as JSON. Picking ranks CPU-evaluated `T × alpha` contributions in the current renderer's depth order, with the same projected footprint and clipping rules; it is not a GPU ID buffer. The source fixture stores direct RGB, so actual mode displays **derived equivalent DC**, while higher-degree SH edits are **synthetic teaching values** that do not modify the scene. See [the inspector implementation guide](docs/preparation/gaussian-inspector.md).
+
+## Measured renderer optimization and temporal streaming
+
+The [streaming lab](https://4dgaussian.pajama.studio/streaming/) loads two real STG-Lite checkpoints from Cloudflare R2, addresses chunks by seconds, and publishes ten measured changes with raw CPU/GPU evidence. Native CPU preparation fell from 4.696 to 2.243 ms (Sear) and 13.571 to 8.003 ms (Flames) on the measured Windows host. These are preparation timings, not FPS. Released checkpoints cover only 50 frames.
+
+The 200-second, 21-camera DeskGames Cube **training input** has been acquired and checksummed locally; it is not a trained long-sequence renderer. See [reproduction and API documentation](STREAMING.md), [acquisition and training plan](docs/preparation/long-sequence-training.md), and the bilingual [Spark / PlayCanvas study](https://4dgaussian.pajama.studio/streaming/research.html).
 
 ## Build a viewer, from zero
 

@@ -1,7 +1,8 @@
 //! Surface-independent STG-Lite pass. The host owns the device, attachments,
 //! camera, playback clock, submission and presentation. Time is normalized;
 //! this API never guesses the capture duration from a PLY file.
-use crate::{parse_stg_ply, CameraUniform, ResearchSplat};
+use crate::stg_prepare::StgPreparation;
+use crate::{parse_stg_ply, CameraUniform};
 use glam::Mat4;
 use wgpu::util::DeviceExt;
 
@@ -17,9 +18,9 @@ pub struct StgPass {
     bind_group: wgpu::BindGroup,
     camera_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
-    source: Vec<ResearchSplat>,
-    ordered: Vec<(f32, u32)>,
-    indices: Vec<u32>,
+    preparation: StgPreparation,
+    cpu_variant: u8,
+    vertices: u32,
 }
 
 impl StgPass {
@@ -33,8 +34,35 @@ impl StgPass {
         color_format: wgpu::TextureFormat,
         depth: Option<(wgpu::TextureFormat, wgpu::CompareFunction)>,
     ) -> Result<Self, String> {
+        Self::with_options(device, ply, color_format, depth, 9, 0)
+    }
+
+    /// Benchmark options retain the unmodified baseline for paired comparisons.
+    pub fn with_options(
+        device: &wgpu::Device,
+        ply: &[u8],
+        color_format: wgpu::TextureFormat,
+        depth: Option<(wgpu::TextureFormat, wgpu::CompareFunction)>,
+        cpu_variant: u8,
+        gpu_variant: u8,
+    ) -> Result<Self, String> {
         let parsed = parse_stg_ply(ply)?;
-        let payload = &ply[parsed.payload_offset..parsed.payload_end];
+        let mut payload = ply[parsed.payload_offset..parsed.payload_end].to_vec();
+        if gpu_variant >= 1 {
+            for row in payload.chunks_exact_mut(128) {
+                for field in [4, 20, 21, 22, 23] {
+                    let v = f32::from_le_bytes(row[field * 4..field * 4 + 4].try_into().unwrap());
+                    let activated = if field == 20 {
+                        crate::sigmoid(v)
+                    } else if field == 4 {
+                        v.exp().max(1e-6)
+                    } else {
+                        v.exp()
+                    };
+                    row[field * 4..field * 4 + 4].copy_from_slice(&activated.to_le_bytes());
+                }
+            }
+        }
         if payload.len() as u64 > u64::from(device.limits().max_storage_buffer_binding_size) {
             return Err("STG source exceeds the device storage binding limit".into());
         }
@@ -45,7 +73,7 @@ impl StgPass {
         });
         let source_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("stg-host-source"),
-            contents: payload,
+            contents: &payload,
             usage: wgpu::BufferUsages::STORAGE,
         });
         let count = parsed.source.len();
@@ -94,9 +122,21 @@ impl StgPass {
                 },
             ],
         });
+        let mut shader_code = include_str!("splat.wgsl").to_string();
+        if gpu_variant >= 1 {
+            shader_code = shader_code
+                .replace("max(exp(splat.r1.x), 0.000001)", "splat.r1.x")
+                .replace("(1.0 / (1.0 + exp(-splat.r5.x)))", "splat.r5.x")
+                .replace("exp(splat.r5.yzw)", "splat.r5.yzw");
+        }
+        if gpu_variant >= 2 {
+            let begin = shader_code.find("var corners =").unwrap();
+            let end = shader_code[begin..].find("return corners[index];").unwrap() + begin;
+            shader_code.replace_range(begin..end, "var corners = array<vec2<f32>, 4>(vec2<f32>(-1.0,-1.0),vec2<f32>(1.0,-1.0),vec2<f32>(-1.0,1.0),vec2<f32>(1.0,1.0));\n  ");
+        }
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("stg-shared-wgsl"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("splat.wgsl").into()),
+            source: wgpu::ShaderSource::Wgsl(shader_code.into()),
         });
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("stg-host-pipeline-layout"),
@@ -130,7 +170,14 @@ impl StgPass {
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
             }),
-            primitive: wgpu::PrimitiveState::default(),
+            primitive: wgpu::PrimitiveState {
+                topology: if gpu_variant >= 2 {
+                    wgpu::PrimitiveTopology::TriangleStrip
+                } else {
+                    wgpu::PrimitiveTopology::TriangleList
+                },
+                ..Default::default()
+            },
             depth_stencil: depth.map(|(format, depth_compare)| wgpu::DepthStencilState {
                 format,
                 depth_write_enabled: Some(false),
@@ -147,9 +194,9 @@ impl StgPass {
             bind_group,
             camera_buffer,
             index_buffer,
-            source: parsed.source,
-            ordered: Vec::with_capacity(count),
-            indices: Vec::with_capacity(count),
+            preparation: StgPreparation::new(parsed.source),
+            cpu_variant,
+            vertices: if gpu_variant >= 2 { 4 } else { 6 },
         })
     }
 
@@ -176,45 +223,32 @@ impl StgPass {
             return Err("Invalid time, viewport or camera matrix".into());
         }
         let view = Mat4::from_cols_array_2d(&view_columns);
-        let view_projection = Mat4::from_cols_array_2d(&projection_columns) * view;
-        self.ordered.clear();
-        for (index, source) in self.source.iter().enumerate() {
-            let (center, opacity) = source.sample(normalized_time);
-            if opacity < 1.0 / 255.0 {
-                continue;
-            }
-            let clip = view_projection * center.extend(1.0);
-            if clip.w <= 0.0 {
-                continue;
-            }
-            let ndc = clip.truncate() / clip.w;
-            // Matches the browser baseline's center-margin heuristic. This is
-            // not a mathematically conservative bound for arbitrarily big splats.
-            if ndc.x.abs() > 1.35 || ndc.y.abs() > 1.35 || !(0.0..=1.0).contains(&ndc.z) {
-                continue;
-            }
-            self.ordered
-                .push((-(view * center.extend(1.0)).z, index as u32));
-        }
-        self.ordered
-            .sort_unstable_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-        self.indices.clear();
-        self.indices
-            .extend(self.ordered.iter().map(|entry| entry.1));
+        let projection = Mat4::from_cols_array_2d(&projection_columns);
+        let view_projection = projection * view;
         let [width, height] = viewport.map(|v| v as f32);
+        self.preparation
+            .prepare(normalized_time, view, projection, self.cpu_variant);
         let camera = CameraUniform {
             view_proj: view_projection.to_cols_array_2d(),
             viewport: [width, height, width.recip(), height.recip()],
             scene: [normalized_time, 0.0, 0.0, 0.0],
         };
         queue.write_buffer(&self.camera_buffer, 0, bytemuck::bytes_of(&camera));
-        if !self.indices.is_empty() {
-            queue.write_buffer(&self.index_buffer, 0, bytemuck::cast_slice(&self.indices));
+        if !self.preparation.indices().is_empty() && !self.preparation.cache_hit {
+            queue.write_buffer(
+                &self.index_buffer,
+                0,
+                bytemuck::cast_slice(self.preparation.indices()),
+            );
         }
         Ok(PreparedFrame {
-            source_count: self.source.len(),
-            visible_count: self.indices.len(),
-            index_upload_bytes: self.indices.len() * 4,
+            source_count: self.preparation.len(),
+            visible_count: self.preparation.indices().len(),
+            index_upload_bytes: if self.preparation.cache_hit {
+                0
+            } else {
+                self.preparation.indices().len() * 4
+            },
         })
     }
 
@@ -222,6 +256,6 @@ impl StgPass {
         pass.set_pipeline(&self.pipeline);
         pass.set_bind_group(0, &self.bind_group, &[]);
         pass.set_vertex_buffer(0, self.index_buffer.slice(..));
-        pass.draw(0..6, 0..self.indices.len() as u32);
+        pass.draw(0..self.vertices, 0..self.preparation.indices().len() as u32);
     }
 }

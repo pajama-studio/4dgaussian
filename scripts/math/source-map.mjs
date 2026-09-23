@@ -14,10 +14,10 @@ const refs = {
   quad: ['src/splat.wgsl', 'let pixel_offset =', 'return output;'],
   motion: ['src/splat.wgsl', 'let dt =', '+ motion_cubic * dt2 * dt;'],
   'cpu-sample': ['src/lib.rs', 'fn sample(self, time:', '(position, sigmoid(self.opacity_logit) * temporal)'],
-  'browser-time': ['src/lib.rs', 'let normalized_time = time_seconds', 'self.frame.clear();'],
-  'host-camera': ['src/stg_pass.rs', 'let view = Mat4::from_cols_array_2d', 'self.ordered.clear();'],
+  'browser-time': ['src/lib.rs', 'let normalized_time = time_seconds', 'let variant = 9;'],
+  'host-camera': ['src/stg_pass.rs', 'let view = Mat4::from_cols_array_2d', 'let [width, height] ='],
   blend: ['src/stg_pass.rs', 'blend: Some(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING)', 'depth_compare: Some(depth_compare),'],
-  sort: ['src/stg_pass.rs', 'self.ordered\n', 'let [width, height] ='],
+  sort: ['src/stg_prepare.rs', 'let sort_started =', 'self.indices.clear();'],
   'toy-project': ['scripts/train_toy_stg.py', '    dt = times[', '    covariance = covariance +'],
   'toy-kernel': ['scripts/train_toy_stg.py', '    ys, xs = torch.meshgrid', '    alpha = torch.where'],
   'toy-composite': ['scripts/train_toy_stg.py', '    order = z.argsort', '* color[:, :, None, None, :]).sum(1)'],
@@ -64,7 +64,6 @@ export async function buildSources(root, output) {
   for (const [id, [path, start, end]] of Object.entries(refs)) {
     const source = sources.get(path);
     let first = source.lines.findIndex(line => line.includes(start.trimEnd()));
-    if (id === 'sort') first = source.lines.findIndex(line => line.includes('.sort_unstable_by'));
     let last = source.lines.findIndex((line, i) => i >= first && line.includes(end));
     if (first < 0 || last < first) throw new Error('Source excerpt not found: ' + id);
     if (end.startsWith('export function') || end === 'const projection =') last--;

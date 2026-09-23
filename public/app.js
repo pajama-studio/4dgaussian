@@ -1,10 +1,10 @@
-import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=relight-1";
+import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=stream-2";
 import { mountSegmentedVideo } from "/stream-player.js";
 import { mountInspector } from "/inspector.mjs";
 
 const DATA_URL = "/data/n3d-sear-steak-stg-lite.ply.gz";
 const CAMERA_URL = "/data/n3d-sear-steak-reference-cameras.json";
-const LOOP_SECONDS = 10;
+const LOOP_SECONDS = 50 / 30; // Released checkpoint: 50 training frames, not the full 300-frame source video.
 const canvas = document.querySelector("#gaussian-canvas");
 const wrap = document.querySelector("#canvas-wrap");
 const status = document.querySelector("#runtime-status");
@@ -45,6 +45,7 @@ let playing = true;
 let time = 0;
 let lastFrame = performance.now();
 let frameWindow = [];
+let lastSubmittedFrames = -1;
 let yaw = 0;
 let pitch = 0.03;
 let distance = 17.2;
@@ -63,7 +64,7 @@ function pausePlayback() {
 const inspector = mountInspector({
   panel:document.querySelector('#gaussian-inspector'),canvas,
   overlay:document.querySelector('#selection-overlay'),getRenderer:()=>renderer,
-  pause:pausePlayback,seek:value=>{time=value;pausePlayback();timeline.value=value;},workbench,
+  pause:pausePlayback,seek:value=>{time=value*LOOP_SECONDS;pausePlayback();timeline.value=time;},workbench,
 });
 
 function resize() {
@@ -84,7 +85,8 @@ function formatTime(seconds) {
 }
 
 function updateMetrics(now) {
-  frameWindow.push(now);
+  if (renderer.submittedFrames !== lastSubmittedFrames) frameWindow.push(now);
+  lastSubmittedFrames = renderer.submittedFrames;
   while (frameWindow.length && now - frameWindow[0] > 1000) frameWindow.shift();
   metrics.fps.textContent = frameWindow.length.toString();
   metrics.visible.textContent = renderer.visible.toLocaleString();
@@ -204,7 +206,8 @@ function frame(now) {
   }
   if (playing) {
     if (comparing && referenceVideo.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && !referenceVideo.paused) {
-      time = referenceVideo.currentTime % LOOP_SECONDS;
+      if (referenceVideo.currentTime >= LOOP_SECONDS) referenceVideo.currentTime = 0;
+      time = referenceVideo.currentTime;
     } else {
       time = (time + dt * Number(playbackRate.value)) % LOOP_SECONDS;
     }
@@ -213,7 +216,7 @@ function frame(now) {
   timecode.textContent = formatTime(time);
   resize();
   try {
-    renderer.render(time, yaw, pitch, distance, canvas.width, canvas.height, activeCamera());
+    renderer.render(Math.min(time / LOOP_SECONDS, 1 - 1e-7) * 10, yaw, pitch, distance, canvas.width, canvas.height, activeCamera());
     updateMetrics(now);
     inspector.onFrame(now);
   } catch (error) {
@@ -336,7 +339,7 @@ wrap.addEventListener("wheel", (event) => {
 
 async function start() {
   if (!navigator.gpu) throw new Error("This browser does not expose WebGPU");
-  await init({module_or_path:"/pkg/pajama_gaussian_lab_bg.wasm?v=relight-1"});
+  await init({module_or_path:"/pkg/pajama_gaussian_lab_bg.wasm?v=stream-2"});
   resize();
   const [plyData] = await Promise.all([loadResearchAsset(), loadReferenceCameras()]);
   status.textContent = "Building GPU-resident scene…";

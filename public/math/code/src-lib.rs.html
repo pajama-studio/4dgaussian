@@ -1,27 +1,27 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>src/lib.rs · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>src/lib.rs</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>10178fc2a837f54c1450e34802ec644e140647a2e11da1ed4924688adcbe395b</code></p><p><a href="src-lib.rs.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>#![cfg_attr(not(target_arch = &quot;wasm32&quot;), allow(dead_code))]</span>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>src/lib.rs · 数学源码</title><link rel="stylesheet" href="../math.css"><script type="module" src="../i18n.mjs"></script></head><body class="source-page"><main><div class="source-navigation"><a href="../">← 返回数学手册</a><div class="language-switch" data-language-ui role="group" aria-label="Language / 语言"><button type="button" data-language="en" lang="en" aria-pressed="true">English</button><button type="button" data-language="zh" lang="zh-CN" aria-pressed="false">中文</button></div></div><h1>src/lib.rs</h1><p>与本次数学页面一起发布的源码快照。SHA-256: <code>03c89f4d7e4f10df9c8778c5742138de07d72ae73f3407cad9d66a1882679d1b</code></p><p><a href="src-lib.rs.txt" download>下载原始文件</a> · <a href="../source-manifest.json">版本指纹清单</a></p><pre class="source-lines"><code><span id="L1"><a href="#L1" aria-label="Line 1">1</a>#![cfg_attr(not(target_arch = &quot;wasm32&quot;), allow(dead_code))]</span>
 <span id="L2"><a href="#L2" aria-label="Line 2">2</a></span>
 <span id="L3"><a href="#L3" aria-label="Line 3">3</a>mod inspection;</span>
 <span id="L4"><a href="#L4" aria-label="Line 4">4</a>pub mod relight;</span>
 <span id="L5"><a href="#L5" aria-label="Line 5">5</a>pub mod stg_pass;</span>
-<span id="L6"><a href="#L6" aria-label="Line 6">6</a>pub mod workshop;</span>
-<span id="L7"><a href="#L7" aria-label="Line 7">7</a>pub mod workshop_surface;</span>
-<span id="L8"><a href="#L8" aria-label="Line 8">8</a>#[cfg(target_arch = &quot;wasm32&quot;)]</span>
-<span id="L9"><a href="#L9" aria-label="Line 9">9</a>mod workshop_web;</span>
-<span id="L10"><a href="#L10" aria-label="Line 10">10</a></span>
-<span id="L11"><a href="#L11" aria-label="Line 11">11</a>use bytemuck::{Pod, Zeroable};</span>
-<span id="L12"><a href="#L12" aria-label="Line 12">12</a>use glam::{Mat4, Vec3};</span>
-<span id="L13"><a href="#L13" aria-label="Line 13">13</a>use std::cmp::Ordering;</span>
-<span id="L14"><a href="#L14" aria-label="Line 14">14</a>use std::sync::atomic::{AtomicBool, AtomicU64, Ordering as AtomicOrdering};</span>
-<span id="L15"><a href="#L15" aria-label="Line 15">15</a>use std::sync::Arc;</span>
-<span id="L16"><a href="#L16" aria-label="Line 16">16</a>use wasm_bindgen::prelude::*;</span>
-<span id="L17"><a href="#L17" aria-label="Line 17">17</a>use web_time::Instant;</span>
-<span id="L18"><a href="#L18" aria-label="Line 18">18</a>#[cfg(target_arch = &quot;wasm32&quot;)]</span>
+<span id="L6"><a href="#L6" aria-label="Line 6">6</a>pub mod stg_prepare;</span>
+<span id="L7"><a href="#L7" aria-label="Line 7">7</a>pub mod workshop;</span>
+<span id="L8"><a href="#L8" aria-label="Line 8">8</a>pub mod workshop_surface;</span>
+<span id="L9"><a href="#L9" aria-label="Line 9">9</a>#[cfg(target_arch = &quot;wasm32&quot;)]</span>
+<span id="L10"><a href="#L10" aria-label="Line 10">10</a>mod workshop_web;</span>
+<span id="L11"><a href="#L11" aria-label="Line 11">11</a></span>
+<span id="L12"><a href="#L12" aria-label="Line 12">12</a>use bytemuck::{Pod, Zeroable};</span>
+<span id="L13"><a href="#L13" aria-label="Line 13">13</a>use glam::{Mat4, Vec3};</span>
+<span id="L14"><a href="#L14" aria-label="Line 14">14</a></span>
+<span id="L15"><a href="#L15" aria-label="Line 15">15</a>use std::sync::atomic::{AtomicBool, AtomicU64, Ordering as AtomicOrdering};</span>
+<span id="L16"><a href="#L16" aria-label="Line 16">16</a>use std::sync::Arc;</span>
+<span id="L17"><a href="#L17" aria-label="Line 17">17</a>use wasm_bindgen::prelude::*;</span>
+<span id="L18"><a href="#L18" aria-label="Line 18">18</a>use web_time::Instant;</span>
 <span id="L19"><a href="#L19" aria-label="Line 19">19</a>use wgpu::util::DeviceExt;</span>
 <span id="L20"><a href="#L20" aria-label="Line 20">20</a></span>
 <span id="L21"><a href="#L21" aria-label="Line 21">21</a>const LOOP_SECONDS: f32 = 10.0;</span>
 <span id="L22"><a href="#L22" aria-label="Line 22">22</a>const FLOATS_PER_SPLAT: usize = 32;</span>
 <span id="L23"><a href="#L23" aria-label="Line 23">23</a>const BYTES_PER_SPLAT: usize = FLOATS_PER_SPLAT * std::mem::size_of::&lt;f32&gt;();</span>
-<span id="L24"><a href="#L24" aria-label="Line 24">24</a>const MAX_SPLATS: usize = 160_000;</span>
+<span id="L24"><a href="#L24" aria-label="Line 24">24</a>const MAX_SPLATS: usize = 4_000_000;</span>
 <span id="L25"><a href="#L25" aria-label="Line 25">25</a>const GPU_TIMESTAMP_BYTES: u64 = 2 * std::mem::size_of::&lt;u64&gt;() as u64;</span>
 <span id="L26"><a href="#L26" aria-label="Line 26">26</a>const GPU_TIMESTAMP_READBACK_SLOTS: usize = 3;</span>
 <span id="L27"><a href="#L27" aria-label="Line 27">27</a>const SCENE_TARGET: Vec3 = Vec3::new(0.0, 3.5, 14.0);</span>
@@ -172,684 +172,766 @@
 <span id="L172"><a href="#L172" aria-label="Line 172">172</a>    bind_group: wgpu::BindGroup,</span>
 <span id="L173"><a href="#L173" aria-label="Line 173">173</a>    camera_buffer: wgpu::Buffer,</span>
 <span id="L174"><a href="#L174" aria-label="Line 174">174</a>    index_buffer: wgpu::Buffer,</span>
-<span id="L175"><a href="#L175" aria-label="Line 175">175</a>    source: Vec&lt;ResearchSplat&gt;,</span>
-<span id="L176"><a href="#L176" aria-label="Line 176">176</a>    frame: Vec&lt;(f32, u32)&gt;,</span>
-<span id="L177"><a href="#L177" aria-label="Line 177">177</a>    inspection_records: Vec&lt;[f32; FLOATS_PER_SPLAT]&gt;,</span>
-<span id="L178"><a href="#L178" aria-label="Line 178">178</a>    inspection_frame: Option&lt;inspection::InspectionFrame&gt;,</span>
-<span id="L179"><a href="#L179" aria-label="Line 179">179</a>    sorted_indices: Vec&lt;u32&gt;,</span>
-<span id="L180"><a href="#L180" aria-label="Line 180">180</a>    telemetry: FrameTelemetry,</span>
-<span id="L181"><a href="#L181" aria-label="Line 181">181</a>    adapter_name: String,</span>
-<span id="L182"><a href="#L182" aria-label="Line 182">182</a>    gpu_timer: Option&lt;GpuTimer&gt;,</span>
-<span id="L183"><a href="#L183" aria-label="Line 183">183</a>}</span>
-<span id="L184"><a href="#L184" aria-label="Line 184">184</a></span>
-<span id="L185"><a href="#L185" aria-label="Line 185">185</a>#[wasm_bindgen]</span>
-<span id="L186"><a href="#L186" aria-label="Line 186">186</a>impl GaussianRenderer {</span>
-<span id="L187"><a href="#L187" aria-label="Line 187">187</a>    #[wasm_bindgen(js_name = create)]</span>
-<span id="L188"><a href="#L188" aria-label="Line 188">188</a>    #[cfg(target_arch = &quot;wasm32&quot;)]</span>
-<span id="L189"><a href="#L189" aria-label="Line 189">189</a>    pub async fn create(</span>
-<span id="L190"><a href="#L190" aria-label="Line 190">190</a>        canvas: web_sys::HtmlCanvasElement,</span>
-<span id="L191"><a href="#L191" aria-label="Line 191">191</a>        ply_data: js_sys::Uint8Array,</span>
-<span id="L192"><a href="#L192" aria-label="Line 192">192</a>    ) -&gt; Result&lt;GaussianRenderer, JsValue&gt; {</span>
-<span id="L193"><a href="#L193" aria-label="Line 193">193</a>        console_error_panic_hook::set_once();</span>
-<span id="L194"><a href="#L194" aria-label="Line 194">194</a>        let ply_bytes = ply_data.to_vec();</span>
-<span id="L195"><a href="#L195" aria-label="Line 195">195</a>        let parsed = parse_stg_ply(&amp;ply_bytes).map_err(js_error)?;</span>
-<span id="L196"><a href="#L196" aria-label="Line 196">196</a>        if parsed.source.len() &gt; MAX_SPLATS {</span>
-<span id="L197"><a href="#L197" aria-label="Line 197">197</a>            return Err(JsValue::from_str(</span>
-<span id="L198"><a href="#L198" aria-label="Line 198">198</a>                &quot;STG asset exceeds the renderer's declared splat budget&quot;,</span>
-<span id="L199"><a href="#L199" aria-label="Line 199">199</a>            ));</span>
-<span id="L200"><a href="#L200" aria-label="Line 200">200</a>        }</span>
-<span id="L201"><a href="#L201" aria-label="Line 201">201</a></span>
-<span id="L202"><a href="#L202" aria-label="Line 202">202</a>        let width = canvas.width().max(1);</span>
-<span id="L203"><a href="#L203" aria-label="Line 203">203</a>        let height = canvas.height().max(1);</span>
-<span id="L204"><a href="#L204" aria-label="Line 204">204</a>        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());</span>
-<span id="L205"><a href="#L205" aria-label="Line 205">205</a>        let surface = instance</span>
-<span id="L206"><a href="#L206" aria-label="Line 206">206</a>            .create_surface(wgpu::SurfaceTarget::Canvas(canvas))</span>
-<span id="L207"><a href="#L207" aria-label="Line 207">207</a>            .map_err(js_error)?;</span>
-<span id="L208"><a href="#L208" aria-label="Line 208">208</a>        let adapter = instance</span>
-<span id="L209"><a href="#L209" aria-label="Line 209">209</a>            .request_adapter(&amp;wgpu::RequestAdapterOptions {</span>
-<span id="L210"><a href="#L210" aria-label="Line 210">210</a>                power_preference: wgpu::PowerPreference::HighPerformance,</span>
-<span id="L211"><a href="#L211" aria-label="Line 211">211</a>                compatible_surface: Some(&amp;surface),</span>
-<span id="L212"><a href="#L212" aria-label="Line 212">212</a>                force_fallback_adapter: false,</span>
-<span id="L213"><a href="#L213" aria-label="Line 213">213</a>                apply_limit_buckets: false,</span>
-<span id="L214"><a href="#L214" aria-label="Line 214">214</a>            })</span>
-<span id="L215"><a href="#L215" aria-label="Line 215">215</a>            .await</span>
-<span id="L216"><a href="#L216" aria-label="Line 216">216</a>            .map_err(js_error)?;</span>
-<span id="L217"><a href="#L217" aria-label="Line 217">217</a>        let adapter_name = adapter.get_info().name;</span>
-<span id="L218"><a href="#L218" aria-label="Line 218">218</a>        let timestamp_query_supported =</span>
-<span id="L219"><a href="#L219" aria-label="Line 219">219</a>            adapter.features().contains(wgpu::Features::TIMESTAMP_QUERY);</span>
-<span id="L220"><a href="#L220" aria-label="Line 220">220</a>        let mut device_descriptor = wgpu::DeviceDescriptor::default();</span>
-<span id="L221"><a href="#L221" aria-label="Line 221">221</a>        if timestamp_query_supported {</span>
-<span id="L222"><a href="#L222" aria-label="Line 222">222</a>            device_descriptor.required_features = wgpu::Features::TIMESTAMP_QUERY;</span>
-<span id="L223"><a href="#L223" aria-label="Line 223">223</a>        }</span>
-<span id="L224"><a href="#L224" aria-label="Line 224">224</a>        let (device, queue) = adapter</span>
-<span id="L225"><a href="#L225" aria-label="Line 225">225</a>            .request_device(&amp;device_descriptor)</span>
-<span id="L226"><a href="#L226" aria-label="Line 226">226</a>            .await</span>
-<span id="L227"><a href="#L227" aria-label="Line 227">227</a>            .map_err(js_error)?;</span>
-<span id="L228"><a href="#L228" aria-label="Line 228">228</a>        let caps = surface.get_capabilities(&amp;adapter);</span>
-<span id="L229"><a href="#L229" aria-label="Line 229">229</a>        let format = caps</span>
-<span id="L230"><a href="#L230" aria-label="Line 230">230</a>            .formats</span>
-<span id="L231"><a href="#L231" aria-label="Line 231">231</a>            .iter()</span>
-<span id="L232"><a href="#L232" aria-label="Line 232">232</a>            .copied()</span>
-<span id="L233"><a href="#L233" aria-label="Line 233">233</a>            .find(wgpu::TextureFormat::is_srgb)</span>
-<span id="L234"><a href="#L234" aria-label="Line 234">234</a>            .or_else(|| caps.formats.first().copied())</span>
-<span id="L235"><a href="#L235" aria-label="Line 235">235</a>            .ok_or_else(|| JsValue::from_str(&quot;WebGPU surface exposes no usable format&quot;))?;</span>
-<span id="L236"><a href="#L236" aria-label="Line 236">236</a>        let config = wgpu::SurfaceConfiguration {</span>
-<span id="L237"><a href="#L237" aria-label="Line 237">237</a>            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,</span>
-<span id="L238"><a href="#L238" aria-label="Line 238">238</a>            format,</span>
-<span id="L239"><a href="#L239" aria-label="Line 239">239</a>            color_space: wgpu::SurfaceColorSpace::Auto,</span>
-<span id="L240"><a href="#L240" aria-label="Line 240">240</a>            width,</span>
-<span id="L241"><a href="#L241" aria-label="Line 241">241</a>            height,</span>
-<span id="L242"><a href="#L242" aria-label="Line 242">242</a>            present_mode: wgpu::PresentMode::Fifo,</span>
-<span id="L243"><a href="#L243" aria-label="Line 243">243</a>            alpha_mode: caps.alpha_modes[0],</span>
-<span id="L244"><a href="#L244" aria-label="Line 244">244</a>            view_formats: vec![],</span>
-<span id="L245"><a href="#L245" aria-label="Line 245">245</a>            desired_maximum_frame_latency: 2,</span>
-<span id="L246"><a href="#L246" aria-label="Line 246">246</a>        };</span>
-<span id="L247"><a href="#L247" aria-label="Line 247">247</a>        surface.configure(&amp;device, &amp;config);</span>
-<span id="L248"><a href="#L248" aria-label="Line 248">248</a></span>
-<span id="L249"><a href="#L249" aria-label="Line 249">249</a>        let camera_buffer = device.create_buffer_init(&amp;wgpu::util::BufferInitDescriptor {</span>
-<span id="L250"><a href="#L250" aria-label="Line 250">250</a>            label: Some(&quot;stg-camera&quot;),</span>
-<span id="L251"><a href="#L251" aria-label="Line 251">251</a>            contents: bytemuck::bytes_of(&amp;CameraUniform::zeroed()),</span>
-<span id="L252"><a href="#L252" aria-label="Line 252">252</a>            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,</span>
-<span id="L253"><a href="#L253" aria-label="Line 253">253</a>        });</span>
-<span id="L254"><a href="#L254" aria-label="Line 254">254</a>        let source_buffer = device.create_buffer_init(&amp;wgpu::util::BufferInitDescriptor {</span>
-<span id="L255"><a href="#L255" aria-label="Line 255">255</a>            label: Some(&quot;stg-source-records&quot;),</span>
-<span id="L256"><a href="#L256" aria-label="Line 256">256</a>            contents: &amp;ply_bytes[parsed.payload_offset..parsed.payload_end],</span>
-<span id="L257"><a href="#L257" aria-label="Line 257">257</a>            usage: wgpu::BufferUsages::STORAGE,</span>
-<span id="L258"><a href="#L258" aria-label="Line 258">258</a>        });</span>
-<span id="L259"><a href="#L259" aria-label="Line 259">259</a>        let index_buffer = device.create_buffer(&amp;wgpu::BufferDescriptor {</span>
-<span id="L260"><a href="#L260" aria-label="Line 260">260</a>            label: Some(&quot;stg-depth-order&quot;),</span>
-<span id="L261"><a href="#L261" aria-label="Line 261">261</a>            size: (MAX_SPLATS * std::mem::size_of::&lt;u32&gt;()) as u64,</span>
-<span id="L262"><a href="#L262" aria-label="Line 262">262</a>            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,</span>
-<span id="L263"><a href="#L263" aria-label="Line 263">263</a>            mapped_at_creation: false,</span>
-<span id="L264"><a href="#L264" aria-label="Line 264">264</a>        });</span>
-<span id="L265"><a href="#L265" aria-label="Line 265">265</a></span>
-<span id="L266"><a href="#L266" aria-label="Line 266">266</a>        let bind_group_layout = device.create_bind_group_layout(&amp;wgpu::BindGroupLayoutDescriptor {</span>
-<span id="L267"><a href="#L267" aria-label="Line 267">267</a>            label: Some(&quot;stg-render-layout&quot;),</span>
-<span id="L268"><a href="#L268" aria-label="Line 268">268</a>            entries: &amp;[</span>
-<span id="L269"><a href="#L269" aria-label="Line 269">269</a>                wgpu::BindGroupLayoutEntry {</span>
-<span id="L270"><a href="#L270" aria-label="Line 270">270</a>                    binding: 0,</span>
-<span id="L271"><a href="#L271" aria-label="Line 271">271</a>                    visibility: wgpu::ShaderStages::VERTEX,</span>
-<span id="L272"><a href="#L272" aria-label="Line 272">272</a>                    ty: wgpu::BindingType::Buffer {</span>
-<span id="L273"><a href="#L273" aria-label="Line 273">273</a>                        ty: wgpu::BufferBindingType::Uniform,</span>
-<span id="L274"><a href="#L274" aria-label="Line 274">274</a>                        has_dynamic_offset: false,</span>
-<span id="L275"><a href="#L275" aria-label="Line 275">275</a>                        min_binding_size: None,</span>
-<span id="L276"><a href="#L276" aria-label="Line 276">276</a>                    },</span>
-<span id="L277"><a href="#L277" aria-label="Line 277">277</a>                    count: None,</span>
-<span id="L278"><a href="#L278" aria-label="Line 278">278</a>                },</span>
+<span id="L175"><a href="#L175" aria-label="Line 175">175</a>    preparation: stg_prepare::StgPreparation,</span>
+<span id="L176"><a href="#L176" aria-label="Line 176">176</a>    last_time: Option&lt;f32&gt;,</span>
+<span id="L177"><a href="#L177" aria-label="Line 177">177</a>    last_presented: Option&lt;(f32, Mat4, Mat4, [f32; 4], u32, u32)&gt;,</span>
+<span id="L178"><a href="#L178" aria-label="Line 178">178</a>    render_on_demand: bool,</span>
+<span id="L179"><a href="#L179" aria-label="Line 179">179</a>    submitted_frames: u32,</span>
+<span id="L180"><a href="#L180" aria-label="Line 180">180</a>    inspection_records: Vec&lt;[f32; FLOATS_PER_SPLAT]&gt;,</span>
+<span id="L181"><a href="#L181" aria-label="Line 181">181</a>    inspection_frame: Option&lt;inspection::InspectionFrame&gt;,</span>
+<span id="L182"><a href="#L182" aria-label="Line 182">182</a>    sorted_indices: Vec&lt;u32&gt;,</span>
+<span id="L183"><a href="#L183" aria-label="Line 183">183</a>    telemetry: FrameTelemetry,</span>
+<span id="L184"><a href="#L184" aria-label="Line 184">184</a>    adapter_name: String,</span>
+<span id="L185"><a href="#L185" aria-label="Line 185">185</a>    gpu_timer: Option&lt;GpuTimer&gt;,</span>
+<span id="L186"><a href="#L186" aria-label="Line 186">186</a>}</span>
+<span id="L187"><a href="#L187" aria-label="Line 187">187</a></span>
+<span id="L188"><a href="#L188" aria-label="Line 188">188</a>#[wasm_bindgen]</span>
+<span id="L189"><a href="#L189" aria-label="Line 189">189</a>impl GaussianRenderer {</span>
+<span id="L190"><a href="#L190" aria-label="Line 190">190</a>    #[wasm_bindgen(js_name = create)]</span>
+<span id="L191"><a href="#L191" aria-label="Line 191">191</a>    #[cfg(target_arch = &quot;wasm32&quot;)]</span>
+<span id="L192"><a href="#L192" aria-label="Line 192">192</a>    pub async fn create(</span>
+<span id="L193"><a href="#L193" aria-label="Line 193">193</a>        canvas: web_sys::HtmlCanvasElement,</span>
+<span id="L194"><a href="#L194" aria-label="Line 194">194</a>        ply_data: js_sys::Uint8Array,</span>
+<span id="L195"><a href="#L195" aria-label="Line 195">195</a>    ) -&gt; Result&lt;GaussianRenderer, JsValue&gt; {</span>
+<span id="L196"><a href="#L196" aria-label="Line 196">196</a>        console_error_panic_hook::set_once();</span>
+<span id="L197"><a href="#L197" aria-label="Line 197">197</a>        let ply_bytes = ply_data.to_vec();</span>
+<span id="L198"><a href="#L198" aria-label="Line 198">198</a>        let parsed = parse_stg_ply(&amp;ply_bytes).map_err(js_error)?;</span>
+<span id="L199"><a href="#L199" aria-label="Line 199">199</a>        if parsed.source.len() &gt; MAX_SPLATS {</span>
+<span id="L200"><a href="#L200" aria-label="Line 200">200</a>            return Err(JsValue::from_str(</span>
+<span id="L201"><a href="#L201" aria-label="Line 201">201</a>                &quot;STG asset exceeds the renderer's declared splat budget&quot;,</span>
+<span id="L202"><a href="#L202" aria-label="Line 202">202</a>            ));</span>
+<span id="L203"><a href="#L203" aria-label="Line 203">203</a>        }</span>
+<span id="L204"><a href="#L204" aria-label="Line 204">204</a></span>
+<span id="L205"><a href="#L205" aria-label="Line 205">205</a>        let width = canvas.width().max(1);</span>
+<span id="L206"><a href="#L206" aria-label="Line 206">206</a>        let height = canvas.height().max(1);</span>
+<span id="L207"><a href="#L207" aria-label="Line 207">207</a>        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());</span>
+<span id="L208"><a href="#L208" aria-label="Line 208">208</a>        let surface = instance</span>
+<span id="L209"><a href="#L209" aria-label="Line 209">209</a>            .create_surface(wgpu::SurfaceTarget::Canvas(canvas))</span>
+<span id="L210"><a href="#L210" aria-label="Line 210">210</a>            .map_err(js_error)?;</span>
+<span id="L211"><a href="#L211" aria-label="Line 211">211</a>        let adapter = instance</span>
+<span id="L212"><a href="#L212" aria-label="Line 212">212</a>            .request_adapter(&amp;wgpu::RequestAdapterOptions {</span>
+<span id="L213"><a href="#L213" aria-label="Line 213">213</a>                power_preference: wgpu::PowerPreference::HighPerformance,</span>
+<span id="L214"><a href="#L214" aria-label="Line 214">214</a>                compatible_surface: Some(&amp;surface),</span>
+<span id="L215"><a href="#L215" aria-label="Line 215">215</a>                force_fallback_adapter: false,</span>
+<span id="L216"><a href="#L216" aria-label="Line 216">216</a>                apply_limit_buckets: false,</span>
+<span id="L217"><a href="#L217" aria-label="Line 217">217</a>            })</span>
+<span id="L218"><a href="#L218" aria-label="Line 218">218</a>            .await</span>
+<span id="L219"><a href="#L219" aria-label="Line 219">219</a>            .map_err(js_error)?;</span>
+<span id="L220"><a href="#L220" aria-label="Line 220">220</a>        let adapter_name = adapter.get_info().name;</span>
+<span id="L221"><a href="#L221" aria-label="Line 221">221</a>        let timestamp_query_supported =</span>
+<span id="L222"><a href="#L222" aria-label="Line 222">222</a>            adapter.features().contains(wgpu::Features::TIMESTAMP_QUERY);</span>
+<span id="L223"><a href="#L223" aria-label="Line 223">223</a>        let mut device_descriptor = wgpu::DeviceDescriptor::default();</span>
+<span id="L224"><a href="#L224" aria-label="Line 224">224</a>        if timestamp_query_supported {</span>
+<span id="L225"><a href="#L225" aria-label="Line 225">225</a>            device_descriptor.required_features = wgpu::Features::TIMESTAMP_QUERY;</span>
+<span id="L226"><a href="#L226" aria-label="Line 226">226</a>        }</span>
+<span id="L227"><a href="#L227" aria-label="Line 227">227</a>        let (device, queue) = adapter</span>
+<span id="L228"><a href="#L228" aria-label="Line 228">228</a>            .request_device(&amp;device_descriptor)</span>
+<span id="L229"><a href="#L229" aria-label="Line 229">229</a>            .await</span>
+<span id="L230"><a href="#L230" aria-label="Line 230">230</a>            .map_err(js_error)?;</span>
+<span id="L231"><a href="#L231" aria-label="Line 231">231</a>        if (parsed.payload_end - parsed.payload_offset) as u64</span>
+<span id="L232"><a href="#L232" aria-label="Line 232">232</a>            &gt; device.limits().max_storage_buffer_binding_size as u64</span>
+<span id="L233"><a href="#L233" aria-label="Line 233">233</a>        {</span>
+<span id="L234"><a href="#L234" aria-label="Line 234">234</a>            return Err(JsValue::from_str(</span>
+<span id="L235"><a href="#L235" aria-label="Line 235">235</a>                &quot;Resident STG window exceeds GPU storage limit; request a smaller time range&quot;,</span>
+<span id="L236"><a href="#L236" aria-label="Line 236">236</a>            ));</span>
+<span id="L237"><a href="#L237" aria-label="Line 237">237</a>        }</span>
+<span id="L238"><a href="#L238" aria-label="Line 238">238</a>        let caps = surface.get_capabilities(&amp;adapter);</span>
+<span id="L239"><a href="#L239" aria-label="Line 239">239</a>        let format = caps</span>
+<span id="L240"><a href="#L240" aria-label="Line 240">240</a>            .formats</span>
+<span id="L241"><a href="#L241" aria-label="Line 241">241</a>            .iter()</span>
+<span id="L242"><a href="#L242" aria-label="Line 242">242</a>            .copied()</span>
+<span id="L243"><a href="#L243" aria-label="Line 243">243</a>            .find(wgpu::TextureFormat::is_srgb)</span>
+<span id="L244"><a href="#L244" aria-label="Line 244">244</a>            .or_else(|| caps.formats.first().copied())</span>
+<span id="L245"><a href="#L245" aria-label="Line 245">245</a>            .ok_or_else(|| JsValue::from_str(&quot;WebGPU surface exposes no usable format&quot;))?;</span>
+<span id="L246"><a href="#L246" aria-label="Line 246">246</a>        let config = wgpu::SurfaceConfiguration {</span>
+<span id="L247"><a href="#L247" aria-label="Line 247">247</a>            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,</span>
+<span id="L248"><a href="#L248" aria-label="Line 248">248</a>            format,</span>
+<span id="L249"><a href="#L249" aria-label="Line 249">249</a>            color_space: wgpu::SurfaceColorSpace::Auto,</span>
+<span id="L250"><a href="#L250" aria-label="Line 250">250</a>            width,</span>
+<span id="L251"><a href="#L251" aria-label="Line 251">251</a>            height,</span>
+<span id="L252"><a href="#L252" aria-label="Line 252">252</a>            present_mode: wgpu::PresentMode::Fifo,</span>
+<span id="L253"><a href="#L253" aria-label="Line 253">253</a>            alpha_mode: caps.alpha_modes[0],</span>
+<span id="L254"><a href="#L254" aria-label="Line 254">254</a>            view_formats: vec![],</span>
+<span id="L255"><a href="#L255" aria-label="Line 255">255</a>            desired_maximum_frame_latency: 2,</span>
+<span id="L256"><a href="#L256" aria-label="Line 256">256</a>        };</span>
+<span id="L257"><a href="#L257" aria-label="Line 257">257</a>        surface.configure(&amp;device, &amp;config);</span>
+<span id="L258"><a href="#L258" aria-label="Line 258">258</a></span>
+<span id="L259"><a href="#L259" aria-label="Line 259">259</a>        let camera_buffer = device.create_buffer_init(&amp;wgpu::util::BufferInitDescriptor {</span>
+<span id="L260"><a href="#L260" aria-label="Line 260">260</a>            label: Some(&quot;stg-camera&quot;),</span>
+<span id="L261"><a href="#L261" aria-label="Line 261">261</a>            contents: bytemuck::bytes_of(&amp;CameraUniform::zeroed()),</span>
+<span id="L262"><a href="#L262" aria-label="Line 262">262</a>            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,</span>
+<span id="L263"><a href="#L263" aria-label="Line 263">263</a>        });</span>
+<span id="L264"><a href="#L264" aria-label="Line 264">264</a>        let source_buffer = device.create_buffer_init(&amp;wgpu::util::BufferInitDescriptor {</span>
+<span id="L265"><a href="#L265" aria-label="Line 265">265</a>            label: Some(&quot;stg-source-records&quot;),</span>
+<span id="L266"><a href="#L266" aria-label="Line 266">266</a>            contents: &amp;ply_bytes[parsed.payload_offset..parsed.payload_end],</span>
+<span id="L267"><a href="#L267" aria-label="Line 267">267</a>            usage: wgpu::BufferUsages::STORAGE,</span>
+<span id="L268"><a href="#L268" aria-label="Line 268">268</a>        });</span>
+<span id="L269"><a href="#L269" aria-label="Line 269">269</a>        let index_buffer = device.create_buffer(&amp;wgpu::BufferDescriptor {</span>
+<span id="L270"><a href="#L270" aria-label="Line 270">270</a>            label: Some(&quot;stg-depth-order&quot;),</span>
+<span id="L271"><a href="#L271" aria-label="Line 271">271</a>            size: (parsed.source.len() * std::mem::size_of::&lt;u32&gt;()) as u64,</span>
+<span id="L272"><a href="#L272" aria-label="Line 272">272</a>            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,</span>
+<span id="L273"><a href="#L273" aria-label="Line 273">273</a>            mapped_at_creation: false,</span>
+<span id="L274"><a href="#L274" aria-label="Line 274">274</a>        });</span>
+<span id="L275"><a href="#L275" aria-label="Line 275">275</a></span>
+<span id="L276"><a href="#L276" aria-label="Line 276">276</a>        let bind_group_layout = device.create_bind_group_layout(&amp;wgpu::BindGroupLayoutDescriptor {</span>
+<span id="L277"><a href="#L277" aria-label="Line 277">277</a>            label: Some(&quot;stg-render-layout&quot;),</span>
+<span id="L278"><a href="#L278" aria-label="Line 278">278</a>            entries: &amp;[</span>
 <span id="L279"><a href="#L279" aria-label="Line 279">279</a>                wgpu::BindGroupLayoutEntry {</span>
-<span id="L280"><a href="#L280" aria-label="Line 280">280</a>                    binding: 1,</span>
+<span id="L280"><a href="#L280" aria-label="Line 280">280</a>                    binding: 0,</span>
 <span id="L281"><a href="#L281" aria-label="Line 281">281</a>                    visibility: wgpu::ShaderStages::VERTEX,</span>
 <span id="L282"><a href="#L282" aria-label="Line 282">282</a>                    ty: wgpu::BindingType::Buffer {</span>
-<span id="L283"><a href="#L283" aria-label="Line 283">283</a>                        ty: wgpu::BufferBindingType::Storage { read_only: true },</span>
+<span id="L283"><a href="#L283" aria-label="Line 283">283</a>                        ty: wgpu::BufferBindingType::Uniform,</span>
 <span id="L284"><a href="#L284" aria-label="Line 284">284</a>                        has_dynamic_offset: false,</span>
 <span id="L285"><a href="#L285" aria-label="Line 285">285</a>                        min_binding_size: None,</span>
 <span id="L286"><a href="#L286" aria-label="Line 286">286</a>                    },</span>
 <span id="L287"><a href="#L287" aria-label="Line 287">287</a>                    count: None,</span>
 <span id="L288"><a href="#L288" aria-label="Line 288">288</a>                },</span>
-<span id="L289"><a href="#L289" aria-label="Line 289">289</a>            ],</span>
-<span id="L290"><a href="#L290" aria-label="Line 290">290</a>        });</span>
-<span id="L291"><a href="#L291" aria-label="Line 291">291</a>        let bind_group = device.create_bind_group(&amp;wgpu::BindGroupDescriptor {</span>
-<span id="L292"><a href="#L292" aria-label="Line 292">292</a>            label: Some(&quot;stg-render-bind-group&quot;),</span>
-<span id="L293"><a href="#L293" aria-label="Line 293">293</a>            layout: &amp;bind_group_layout,</span>
-<span id="L294"><a href="#L294" aria-label="Line 294">294</a>            entries: &amp;[</span>
-<span id="L295"><a href="#L295" aria-label="Line 295">295</a>                wgpu::BindGroupEntry {</span>
-<span id="L296"><a href="#L296" aria-label="Line 296">296</a>                    binding: 0,</span>
-<span id="L297"><a href="#L297" aria-label="Line 297">297</a>                    resource: camera_buffer.as_entire_binding(),</span>
+<span id="L289"><a href="#L289" aria-label="Line 289">289</a>                wgpu::BindGroupLayoutEntry {</span>
+<span id="L290"><a href="#L290" aria-label="Line 290">290</a>                    binding: 1,</span>
+<span id="L291"><a href="#L291" aria-label="Line 291">291</a>                    visibility: wgpu::ShaderStages::VERTEX,</span>
+<span id="L292"><a href="#L292" aria-label="Line 292">292</a>                    ty: wgpu::BindingType::Buffer {</span>
+<span id="L293"><a href="#L293" aria-label="Line 293">293</a>                        ty: wgpu::BufferBindingType::Storage { read_only: true },</span>
+<span id="L294"><a href="#L294" aria-label="Line 294">294</a>                        has_dynamic_offset: false,</span>
+<span id="L295"><a href="#L295" aria-label="Line 295">295</a>                        min_binding_size: None,</span>
+<span id="L296"><a href="#L296" aria-label="Line 296">296</a>                    },</span>
+<span id="L297"><a href="#L297" aria-label="Line 297">297</a>                    count: None,</span>
 <span id="L298"><a href="#L298" aria-label="Line 298">298</a>                },</span>
-<span id="L299"><a href="#L299" aria-label="Line 299">299</a>                wgpu::BindGroupEntry {</span>
-<span id="L300"><a href="#L300" aria-label="Line 300">300</a>                    binding: 1,</span>
-<span id="L301"><a href="#L301" aria-label="Line 301">301</a>                    resource: source_buffer.as_entire_binding(),</span>
-<span id="L302"><a href="#L302" aria-label="Line 302">302</a>                },</span>
-<span id="L303"><a href="#L303" aria-label="Line 303">303</a>            ],</span>
-<span id="L304"><a href="#L304" aria-label="Line 304">304</a>        });</span>
-<span id="L305"><a href="#L305" aria-label="Line 305">305</a>        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {</span>
-<span id="L306"><a href="#L306" aria-label="Line 306">306</a>            label: Some(&quot;stg-ewa-shader&quot;),</span>
-<span id="L307"><a href="#L307" aria-label="Line 307">307</a>            source: wgpu::ShaderSource::Wgsl(include_str!(&quot;splat.wgsl&quot;).into()),</span>
-<span id="L308"><a href="#L308" aria-label="Line 308">308</a>        });</span>
-<span id="L309"><a href="#L309" aria-label="Line 309">309</a>        let pipeline_layout = device.create_pipeline_layout(&amp;wgpu::PipelineLayoutDescriptor {</span>
-<span id="L310"><a href="#L310" aria-label="Line 310">310</a>            label: Some(&quot;stg-pipeline-layout&quot;),</span>
-<span id="L311"><a href="#L311" aria-label="Line 311">311</a>            bind_group_layouts: &amp;[Some(&amp;bind_group_layout)],</span>
-<span id="L312"><a href="#L312" aria-label="Line 312">312</a>            immediate_size: 0,</span>
-<span id="L313"><a href="#L313" aria-label="Line 313">313</a>        });</span>
-<span id="L314"><a href="#L314" aria-label="Line 314">314</a>        let vertex_layout = wgpu::VertexBufferLayout {</span>
-<span id="L315"><a href="#L315" aria-label="Line 315">315</a>            array_stride: std::mem::size_of::&lt;u32&gt;() as u64,</span>
-<span id="L316"><a href="#L316" aria-label="Line 316">316</a>            step_mode: wgpu::VertexStepMode::Instance,</span>
-<span id="L317"><a href="#L317" aria-label="Line 317">317</a>            attributes: &amp;[wgpu::VertexAttribute {</span>
-<span id="L318"><a href="#L318" aria-label="Line 318">318</a>                format: wgpu::VertexFormat::Uint32,</span>
-<span id="L319"><a href="#L319" aria-label="Line 319">319</a>                offset: 0,</span>
-<span id="L320"><a href="#L320" aria-label="Line 320">320</a>                shader_location: 0,</span>
-<span id="L321"><a href="#L321" aria-label="Line 321">321</a>            }],</span>
-<span id="L322"><a href="#L322" aria-label="Line 322">322</a>        };</span>
-<span id="L323"><a href="#L323" aria-label="Line 323">323</a>        let pipeline = device.create_render_pipeline(&amp;wgpu::RenderPipelineDescriptor {</span>
-<span id="L324"><a href="#L324" aria-label="Line 324">324</a>            label: Some(&quot;stg-alpha-pipeline&quot;),</span>
-<span id="L325"><a href="#L325" aria-label="Line 325">325</a>            layout: Some(&amp;pipeline_layout),</span>
-<span id="L326"><a href="#L326" aria-label="Line 326">326</a>            vertex: wgpu::VertexState {</span>
-<span id="L327"><a href="#L327" aria-label="Line 327">327</a>                module: &amp;shader,</span>
-<span id="L328"><a href="#L328" aria-label="Line 328">328</a>                entry_point: Some(&quot;vs_main&quot;),</span>
-<span id="L329"><a href="#L329" aria-label="Line 329">329</a>                compilation_options: Default::default(),</span>
-<span id="L330"><a href="#L330" aria-label="Line 330">330</a>                buffers: &amp;[Some(vertex_layout)],</span>
-<span id="L331"><a href="#L331" aria-label="Line 331">331</a>            },</span>
-<span id="L332"><a href="#L332" aria-label="Line 332">332</a>            fragment: Some(wgpu::FragmentState {</span>
-<span id="L333"><a href="#L333" aria-label="Line 333">333</a>                module: &amp;shader,</span>
-<span id="L334"><a href="#L334" aria-label="Line 334">334</a>                entry_point: Some(&quot;fs_main&quot;),</span>
-<span id="L335"><a href="#L335" aria-label="Line 335">335</a>                compilation_options: Default::default(),</span>
-<span id="L336"><a href="#L336" aria-label="Line 336">336</a>                targets: &amp;[Some(wgpu::ColorTargetState {</span>
-<span id="L337"><a href="#L337" aria-label="Line 337">337</a>                    format,</span>
-<span id="L338"><a href="#L338" aria-label="Line 338">338</a>                    blend: Some(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING),</span>
-<span id="L339"><a href="#L339" aria-label="Line 339">339</a>                    write_mask: wgpu::ColorWrites::ALL,</span>
-<span id="L340"><a href="#L340" aria-label="Line 340">340</a>                })],</span>
-<span id="L341"><a href="#L341" aria-label="Line 341">341</a>            }),</span>
-<span id="L342"><a href="#L342" aria-label="Line 342">342</a>            primitive: wgpu::PrimitiveState {</span>
-<span id="L343"><a href="#L343" aria-label="Line 343">343</a>                topology: wgpu::PrimitiveTopology::TriangleList,</span>
-<span id="L344"><a href="#L344" aria-label="Line 344">344</a>                cull_mode: None,</span>
-<span id="L345"><a href="#L345" aria-label="Line 345">345</a>                ..Default::default()</span>
-<span id="L346"><a href="#L346" aria-label="Line 346">346</a>            },</span>
-<span id="L347"><a href="#L347" aria-label="Line 347">347</a>            depth_stencil: None,</span>
-<span id="L348"><a href="#L348" aria-label="Line 348">348</a>            multisample: Default::default(),</span>
-<span id="L349"><a href="#L349" aria-label="Line 349">349</a>            multiview_mask: None,</span>
-<span id="L350"><a href="#L350" aria-label="Line 350">350</a>            cache: None,</span>
-<span id="L351"><a href="#L351" aria-label="Line 351">351</a>        });</span>
-<span id="L352"><a href="#L352" aria-label="Line 352">352</a></span>
-<span id="L353"><a href="#L353" aria-label="Line 353">353</a>        let source_count = parsed.source.len();</span>
-<span id="L354"><a href="#L354" aria-label="Line 354">354</a>        let gpu_timer = timestamp_query_supported.then(|| GpuTimer::new(&amp;device, &amp;queue));</span>
-<span id="L355"><a href="#L355" aria-label="Line 355">355</a>        Ok(Self {</span>
-<span id="L356"><a href="#L356" aria-label="Line 356">356</a>            surface,</span>
-<span id="L357"><a href="#L357" aria-label="Line 357">357</a>            device,</span>
-<span id="L358"><a href="#L358" aria-label="Line 358">358</a>            queue,</span>
-<span id="L359"><a href="#L359" aria-label="Line 359">359</a>            config,</span>
-<span id="L360"><a href="#L360" aria-label="Line 360">360</a>            pipeline,</span>
-<span id="L361"><a href="#L361" aria-label="Line 361">361</a>            bind_group,</span>
-<span id="L362"><a href="#L362" aria-label="Line 362">362</a>            camera_buffer,</span>
-<span id="L363"><a href="#L363" aria-label="Line 363">363</a>            index_buffer,</span>
-<span id="L364"><a href="#L364" aria-label="Line 364">364</a>            source: parsed.source,</span>
-<span id="L365"><a href="#L365" aria-label="Line 365">365</a>            frame: Vec::with_capacity(source_count),</span>
-<span id="L366"><a href="#L366" aria-label="Line 366">366</a>            inspection_records: ply_bytes[parsed.payload_offset..parsed.payload_end]</span>
-<span id="L367"><a href="#L367" aria-label="Line 367">367</a>                .chunks_exact(BYTES_PER_SPLAT)</span>
-<span id="L368"><a href="#L368" aria-label="Line 368">368</a>                .map(|bytes| {</span>
-<span id="L369"><a href="#L369" aria-label="Line 369">369</a>                    std::array::from_fn(|i| {</span>
-<span id="L370"><a href="#L370" aria-label="Line 370">370</a>                        f32::from_le_bytes(bytes[i * 4..i * 4 + 4].try_into().unwrap())</span>
-<span id="L371"><a href="#L371" aria-label="Line 371">371</a>                    })</span>
-<span id="L372"><a href="#L372" aria-label="Line 372">372</a>                })</span>
-<span id="L373"><a href="#L373" aria-label="Line 373">373</a>                .collect(),</span>
-<span id="L374"><a href="#L374" aria-label="Line 374">374</a>            inspection_frame: None,</span>
-<span id="L375"><a href="#L375" aria-label="Line 375">375</a>            sorted_indices: Vec::with_capacity(source_count),</span>
-<span id="L376"><a href="#L376" aria-label="Line 376">376</a>            telemetry: FrameTelemetry::default(),</span>
-<span id="L377"><a href="#L377" aria-label="Line 377">377</a>            adapter_name,</span>
-<span id="L378"><a href="#L378" aria-label="Line 378">378</a>            gpu_timer,</span>
-<span id="L379"><a href="#L379" aria-label="Line 379">379</a>        })</span>
-<span id="L380"><a href="#L380" aria-label="Line 380">380</a>    }</span>
-<span id="L381"><a href="#L381" aria-label="Line 381">381</a></span>
-<span id="L382"><a href="#L382" aria-label="Line 382">382</a>    pub fn render(</span>
-<span id="L383"><a href="#L383" aria-label="Line 383">383</a>        &amp;mut self,</span>
-<span id="L384"><a href="#L384" aria-label="Line 384">384</a>        time_seconds: f32,</span>
-<span id="L385"><a href="#L385" aria-label="Line 385">385</a>        yaw: f32,</span>
-<span id="L386"><a href="#L386" aria-label="Line 386">386</a>        pitch: f32,</span>
-<span id="L387"><a href="#L387" aria-label="Line 387">387</a>        distance: f32,</span>
-<span id="L388"><a href="#L388" aria-label="Line 388">388</a>        width: u32,</span>
-<span id="L389"><a href="#L389" aria-label="Line 389">389</a>        height: u32,</span>
-<span id="L390"><a href="#L390" aria-label="Line 390">390</a>        calibrated_camera: js_sys::Float32Array,</span>
-<span id="L391"><a href="#L391" aria-label="Line 391">391</a>    ) -&gt; Result&lt;(), JsValue&gt; {</span>
-<span id="L392"><a href="#L392" aria-label="Line 392">392</a>        let prepare_started = Instant::now();</span>
-<span id="L393"><a href="#L393" aria-label="Line 393">393</a>        self.inspection_frame = None;</span>
-<span id="L394"><a href="#L394" aria-label="Line 394">394</a>        let width = width.max(1);</span>
-<span id="L395"><a href="#L395" aria-label="Line 395">395</a>        let height = height.max(1);</span>
-<span id="L396"><a href="#L396" aria-label="Line 396">396</a>        if self.config.width != width || self.config.height != height {</span>
-<span id="L397"><a href="#L397" aria-label="Line 397">397</a>            self.config.width = width;</span>
-<span id="L398"><a href="#L398" aria-label="Line 398">398</a>            self.config.height = height;</span>
-<span id="L399"><a href="#L399" aria-label="Line 399">399</a>            self.surface.configure(&amp;self.device, &amp;self.config);</span>
-<span id="L400"><a href="#L400" aria-label="Line 400">400</a>        }</span>
-<span id="L401"><a href="#L401" aria-label="Line 401">401</a></span>
-<span id="L402"><a href="#L402" aria-label="Line 402">402</a>        let (view, projection, viewport) = if calibrated_camera.length() &gt;= 12 {</span>
-<span id="L403"><a href="#L403" aria-label="Line 403">403</a>            let value = |index| calibrated_camera.get_index(index);</span>
-<span id="L404"><a href="#L404" aria-label="Line 404">404</a>            let eye = Vec3::new(value(0), value(1), value(2));</span>
-<span id="L405"><a href="#L405" aria-label="Line 405">405</a>            let mut forward = Vec3::new(value(3), value(4), value(5)).normalize_or_zero();</span>
-<span id="L406"><a href="#L406" aria-label="Line 406">406</a>            let mut up = Vec3::new(value(6), value(7), value(8)).normalize_or_zero();</span>
-<span id="L407"><a href="#L407" aria-label="Line 407">407</a>            if forward.length_squared() &lt; 0.5 {</span>
-<span id="L408"><a href="#L408" aria-label="Line 408">408</a>                forward = Vec3::Z;</span>
-<span id="L409"><a href="#L409" aria-label="Line 409">409</a>            }</span>
-<span id="L410"><a href="#L410" aria-label="Line 410">410</a>            if up.length_squared() &lt; 0.5 {</span>
-<span id="L411"><a href="#L411" aria-label="Line 411">411</a>                up = Vec3::NEG_Y;</span>
-<span id="L412"><a href="#L412" aria-label="Line 412">412</a>            }</span>
-<span id="L413"><a href="#L413" aria-label="Line 413">413</a>            let capture_aspect = (value(10) / value(11).max(1.0)).clamp(0.5, 3.0);</span>
-<span id="L414"><a href="#L414" aria-label="Line 414">414</a>            let surface_aspect = width as f32 / height as f32;</span>
-<span id="L415"><a href="#L415" aria-label="Line 415">415</a>            let viewport = if surface_aspect &gt; capture_aspect {</span>
-<span id="L416"><a href="#L416" aria-label="Line 416">416</a>                let viewport_width = height as f32 * capture_aspect;</span>
-<span id="L417"><a href="#L417" aria-label="Line 417">417</a>                [</span>
-<span id="L418"><a href="#L418" aria-label="Line 418">418</a>                    (width as f32 - viewport_width) * 0.5,</span>
-<span id="L419"><a href="#L419" aria-label="Line 419">419</a>                    0.0,</span>
-<span id="L420"><a href="#L420" aria-label="Line 420">420</a>                    viewport_width,</span>
-<span id="L421"><a href="#L421" aria-label="Line 421">421</a>                    height as f32,</span>
-<span id="L422"><a href="#L422" aria-label="Line 422">422</a>                ]</span>
-<span id="L423"><a href="#L423" aria-label="Line 423">423</a>            } else {</span>
-<span id="L424"><a href="#L424" aria-label="Line 424">424</a>                let viewport_height = width as f32 / capture_aspect;</span>
-<span id="L425"><a href="#L425" aria-label="Line 425">425</a>                [</span>
-<span id="L426"><a href="#L426" aria-label="Line 426">426</a>                    0.0,</span>
-<span id="L427"><a href="#L427" aria-label="Line 427">427</a>                    (height as f32 - viewport_height) * 0.5,</span>
-<span id="L428"><a href="#L428" aria-label="Line 428">428</a>                    width as f32,</span>
-<span id="L429"><a href="#L429" aria-label="Line 429">429</a>                    viewport_height,</span>
-<span id="L430"><a href="#L430" aria-label="Line 430">430</a>                ]</span>
-<span id="L431"><a href="#L431" aria-label="Line 431">431</a>            };</span>
-<span id="L432"><a href="#L432" aria-label="Line 432">432</a>            (</span>
-<span id="L433"><a href="#L433" aria-label="Line 433">433</a>                Mat4::look_at_rh(eye, eye + forward, up),</span>
-<span id="L434"><a href="#L434" aria-label="Line 434">434</a>                Mat4::perspective_rh(value(9).clamp(0.2, 2.6), capture_aspect, 0.05, 180.0),</span>
-<span id="L435"><a href="#L435" aria-label="Line 435">435</a>                viewport,</span>
-<span id="L436"><a href="#L436" aria-label="Line 436">436</a>            )</span>
-<span id="L437"><a href="#L437" aria-label="Line 437">437</a>        } else {</span>
-<span id="L438"><a href="#L438" aria-label="Line 438">438</a>            let pitch = pitch.clamp(-0.55, 0.7);</span>
-<span id="L439"><a href="#L439" aria-label="Line 439">439</a>            let distance = distance.clamp(9.0, 34.0);</span>
-<span id="L440"><a href="#L440" aria-label="Line 440">440</a>            let orbit = Vec3::new(</span>
-<span id="L441"><a href="#L441" aria-label="Line 441">441</a>                yaw.sin() * pitch.cos(),</span>
-<span id="L442"><a href="#L442" aria-label="Line 442">442</a>                -pitch.sin(),</span>
-<span id="L443"><a href="#L443" aria-label="Line 443">443</a>                -yaw.cos() * pitch.cos(),</span>
-<span id="L444"><a href="#L444" aria-label="Line 444">444</a>            );</span>
-<span id="L445"><a href="#L445" aria-label="Line 445">445</a>            let eye = SCENE_TARGET + orbit * distance;</span>
-<span id="L446"><a href="#L446" aria-label="Line 446">446</a>            (</span>
-<span id="L447"><a href="#L447" aria-label="Line 447">447</a>                Mat4::look_at_rh(eye, SCENE_TARGET, Vec3::NEG_Y),</span>
-<span id="L448"><a href="#L448" aria-label="Line 448">448</a>                Mat4::perspective_rh(</span>
-<span id="L449"><a href="#L449" aria-label="Line 449">449</a>                    69.5_f32.to_radians(),</span>
-<span id="L450"><a href="#L450" aria-label="Line 450">450</a>                    width as f32 / height as f32,</span>
-<span id="L451"><a href="#L451" aria-label="Line 451">451</a>                    0.05,</span>
-<span id="L452"><a href="#L452" aria-label="Line 452">452</a>                    180.0,</span>
-<span id="L453"><a href="#L453" aria-label="Line 453">453</a>                ),</span>
-<span id="L454"><a href="#L454" aria-label="Line 454">454</a>                [0.0, 0.0, width as f32, height as f32],</span>
-<span id="L455"><a href="#L455" aria-label="Line 455">455</a>            )</span>
-<span id="L456"><a href="#L456" aria-label="Line 456">456</a>        };</span>
-<span id="L457"><a href="#L457" aria-label="Line 457">457</a>        let view_proj = projection * view;</span>
-<span id="L458"><a href="#L458" aria-label="Line 458">458</a>        let normalized_time = time_seconds.rem_euclid(LOOP_SECONDS) / LOOP_SECONDS;</span>
-<span id="L459"><a href="#L459" aria-label="Line 459">459</a></span>
-<span id="L460"><a href="#L460" aria-label="Line 460">460</a>        self.frame.clear();</span>
-<span id="L461"><a href="#L461" aria-label="Line 461">461</a>        for (index, source) in self.source.iter().enumerate() {</span>
-<span id="L462"><a href="#L462" aria-label="Line 462">462</a>            let (center, opacity) = source.sample(normalized_time);</span>
-<span id="L463"><a href="#L463" aria-label="Line 463">463</a>            if opacity &lt; 1.0 / 255.0 {</span>
-<span id="L464"><a href="#L464" aria-label="Line 464">464</a>                continue;</span>
-<span id="L465"><a href="#L465" aria-label="Line 465">465</a>            }</span>
-<span id="L466"><a href="#L466" aria-label="Line 466">466</a>            let clip = view_proj * center.extend(1.0);</span>
-<span id="L467"><a href="#L467" aria-label="Line 467">467</a>            if clip.w &lt;= 0.0 {</span>
-<span id="L468"><a href="#L468" aria-label="Line 468">468</a>                continue;</span>
-<span id="L469"><a href="#L469" aria-label="Line 469">469</a>            }</span>
-<span id="L470"><a href="#L470" aria-label="Line 470">470</a>            let ndc = clip.truncate() / clip.w;</span>
-<span id="L471"><a href="#L471" aria-label="Line 471">471</a>            if ndc.x.abs() &gt; 1.35 || ndc.y.abs() &gt; 1.35 || ndc.z &lt; 0.0 || ndc.z &gt; 1.0 {</span>
-<span id="L472"><a href="#L472" aria-label="Line 472">472</a>                continue;</span>
-<span id="L473"><a href="#L473" aria-label="Line 473">473</a>            }</span>
-<span id="L474"><a href="#L474" aria-label="Line 474">474</a>            let depth = -(view * center.extend(1.0)).z;</span>
-<span id="L475"><a href="#L475" aria-label="Line 475">475</a>            self.frame.push((depth, index as u32));</span>
-<span id="L476"><a href="#L476" aria-label="Line 476">476</a>        }</span>
-<span id="L477"><a href="#L477" aria-label="Line 477">477</a>        let sort_started = Instant::now();</span>
-<span id="L478"><a href="#L478" aria-label="Line 478">478</a>        self.frame</span>
-<span id="L479"><a href="#L479" aria-label="Line 479">479</a>            .sort_unstable_by(|a, b| b.0.partial_cmp(&amp;a.0).unwrap_or(Ordering::Equal));</span>
-<span id="L480"><a href="#L480" aria-label="Line 480">480</a>        self.telemetry.sort_ms = sort_started.elapsed().as_secs_f64() * 1000.0;</span>
-<span id="L481"><a href="#L481" aria-label="Line 481">481</a></span>
-<span id="L482"><a href="#L482" aria-label="Line 482">482</a>        let camera = CameraUniform {</span>
-<span id="L483"><a href="#L483" aria-label="Line 483">483</a>            view_proj: view_proj.to_cols_array_2d(),</span>
-<span id="L484"><a href="#L484" aria-label="Line 484">484</a>            viewport: [</span>
-<span id="L485"><a href="#L485" aria-label="Line 485">485</a>                viewport[2],</span>
-<span id="L486"><a href="#L486" aria-label="Line 486">486</a>                viewport[3],</span>
-<span id="L487"><a href="#L487" aria-label="Line 487">487</a>                1.0 / viewport[2],</span>
-<span id="L488"><a href="#L488" aria-label="Line 488">488</a>                1.0 / viewport[3],</span>
-<span id="L489"><a href="#L489" aria-label="Line 489">489</a>            ],</span>
-<span id="L490"><a href="#L490" aria-label="Line 490">490</a>            scene: [normalized_time, 0.0, 0.0, 0.0],</span>
-<span id="L491"><a href="#L491" aria-label="Line 491">491</a>        };</span>
-<span id="L492"><a href="#L492" aria-label="Line 492">492</a>        self.queue</span>
-<span id="L493"><a href="#L493" aria-label="Line 493">493</a>            .write_buffer(&amp;self.camera_buffer, 0, bytemuck::bytes_of(&amp;camera));</span>
-<span id="L494"><a href="#L494" aria-label="Line 494">494</a>        self.sorted_indices.clear();</span>
-<span id="L495"><a href="#L495" aria-label="Line 495">495</a>        self.sorted_indices</span>
-<span id="L496"><a href="#L496" aria-label="Line 496">496</a>            .extend(self.frame.iter().map(|(_, index)| *index));</span>
-<span id="L497"><a href="#L497" aria-label="Line 497">497</a>        self.queue.write_buffer(</span>
-<span id="L498"><a href="#L498" aria-label="Line 498">498</a>            &amp;self.index_buffer,</span>
-<span id="L499"><a href="#L499" aria-label="Line 499">499</a>            0,</span>
-<span id="L500"><a href="#L500" aria-label="Line 500">500</a>            bytemuck::cast_slice(&amp;self.sorted_indices),</span>
-<span id="L501"><a href="#L501" aria-label="Line 501">501</a>        );</span>
-<span id="L502"><a href="#L502" aria-label="Line 502">502</a>        self.telemetry.visible = self.sorted_indices.len() as u32;</span>
-<span id="L503"><a href="#L503" aria-label="Line 503">503</a>        self.telemetry.upload_bytes =</span>
-<span id="L504"><a href="#L504" aria-label="Line 504">504</a>            (self.sorted_indices.len() * std::mem::size_of::&lt;u32&gt;()) as u32;</span>
-<span id="L505"><a href="#L505" aria-label="Line 505">505</a>        self.telemetry.prepare_ms = prepare_started.elapsed().as_secs_f64() * 1000.0;</span>
-<span id="L506"><a href="#L506" aria-label="Line 506">506</a></span>
-<span id="L507"><a href="#L507" aria-label="Line 507">507</a>        let inspection_frame = inspection::InspectionFrame {</span>
-<span id="L508"><a href="#L508" aria-label="Line 508">508</a>            time: normalized_time,</span>
-<span id="L509"><a href="#L509" aria-label="Line 509">509</a>            view,</span>
-<span id="L510"><a href="#L510" aria-label="Line 510">510</a>            view_proj,</span>
-<span id="L511"><a href="#L511" aria-label="Line 511">511</a>            viewport,</span>
-<span id="L512"><a href="#L512" aria-label="Line 512">512</a>            eye: view.inverse().transform_point3(Vec3::ZERO),</span>
-<span id="L513"><a href="#L513" aria-label="Line 513">513</a>        };</span>
-<span id="L514"><a href="#L514" aria-label="Line 514">514</a>        let frame = match self.surface.get_current_texture() {</span>
-<span id="L515"><a href="#L515" aria-label="Line 515">515</a>            wgpu::CurrentSurfaceTexture::Success(frame)</span>
-<span id="L516"><a href="#L516" aria-label="Line 516">516</a>            | wgpu::CurrentSurfaceTexture::Suboptimal(frame) =&gt; frame,</span>
-<span id="L517"><a href="#L517" aria-label="Line 517">517</a>            wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost =&gt; {</span>
-<span id="L518"><a href="#L518" aria-label="Line 518">518</a>                self.surface.configure(&amp;self.device, &amp;self.config);</span>
-<span id="L519"><a href="#L519" aria-label="Line 519">519</a>                return Ok(());</span>
-<span id="L520"><a href="#L520" aria-label="Line 520">520</a>            }</span>
-<span id="L521"><a href="#L521" aria-label="Line 521">521</a>            wgpu::CurrentSurfaceTexture::Timeout | wgpu::CurrentSurfaceTexture::Occluded =&gt; {</span>
-<span id="L522"><a href="#L522" aria-label="Line 522">522</a>                return Ok(())</span>
-<span id="L523"><a href="#L523" aria-label="Line 523">523</a>            }</span>
-<span id="L524"><a href="#L524" aria-label="Line 524">524</a>            wgpu::CurrentSurfaceTexture::Validation =&gt; {</span>
-<span id="L525"><a href="#L525" aria-label="Line 525">525</a>                return Err(JsValue::from_str(&quot;WebGPU surface validation failed&quot;))</span>
-<span id="L526"><a href="#L526" aria-label="Line 526">526</a>            }</span>
-<span id="L527"><a href="#L527" aria-label="Line 527">527</a>        };</span>
-<span id="L528"><a href="#L528" aria-label="Line 528">528</a>        let view = frame.texture.create_view(&amp;Default::default());</span>
-<span id="L529"><a href="#L529" aria-label="Line 529">529</a>        let mut encoder = self</span>
-<span id="L530"><a href="#L530" aria-label="Line 530">530</a>            .device</span>
-<span id="L531"><a href="#L531" aria-label="Line 531">531</a>            .create_command_encoder(&amp;wgpu::CommandEncoderDescriptor {</span>
-<span id="L532"><a href="#L532" aria-label="Line 532">532</a>                label: Some(&quot;stg-frame&quot;),</span>
-<span id="L533"><a href="#L533" aria-label="Line 533">533</a>            });</span>
-<span id="L534"><a href="#L534" aria-label="Line 534">534</a>        {</span>
-<span id="L535"><a href="#L535" aria-label="Line 535">535</a>            let mut pass = encoder.begin_render_pass(&amp;wgpu::RenderPassDescriptor {</span>
-<span id="L536"><a href="#L536" aria-label="Line 536">536</a>                label: Some(&quot;stg-splats&quot;),</span>
-<span id="L537"><a href="#L537" aria-label="Line 537">537</a>                color_attachments: &amp;[Some(wgpu::RenderPassColorAttachment {</span>
-<span id="L538"><a href="#L538" aria-label="Line 538">538</a>                    view: &amp;view,</span>
-<span id="L539"><a href="#L539" aria-label="Line 539">539</a>                    resolve_target: None,</span>
-<span id="L540"><a href="#L540" aria-label="Line 540">540</a>                    depth_slice: None,</span>
-<span id="L541"><a href="#L541" aria-label="Line 541">541</a>                    ops: wgpu::Operations {</span>
-<span id="L542"><a href="#L542" aria-label="Line 542">542</a>                        load: wgpu::LoadOp::Clear(wgpu::Color {</span>
-<span id="L543"><a href="#L543" aria-label="Line 543">543</a>                            r: 0.0,</span>
-<span id="L544"><a href="#L544" aria-label="Line 544">544</a>                            g: 0.0,</span>
-<span id="L545"><a href="#L545" aria-label="Line 545">545</a>                            b: 0.0,</span>
-<span id="L546"><a href="#L546" aria-label="Line 546">546</a>                            a: 1.0,</span>
-<span id="L547"><a href="#L547" aria-label="Line 547">547</a>                        }),</span>
-<span id="L548"><a href="#L548" aria-label="Line 548">548</a>                        store: wgpu::StoreOp::Store,</span>
-<span id="L549"><a href="#L549" aria-label="Line 549">549</a>                    },</span>
-<span id="L550"><a href="#L550" aria-label="Line 550">550</a>                })],</span>
-<span id="L551"><a href="#L551" aria-label="Line 551">551</a>                depth_stencil_attachment: None,</span>
-<span id="L552"><a href="#L552" aria-label="Line 552">552</a>                timestamp_writes: self.gpu_timer.as_ref().map(|timer| {</span>
-<span id="L553"><a href="#L553" aria-label="Line 553">553</a>                    wgpu::RenderPassTimestampWrites {</span>
-<span id="L554"><a href="#L554" aria-label="Line 554">554</a>                        query_set: &amp;timer.query_set,</span>
-<span id="L555"><a href="#L555" aria-label="Line 555">555</a>                        beginning_of_pass_write_index: Some(0),</span>
-<span id="L556"><a href="#L556" aria-label="Line 556">556</a>                        end_of_pass_write_index: Some(1),</span>
-<span id="L557"><a href="#L557" aria-label="Line 557">557</a>                    }</span>
-<span id="L558"><a href="#L558" aria-label="Line 558">558</a>                }),</span>
-<span id="L559"><a href="#L559" aria-label="Line 559">559</a>                occlusion_query_set: None,</span>
-<span id="L560"><a href="#L560" aria-label="Line 560">560</a>                multiview_mask: None,</span>
-<span id="L561"><a href="#L561" aria-label="Line 561">561</a>            });</span>
-<span id="L562"><a href="#L562" aria-label="Line 562">562</a>            pass.set_pipeline(&amp;self.pipeline);</span>
-<span id="L563"><a href="#L563" aria-label="Line 563">563</a>            pass.set_bind_group(0, &amp;self.bind_group, &amp;[]);</span>
-<span id="L564"><a href="#L564" aria-label="Line 564">564</a>            pass.set_vertex_buffer(0, self.index_buffer.slice(..));</span>
-<span id="L565"><a href="#L565" aria-label="Line 565">565</a>            pass.set_viewport(viewport[0], viewport[1], viewport[2], viewport[3], 0.0, 1.0);</span>
-<span id="L566"><a href="#L566" aria-label="Line 566">566</a>            pass.draw(0..6, 0..self.telemetry.visible);</span>
-<span id="L567"><a href="#L567" aria-label="Line 567">567</a>        }</span>
-<span id="L568"><a href="#L568" aria-label="Line 568">568</a>        let mut timestamp_readback = None;</span>
-<span id="L569"><a href="#L569" aria-label="Line 569">569</a>        if let Some(timer) = self.gpu_timer.as_mut() {</span>
-<span id="L570"><a href="#L570" aria-label="Line 570">570</a>            if let Some((buffer, pending)) = timer.reserve_readback() {</span>
-<span id="L571"><a href="#L571" aria-label="Line 571">571</a>                encoder.resolve_query_set(&amp;timer.query_set, 0..2, &amp;timer.resolve_buffer, 0);</span>
-<span id="L572"><a href="#L572" aria-label="Line 572">572</a>                encoder.copy_buffer_to_buffer(</span>
-<span id="L573"><a href="#L573" aria-label="Line 573">573</a>                    &amp;timer.resolve_buffer,</span>
-<span id="L574"><a href="#L574" aria-label="Line 574">574</a>                    0,</span>
-<span id="L575"><a href="#L575" aria-label="Line 575">575</a>                    &amp;buffer,</span>
-<span id="L576"><a href="#L576" aria-label="Line 576">576</a>                    0,</span>
-<span id="L577"><a href="#L577" aria-label="Line 577">577</a>                    GPU_TIMESTAMP_BYTES,</span>
-<span id="L578"><a href="#L578" aria-label="Line 578">578</a>                );</span>
-<span id="L579"><a href="#L579" aria-label="Line 579">579</a>                timestamp_readback = Some((</span>
-<span id="L580"><a href="#L580" aria-label="Line 580">580</a>                    buffer,</span>
-<span id="L581"><a href="#L581" aria-label="Line 581">581</a>                    pending,</span>
-<span id="L582"><a href="#L582" aria-label="Line 582">582</a>                    timer.latest_ms_bits.clone(),</span>
-<span id="L583"><a href="#L583" aria-label="Line 583">583</a>                    timer.timestamp_period_ns,</span>
-<span id="L584"><a href="#L584" aria-label="Line 584">584</a>                ));</span>
+<span id="L299"><a href="#L299" aria-label="Line 299">299</a>            ],</span>
+<span id="L300"><a href="#L300" aria-label="Line 300">300</a>        });</span>
+<span id="L301"><a href="#L301" aria-label="Line 301">301</a>        let bind_group = device.create_bind_group(&amp;wgpu::BindGroupDescriptor {</span>
+<span id="L302"><a href="#L302" aria-label="Line 302">302</a>            label: Some(&quot;stg-render-bind-group&quot;),</span>
+<span id="L303"><a href="#L303" aria-label="Line 303">303</a>            layout: &amp;bind_group_layout,</span>
+<span id="L304"><a href="#L304" aria-label="Line 304">304</a>            entries: &amp;[</span>
+<span id="L305"><a href="#L305" aria-label="Line 305">305</a>                wgpu::BindGroupEntry {</span>
+<span id="L306"><a href="#L306" aria-label="Line 306">306</a>                    binding: 0,</span>
+<span id="L307"><a href="#L307" aria-label="Line 307">307</a>                    resource: camera_buffer.as_entire_binding(),</span>
+<span id="L308"><a href="#L308" aria-label="Line 308">308</a>                },</span>
+<span id="L309"><a href="#L309" aria-label="Line 309">309</a>                wgpu::BindGroupEntry {</span>
+<span id="L310"><a href="#L310" aria-label="Line 310">310</a>                    binding: 1,</span>
+<span id="L311"><a href="#L311" aria-label="Line 311">311</a>                    resource: source_buffer.as_entire_binding(),</span>
+<span id="L312"><a href="#L312" aria-label="Line 312">312</a>                },</span>
+<span id="L313"><a href="#L313" aria-label="Line 313">313</a>            ],</span>
+<span id="L314"><a href="#L314" aria-label="Line 314">314</a>        });</span>
+<span id="L315"><a href="#L315" aria-label="Line 315">315</a>        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {</span>
+<span id="L316"><a href="#L316" aria-label="Line 316">316</a>            label: Some(&quot;stg-ewa-shader&quot;),</span>
+<span id="L317"><a href="#L317" aria-label="Line 317">317</a>            source: wgpu::ShaderSource::Wgsl(include_str!(&quot;splat.wgsl&quot;).into()),</span>
+<span id="L318"><a href="#L318" aria-label="Line 318">318</a>        });</span>
+<span id="L319"><a href="#L319" aria-label="Line 319">319</a>        let pipeline_layout = device.create_pipeline_layout(&amp;wgpu::PipelineLayoutDescriptor {</span>
+<span id="L320"><a href="#L320" aria-label="Line 320">320</a>            label: Some(&quot;stg-pipeline-layout&quot;),</span>
+<span id="L321"><a href="#L321" aria-label="Line 321">321</a>            bind_group_layouts: &amp;[Some(&amp;bind_group_layout)],</span>
+<span id="L322"><a href="#L322" aria-label="Line 322">322</a>            immediate_size: 0,</span>
+<span id="L323"><a href="#L323" aria-label="Line 323">323</a>        });</span>
+<span id="L324"><a href="#L324" aria-label="Line 324">324</a>        let vertex_layout = wgpu::VertexBufferLayout {</span>
+<span id="L325"><a href="#L325" aria-label="Line 325">325</a>            array_stride: std::mem::size_of::&lt;u32&gt;() as u64,</span>
+<span id="L326"><a href="#L326" aria-label="Line 326">326</a>            step_mode: wgpu::VertexStepMode::Instance,</span>
+<span id="L327"><a href="#L327" aria-label="Line 327">327</a>            attributes: &amp;[wgpu::VertexAttribute {</span>
+<span id="L328"><a href="#L328" aria-label="Line 328">328</a>                format: wgpu::VertexFormat::Uint32,</span>
+<span id="L329"><a href="#L329" aria-label="Line 329">329</a>                offset: 0,</span>
+<span id="L330"><a href="#L330" aria-label="Line 330">330</a>                shader_location: 0,</span>
+<span id="L331"><a href="#L331" aria-label="Line 331">331</a>            }],</span>
+<span id="L332"><a href="#L332" aria-label="Line 332">332</a>        };</span>
+<span id="L333"><a href="#L333" aria-label="Line 333">333</a>        let pipeline = device.create_render_pipeline(&amp;wgpu::RenderPipelineDescriptor {</span>
+<span id="L334"><a href="#L334" aria-label="Line 334">334</a>            label: Some(&quot;stg-alpha-pipeline&quot;),</span>
+<span id="L335"><a href="#L335" aria-label="Line 335">335</a>            layout: Some(&amp;pipeline_layout),</span>
+<span id="L336"><a href="#L336" aria-label="Line 336">336</a>            vertex: wgpu::VertexState {</span>
+<span id="L337"><a href="#L337" aria-label="Line 337">337</a>                module: &amp;shader,</span>
+<span id="L338"><a href="#L338" aria-label="Line 338">338</a>                entry_point: Some(&quot;vs_main&quot;),</span>
+<span id="L339"><a href="#L339" aria-label="Line 339">339</a>                compilation_options: Default::default(),</span>
+<span id="L340"><a href="#L340" aria-label="Line 340">340</a>                buffers: &amp;[Some(vertex_layout)],</span>
+<span id="L341"><a href="#L341" aria-label="Line 341">341</a>            },</span>
+<span id="L342"><a href="#L342" aria-label="Line 342">342</a>            fragment: Some(wgpu::FragmentState {</span>
+<span id="L343"><a href="#L343" aria-label="Line 343">343</a>                module: &amp;shader,</span>
+<span id="L344"><a href="#L344" aria-label="Line 344">344</a>                entry_point: Some(&quot;fs_main&quot;),</span>
+<span id="L345"><a href="#L345" aria-label="Line 345">345</a>                compilation_options: Default::default(),</span>
+<span id="L346"><a href="#L346" aria-label="Line 346">346</a>                targets: &amp;[Some(wgpu::ColorTargetState {</span>
+<span id="L347"><a href="#L347" aria-label="Line 347">347</a>                    format,</span>
+<span id="L348"><a href="#L348" aria-label="Line 348">348</a>                    blend: Some(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING),</span>
+<span id="L349"><a href="#L349" aria-label="Line 349">349</a>                    write_mask: wgpu::ColorWrites::ALL,</span>
+<span id="L350"><a href="#L350" aria-label="Line 350">350</a>                })],</span>
+<span id="L351"><a href="#L351" aria-label="Line 351">351</a>            }),</span>
+<span id="L352"><a href="#L352" aria-label="Line 352">352</a>            primitive: wgpu::PrimitiveState {</span>
+<span id="L353"><a href="#L353" aria-label="Line 353">353</a>                topology: wgpu::PrimitiveTopology::TriangleList,</span>
+<span id="L354"><a href="#L354" aria-label="Line 354">354</a>                cull_mode: None,</span>
+<span id="L355"><a href="#L355" aria-label="Line 355">355</a>                ..Default::default()</span>
+<span id="L356"><a href="#L356" aria-label="Line 356">356</a>            },</span>
+<span id="L357"><a href="#L357" aria-label="Line 357">357</a>            depth_stencil: None,</span>
+<span id="L358"><a href="#L358" aria-label="Line 358">358</a>            multisample: Default::default(),</span>
+<span id="L359"><a href="#L359" aria-label="Line 359">359</a>            multiview_mask: None,</span>
+<span id="L360"><a href="#L360" aria-label="Line 360">360</a>            cache: None,</span>
+<span id="L361"><a href="#L361" aria-label="Line 361">361</a>        });</span>
+<span id="L362"><a href="#L362" aria-label="Line 362">362</a></span>
+<span id="L363"><a href="#L363" aria-label="Line 363">363</a>        let source_count = parsed.source.len();</span>
+<span id="L364"><a href="#L364" aria-label="Line 364">364</a>        let gpu_timer = timestamp_query_supported.then(|| GpuTimer::new(&amp;device, &amp;queue));</span>
+<span id="L365"><a href="#L365" aria-label="Line 365">365</a>        Ok(Self {</span>
+<span id="L366"><a href="#L366" aria-label="Line 366">366</a>            surface,</span>
+<span id="L367"><a href="#L367" aria-label="Line 367">367</a>            device,</span>
+<span id="L368"><a href="#L368" aria-label="Line 368">368</a>            queue,</span>
+<span id="L369"><a href="#L369" aria-label="Line 369">369</a>            config,</span>
+<span id="L370"><a href="#L370" aria-label="Line 370">370</a>            pipeline,</span>
+<span id="L371"><a href="#L371" aria-label="Line 371">371</a>            bind_group,</span>
+<span id="L372"><a href="#L372" aria-label="Line 372">372</a>            camera_buffer,</span>
+<span id="L373"><a href="#L373" aria-label="Line 373">373</a>            index_buffer,</span>
+<span id="L374"><a href="#L374" aria-label="Line 374">374</a>            preparation: stg_prepare::StgPreparation::new(parsed.source),</span>
+<span id="L375"><a href="#L375" aria-label="Line 375">375</a>            last_time: None,</span>
+<span id="L376"><a href="#L376" aria-label="Line 376">376</a>            last_presented: None,</span>
+<span id="L377"><a href="#L377" aria-label="Line 377">377</a>            render_on_demand: true,</span>
+<span id="L378"><a href="#L378" aria-label="Line 378">378</a>            submitted_frames: 0,</span>
+<span id="L379"><a href="#L379" aria-label="Line 379">379</a>            inspection_records: ply_bytes[parsed.payload_offset..parsed.payload_end]</span>
+<span id="L380"><a href="#L380" aria-label="Line 380">380</a>                .chunks_exact(BYTES_PER_SPLAT)</span>
+<span id="L381"><a href="#L381" aria-label="Line 381">381</a>                .map(|bytes| {</span>
+<span id="L382"><a href="#L382" aria-label="Line 382">382</a>                    std::array::from_fn(|i| {</span>
+<span id="L383"><a href="#L383" aria-label="Line 383">383</a>                        f32::from_le_bytes(bytes[i * 4..i * 4 + 4].try_into().unwrap())</span>
+<span id="L384"><a href="#L384" aria-label="Line 384">384</a>                    })</span>
+<span id="L385"><a href="#L385" aria-label="Line 385">385</a>                })</span>
+<span id="L386"><a href="#L386" aria-label="Line 386">386</a>                .collect(),</span>
+<span id="L387"><a href="#L387" aria-label="Line 387">387</a>            inspection_frame: None,</span>
+<span id="L388"><a href="#L388" aria-label="Line 388">388</a>            sorted_indices: Vec::with_capacity(source_count),</span>
+<span id="L389"><a href="#L389" aria-label="Line 389">389</a>            telemetry: FrameTelemetry::default(),</span>
+<span id="L390"><a href="#L390" aria-label="Line 390">390</a>            adapter_name,</span>
+<span id="L391"><a href="#L391" aria-label="Line 391">391</a>            gpu_timer,</span>
+<span id="L392"><a href="#L392" aria-label="Line 392">392</a>        })</span>
+<span id="L393"><a href="#L393" aria-label="Line 393">393</a>    }</span>
+<span id="L394"><a href="#L394" aria-label="Line 394">394</a></span>
+<span id="L395"><a href="#L395" aria-label="Line 395">395</a>    /// Atomically replace the resident temporal window on the existing device.</span>
+<span id="L396"><a href="#L396" aria-label="Line 396">396</a>    /// The caller must merge overlapping chunks by original ID before calling.</span>
+<span id="L397"><a href="#L397" aria-label="Line 397">397</a>    #[wasm_bindgen(js_name = replaceSource)]</span>
+<span id="L398"><a href="#L398" aria-label="Line 398">398</a>    pub fn replace_source(&amp;mut self, ply_data: js_sys::Uint8Array) -&gt; Result&lt;(), JsValue&gt; {</span>
+<span id="L399"><a href="#L399" aria-label="Line 399">399</a>        let bytes = ply_data.to_vec();</span>
+<span id="L400"><a href="#L400" aria-label="Line 400">400</a>        let parsed = parse_stg_ply(&amp;bytes).map_err(js_error)?;</span>
+<span id="L401"><a href="#L401" aria-label="Line 401">401</a>        let payload = &amp;bytes[parsed.payload_offset..parsed.payload_end];</span>
+<span id="L402"><a href="#L402" aria-label="Line 402">402</a>        if payload.len() as u64 &gt; self.device.limits().max_storage_buffer_binding_size as u64 {</span>
+<span id="L403"><a href="#L403" aria-label="Line 403">403</a>            return Err(JsValue::from_str(</span>
+<span id="L404"><a href="#L404" aria-label="Line 404">404</a>                &quot;Resident window exceeds GPU storage limit&quot;,</span>
+<span id="L405"><a href="#L405" aria-label="Line 405">405</a>            ));</span>
+<span id="L406"><a href="#L406" aria-label="Line 406">406</a>        }</span>
+<span id="L407"><a href="#L407" aria-label="Line 407">407</a>        let source = self</span>
+<span id="L408"><a href="#L408" aria-label="Line 408">408</a>            .device</span>
+<span id="L409"><a href="#L409" aria-label="Line 409">409</a>            .create_buffer_init(&amp;wgpu::util::BufferInitDescriptor {</span>
+<span id="L410"><a href="#L410" aria-label="Line 410">410</a>                label: Some(&quot;stream-resident-records&quot;),</span>
+<span id="L411"><a href="#L411" aria-label="Line 411">411</a>                contents: payload,</span>
+<span id="L412"><a href="#L412" aria-label="Line 412">412</a>                usage: wgpu::BufferUsages::STORAGE,</span>
+<span id="L413"><a href="#L413" aria-label="Line 413">413</a>            });</span>
+<span id="L414"><a href="#L414" aria-label="Line 414">414</a>        let indices = self.device.create_buffer(&amp;wgpu::BufferDescriptor {</span>
+<span id="L415"><a href="#L415" aria-label="Line 415">415</a>            label: Some(&quot;stream-resident-order&quot;),</span>
+<span id="L416"><a href="#L416" aria-label="Line 416">416</a>            size: (parsed.source.len() * 4) as u64,</span>
+<span id="L417"><a href="#L417" aria-label="Line 417">417</a>            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,</span>
+<span id="L418"><a href="#L418" aria-label="Line 418">418</a>            mapped_at_creation: false,</span>
+<span id="L419"><a href="#L419" aria-label="Line 419">419</a>        });</span>
+<span id="L420"><a href="#L420" aria-label="Line 420">420</a>        let bindings = self.device.create_bind_group(&amp;wgpu::BindGroupDescriptor {</span>
+<span id="L421"><a href="#L421" aria-label="Line 421">421</a>            label: Some(&quot;stream-resident-bindings&quot;),</span>
+<span id="L422"><a href="#L422" aria-label="Line 422">422</a>            layout: &amp;self.pipeline.get_bind_group_layout(0),</span>
+<span id="L423"><a href="#L423" aria-label="Line 423">423</a>            entries: &amp;[</span>
+<span id="L424"><a href="#L424" aria-label="Line 424">424</a>                wgpu::BindGroupEntry {</span>
+<span id="L425"><a href="#L425" aria-label="Line 425">425</a>                    binding: 0,</span>
+<span id="L426"><a href="#L426" aria-label="Line 426">426</a>                    resource: self.camera_buffer.as_entire_binding(),</span>
+<span id="L427"><a href="#L427" aria-label="Line 427">427</a>                },</span>
+<span id="L428"><a href="#L428" aria-label="Line 428">428</a>                wgpu::BindGroupEntry {</span>
+<span id="L429"><a href="#L429" aria-label="Line 429">429</a>                    binding: 1,</span>
+<span id="L430"><a href="#L430" aria-label="Line 430">430</a>                    resource: source.as_entire_binding(),</span>
+<span id="L431"><a href="#L431" aria-label="Line 431">431</a>                },</span>
+<span id="L432"><a href="#L432" aria-label="Line 432">432</a>            ],</span>
+<span id="L433"><a href="#L433" aria-label="Line 433">433</a>        });</span>
+<span id="L434"><a href="#L434" aria-label="Line 434">434</a>        let records = payload</span>
+<span id="L435"><a href="#L435" aria-label="Line 435">435</a>            .chunks_exact(128)</span>
+<span id="L436"><a href="#L436" aria-label="Line 436">436</a>            .map(|b| {</span>
+<span id="L437"><a href="#L437" aria-label="Line 437">437</a>                std::array::from_fn(|i| f32::from_le_bytes(b[i * 4..i * 4 + 4].try_into().unwrap()))</span>
+<span id="L438"><a href="#L438" aria-label="Line 438">438</a>            })</span>
+<span id="L439"><a href="#L439" aria-label="Line 439">439</a>            .collect();</span>
+<span id="L440"><a href="#L440" aria-label="Line 440">440</a>        self.preparation = stg_prepare::StgPreparation::new(parsed.source);</span>
+<span id="L441"><a href="#L441" aria-label="Line 441">441</a>        self.inspection_records = records;</span>
+<span id="L442"><a href="#L442" aria-label="Line 442">442</a>        self.inspection_frame = None;</span>
+<span id="L443"><a href="#L443" aria-label="Line 443">443</a>        self.last_time = None;</span>
+<span id="L444"><a href="#L444" aria-label="Line 444">444</a>        self.last_presented = None;</span>
+<span id="L445"><a href="#L445" aria-label="Line 445">445</a>        self.sorted_indices.clear();</span>
+<span id="L446"><a href="#L446" aria-label="Line 446">446</a>        self.index_buffer = indices;</span>
+<span id="L447"><a href="#L447" aria-label="Line 447">447</a>        self.bind_group = bindings;</span>
+<span id="L448"><a href="#L448" aria-label="Line 448">448</a>        Ok(())</span>
+<span id="L449"><a href="#L449" aria-label="Line 449">449</a>    }</span>
+<span id="L450"><a href="#L450" aria-label="Line 450">450</a></span>
+<span id="L451"><a href="#L451" aria-label="Line 451">451</a>    pub fn render(</span>
+<span id="L452"><a href="#L452" aria-label="Line 452">452</a>        &amp;mut self,</span>
+<span id="L453"><a href="#L453" aria-label="Line 453">453</a>        time_seconds: f32,</span>
+<span id="L454"><a href="#L454" aria-label="Line 454">454</a>        yaw: f32,</span>
+<span id="L455"><a href="#L455" aria-label="Line 455">455</a>        pitch: f32,</span>
+<span id="L456"><a href="#L456" aria-label="Line 456">456</a>        distance: f32,</span>
+<span id="L457"><a href="#L457" aria-label="Line 457">457</a>        width: u32,</span>
+<span id="L458"><a href="#L458" aria-label="Line 458">458</a>        height: u32,</span>
+<span id="L459"><a href="#L459" aria-label="Line 459">459</a>        calibrated_camera: js_sys::Float32Array,</span>
+<span id="L460"><a href="#L460" aria-label="Line 460">460</a>    ) -&gt; Result&lt;(), JsValue&gt; {</span>
+<span id="L461"><a href="#L461" aria-label="Line 461">461</a>        let prepare_started = Instant::now();</span>
+<span id="L462"><a href="#L462" aria-label="Line 462">462</a>        let width = width.max(1);</span>
+<span id="L463"><a href="#L463" aria-label="Line 463">463</a>        let height = height.max(1);</span>
+<span id="L464"><a href="#L464" aria-label="Line 464">464</a>        if self.config.width != width || self.config.height != height {</span>
+<span id="L465"><a href="#L465" aria-label="Line 465">465</a>            self.config.width = width;</span>
+<span id="L466"><a href="#L466" aria-label="Line 466">466</a>            self.config.height = height;</span>
+<span id="L467"><a href="#L467" aria-label="Line 467">467</a>            self.surface.configure(&amp;self.device, &amp;self.config);</span>
+<span id="L468"><a href="#L468" aria-label="Line 468">468</a>        }</span>
+<span id="L469"><a href="#L469" aria-label="Line 469">469</a></span>
+<span id="L470"><a href="#L470" aria-label="Line 470">470</a>        let (view, projection, viewport) = if calibrated_camera.length() &gt;= 12 {</span>
+<span id="L471"><a href="#L471" aria-label="Line 471">471</a>            let value = |index| calibrated_camera.get_index(index);</span>
+<span id="L472"><a href="#L472" aria-label="Line 472">472</a>            let eye = Vec3::new(value(0), value(1), value(2));</span>
+<span id="L473"><a href="#L473" aria-label="Line 473">473</a>            let mut forward = Vec3::new(value(3), value(4), value(5)).normalize_or_zero();</span>
+<span id="L474"><a href="#L474" aria-label="Line 474">474</a>            let mut up = Vec3::new(value(6), value(7), value(8)).normalize_or_zero();</span>
+<span id="L475"><a href="#L475" aria-label="Line 475">475</a>            if forward.length_squared() &lt; 0.5 {</span>
+<span id="L476"><a href="#L476" aria-label="Line 476">476</a>                forward = Vec3::Z;</span>
+<span id="L477"><a href="#L477" aria-label="Line 477">477</a>            }</span>
+<span id="L478"><a href="#L478" aria-label="Line 478">478</a>            if up.length_squared() &lt; 0.5 {</span>
+<span id="L479"><a href="#L479" aria-label="Line 479">479</a>                up = Vec3::NEG_Y;</span>
+<span id="L480"><a href="#L480" aria-label="Line 480">480</a>            }</span>
+<span id="L481"><a href="#L481" aria-label="Line 481">481</a>            let capture_aspect = (value(10) / value(11).max(1.0)).clamp(0.5, 3.0);</span>
+<span id="L482"><a href="#L482" aria-label="Line 482">482</a>            let surface_aspect = width as f32 / height as f32;</span>
+<span id="L483"><a href="#L483" aria-label="Line 483">483</a>            let viewport = if surface_aspect &gt; capture_aspect {</span>
+<span id="L484"><a href="#L484" aria-label="Line 484">484</a>                let viewport_width = height as f32 * capture_aspect;</span>
+<span id="L485"><a href="#L485" aria-label="Line 485">485</a>                [</span>
+<span id="L486"><a href="#L486" aria-label="Line 486">486</a>                    (width as f32 - viewport_width) * 0.5,</span>
+<span id="L487"><a href="#L487" aria-label="Line 487">487</a>                    0.0,</span>
+<span id="L488"><a href="#L488" aria-label="Line 488">488</a>                    viewport_width,</span>
+<span id="L489"><a href="#L489" aria-label="Line 489">489</a>                    height as f32,</span>
+<span id="L490"><a href="#L490" aria-label="Line 490">490</a>                ]</span>
+<span id="L491"><a href="#L491" aria-label="Line 491">491</a>            } else {</span>
+<span id="L492"><a href="#L492" aria-label="Line 492">492</a>                let viewport_height = width as f32 / capture_aspect;</span>
+<span id="L493"><a href="#L493" aria-label="Line 493">493</a>                [</span>
+<span id="L494"><a href="#L494" aria-label="Line 494">494</a>                    0.0,</span>
+<span id="L495"><a href="#L495" aria-label="Line 495">495</a>                    (height as f32 - viewport_height) * 0.5,</span>
+<span id="L496"><a href="#L496" aria-label="Line 496">496</a>                    width as f32,</span>
+<span id="L497"><a href="#L497" aria-label="Line 497">497</a>                    viewport_height,</span>
+<span id="L498"><a href="#L498" aria-label="Line 498">498</a>                ]</span>
+<span id="L499"><a href="#L499" aria-label="Line 499">499</a>            };</span>
+<span id="L500"><a href="#L500" aria-label="Line 500">500</a>            (</span>
+<span id="L501"><a href="#L501" aria-label="Line 501">501</a>                Mat4::look_at_rh(eye, eye + forward, up),</span>
+<span id="L502"><a href="#L502" aria-label="Line 502">502</a>                Mat4::perspective_rh(value(9).clamp(0.2, 2.6), capture_aspect, 0.05, 180.0),</span>
+<span id="L503"><a href="#L503" aria-label="Line 503">503</a>                viewport,</span>
+<span id="L504"><a href="#L504" aria-label="Line 504">504</a>            )</span>
+<span id="L505"><a href="#L505" aria-label="Line 505">505</a>        } else {</span>
+<span id="L506"><a href="#L506" aria-label="Line 506">506</a>            let pitch = pitch.clamp(-0.55, 0.7);</span>
+<span id="L507"><a href="#L507" aria-label="Line 507">507</a>            let distance = distance.clamp(9.0, 34.0);</span>
+<span id="L508"><a href="#L508" aria-label="Line 508">508</a>            let orbit = Vec3::new(</span>
+<span id="L509"><a href="#L509" aria-label="Line 509">509</a>                yaw.sin() * pitch.cos(),</span>
+<span id="L510"><a href="#L510" aria-label="Line 510">510</a>                -pitch.sin(),</span>
+<span id="L511"><a href="#L511" aria-label="Line 511">511</a>                -yaw.cos() * pitch.cos(),</span>
+<span id="L512"><a href="#L512" aria-label="Line 512">512</a>            );</span>
+<span id="L513"><a href="#L513" aria-label="Line 513">513</a>            let eye = SCENE_TARGET + orbit * distance;</span>
+<span id="L514"><a href="#L514" aria-label="Line 514">514</a>            (</span>
+<span id="L515"><a href="#L515" aria-label="Line 515">515</a>                Mat4::look_at_rh(eye, SCENE_TARGET, Vec3::NEG_Y),</span>
+<span id="L516"><a href="#L516" aria-label="Line 516">516</a>                Mat4::perspective_rh(</span>
+<span id="L517"><a href="#L517" aria-label="Line 517">517</a>                    69.5_f32.to_radians(),</span>
+<span id="L518"><a href="#L518" aria-label="Line 518">518</a>                    width as f32 / height as f32,</span>
+<span id="L519"><a href="#L519" aria-label="Line 519">519</a>                    0.05,</span>
+<span id="L520"><a href="#L520" aria-label="Line 520">520</a>                    180.0,</span>
+<span id="L521"><a href="#L521" aria-label="Line 521">521</a>                ),</span>
+<span id="L522"><a href="#L522" aria-label="Line 522">522</a>                [0.0, 0.0, width as f32, height as f32],</span>
+<span id="L523"><a href="#L523" aria-label="Line 523">523</a>            )</span>
+<span id="L524"><a href="#L524" aria-label="Line 524">524</a>        };</span>
+<span id="L525"><a href="#L525" aria-label="Line 525">525</a>        let view_proj = projection * view;</span>
+<span id="L526"><a href="#L526" aria-label="Line 526">526</a>        let normalized_time = time_seconds.rem_euclid(LOOP_SECONDS) / LOOP_SECONDS;</span>
+<span id="L527"><a href="#L527" aria-label="Line 527">527</a></span>
+<span id="L528"><a href="#L528" aria-label="Line 528">528</a>        let presented_key = (normalized_time, view, projection, viewport, width, height);</span>
+<span id="L529"><a href="#L529" aria-label="Line 529">529</a>        if self.render_on_demand &amp;&amp; self.last_presented == Some(presented_key) {</span>
+<span id="L530"><a href="#L530" aria-label="Line 530">530</a>            self.telemetry.prepare_ms = prepare_started.elapsed().as_secs_f64() * 1000.0;</span>
+<span id="L531"><a href="#L531" aria-label="Line 531">531</a>            self.telemetry.sort_ms = 0.0;</span>
+<span id="L532"><a href="#L532" aria-label="Line 532">532</a>            self.telemetry.upload_bytes = 0;</span>
+<span id="L533"><a href="#L533" aria-label="Line 533">533</a>            return Ok(());</span>
+<span id="L534"><a href="#L534" aria-label="Line 534">534</a>        }</span>
+<span id="L535"><a href="#L535" aria-label="Line 535">535</a>        self.inspection_frame = None;</span>
+<span id="L536"><a href="#L536" aria-label="Line 536">536</a>        let variant = 9;</span>
+<span id="L537"><a href="#L537" aria-label="Line 537">537</a>        self.preparation</span>
+<span id="L538"><a href="#L538" aria-label="Line 538">538</a>            .prepare(normalized_time, view, projection, variant);</span>
+<span id="L539"><a href="#L539" aria-label="Line 539">539</a>        self.last_time = Some(normalized_time);</span>
+<span id="L540"><a href="#L540" aria-label="Line 540">540</a>        self.telemetry.sort_ms = self.preparation.sort_ms;</span>
+<span id="L541"><a href="#L541" aria-label="Line 541">541</a></span>
+<span id="L542"><a href="#L542" aria-label="Line 542">542</a>        let camera = CameraUniform {</span>
+<span id="L543"><a href="#L543" aria-label="Line 543">543</a>            view_proj: view_proj.to_cols_array_2d(),</span>
+<span id="L544"><a href="#L544" aria-label="Line 544">544</a>            viewport: [</span>
+<span id="L545"><a href="#L545" aria-label="Line 545">545</a>                viewport[2],</span>
+<span id="L546"><a href="#L546" aria-label="Line 546">546</a>                viewport[3],</span>
+<span id="L547"><a href="#L547" aria-label="Line 547">547</a>                1.0 / viewport[2],</span>
+<span id="L548"><a href="#L548" aria-label="Line 548">548</a>                1.0 / viewport[3],</span>
+<span id="L549"><a href="#L549" aria-label="Line 549">549</a>            ],</span>
+<span id="L550"><a href="#L550" aria-label="Line 550">550</a>            scene: [normalized_time, 0.0, 0.0, 0.0],</span>
+<span id="L551"><a href="#L551" aria-label="Line 551">551</a>        };</span>
+<span id="L552"><a href="#L552" aria-label="Line 552">552</a>        self.queue</span>
+<span id="L553"><a href="#L553" aria-label="Line 553">553</a>            .write_buffer(&amp;self.camera_buffer, 0, bytemuck::bytes_of(&amp;camera));</span>
+<span id="L554"><a href="#L554" aria-label="Line 554">554</a>        if !self.preparation.cache_hit {</span>
+<span id="L555"><a href="#L555" aria-label="Line 555">555</a>            self.sorted_indices.clear();</span>
+<span id="L556"><a href="#L556" aria-label="Line 556">556</a>            self.sorted_indices</span>
+<span id="L557"><a href="#L557" aria-label="Line 557">557</a>                .extend_from_slice(self.preparation.indices());</span>
+<span id="L558"><a href="#L558" aria-label="Line 558">558</a>            self.queue.write_buffer(</span>
+<span id="L559"><a href="#L559" aria-label="Line 559">559</a>                &amp;self.index_buffer,</span>
+<span id="L560"><a href="#L560" aria-label="Line 560">560</a>                0,</span>
+<span id="L561"><a href="#L561" aria-label="Line 561">561</a>                bytemuck::cast_slice(&amp;self.sorted_indices),</span>
+<span id="L562"><a href="#L562" aria-label="Line 562">562</a>            );</span>
+<span id="L563"><a href="#L563" aria-label="Line 563">563</a>        }</span>
+<span id="L564"><a href="#L564" aria-label="Line 564">564</a>        self.telemetry.visible = self.sorted_indices.len() as u32;</span>
+<span id="L565"><a href="#L565" aria-label="Line 565">565</a>        self.telemetry.upload_bytes = if self.preparation.cache_hit {</span>
+<span id="L566"><a href="#L566" aria-label="Line 566">566</a>            0</span>
+<span id="L567"><a href="#L567" aria-label="Line 567">567</a>        } else {</span>
+<span id="L568"><a href="#L568" aria-label="Line 568">568</a>            (self.sorted_indices.len() * 4) as u32</span>
+<span id="L569"><a href="#L569" aria-label="Line 569">569</a>        };</span>
+<span id="L570"><a href="#L570" aria-label="Line 570">570</a>        self.telemetry.prepare_ms = prepare_started.elapsed().as_secs_f64() * 1000.0;</span>
+<span id="L571"><a href="#L571" aria-label="Line 571">571</a></span>
+<span id="L572"><a href="#L572" aria-label="Line 572">572</a>        let inspection_frame = inspection::InspectionFrame {</span>
+<span id="L573"><a href="#L573" aria-label="Line 573">573</a>            time: normalized_time,</span>
+<span id="L574"><a href="#L574" aria-label="Line 574">574</a>            view,</span>
+<span id="L575"><a href="#L575" aria-label="Line 575">575</a>            view_proj,</span>
+<span id="L576"><a href="#L576" aria-label="Line 576">576</a>            viewport,</span>
+<span id="L577"><a href="#L577" aria-label="Line 577">577</a>            eye: view.inverse().transform_point3(Vec3::ZERO),</span>
+<span id="L578"><a href="#L578" aria-label="Line 578">578</a>        };</span>
+<span id="L579"><a href="#L579" aria-label="Line 579">579</a>        let frame = match self.surface.get_current_texture() {</span>
+<span id="L580"><a href="#L580" aria-label="Line 580">580</a>            wgpu::CurrentSurfaceTexture::Success(frame)</span>
+<span id="L581"><a href="#L581" aria-label="Line 581">581</a>            | wgpu::CurrentSurfaceTexture::Suboptimal(frame) =&gt; frame,</span>
+<span id="L582"><a href="#L582" aria-label="Line 582">582</a>            wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost =&gt; {</span>
+<span id="L583"><a href="#L583" aria-label="Line 583">583</a>                self.surface.configure(&amp;self.device, &amp;self.config);</span>
+<span id="L584"><a href="#L584" aria-label="Line 584">584</a>                return Ok(());</span>
 <span id="L585"><a href="#L585" aria-label="Line 585">585</a>            }</span>
-<span id="L586"><a href="#L586" aria-label="Line 586">586</a>        }</span>
-<span id="L587"><a href="#L587" aria-label="Line 587">587</a>        self.queue.submit([encoder.finish()]);</span>
-<span id="L588"><a href="#L588" aria-label="Line 588">588</a>        if let Some((buffer, pending, latest_ms_bits, timestamp_period_ns)) = timestamp_readback {</span>
-<span id="L589"><a href="#L589" aria-label="Line 589">589</a>            let callback_buffer = buffer.clone();</span>
-<span id="L590"><a href="#L590" aria-label="Line 590">590</a>            buffer</span>
-<span id="L591"><a href="#L591" aria-label="Line 591">591</a>                .slice(..GPU_TIMESTAMP_BYTES)</span>
-<span id="L592"><a href="#L592" aria-label="Line 592">592</a>                .map_async(wgpu::MapMode::Read, move |result| {</span>
-<span id="L593"><a href="#L593" aria-label="Line 593">593</a>                    if result.is_ok() {</span>
-<span id="L594"><a href="#L594" aria-label="Line 594">594</a>                        let mapped_result = callback_buffer</span>
-<span id="L595"><a href="#L595" aria-label="Line 595">595</a>                            .slice(..GPU_TIMESTAMP_BYTES)</span>
-<span id="L596"><a href="#L596" aria-label="Line 596">596</a>                            .get_mapped_range();</span>
-<span id="L597"><a href="#L597" aria-label="Line 597">597</a>                        if let Ok(mapped) = mapped_result {</span>
-<span id="L598"><a href="#L598" aria-label="Line 598">598</a>                            let begin = u64::from_le_bytes(mapped[0..8].try_into().unwrap());</span>
-<span id="L599"><a href="#L599" aria-label="Line 599">599</a>                            let end = u64::from_le_bytes(mapped[8..16].try_into().unwrap());</span>
-<span id="L600"><a href="#L600" aria-label="Line 600">600</a>                            if end &gt;= begin {</span>
-<span id="L601"><a href="#L601" aria-label="Line 601">601</a>                                let elapsed_ms =</span>
-<span id="L602"><a href="#L602" aria-label="Line 602">602</a>                                    (end - begin) as f64 * timestamp_period_ns / 1_000_000.0;</span>
-<span id="L603"><a href="#L603" aria-label="Line 603">603</a>                                latest_ms_bits.store(elapsed_ms.to_bits(), AtomicOrdering::Relaxed);</span>
-<span id="L604"><a href="#L604" aria-label="Line 604">604</a>                            }</span>
-<span id="L605"><a href="#L605" aria-label="Line 605">605</a>                            drop(mapped);</span>
-<span id="L606"><a href="#L606" aria-label="Line 606">606</a>                        }</span>
-<span id="L607"><a href="#L607" aria-label="Line 607">607</a>                        callback_buffer.unmap();</span>
-<span id="L608"><a href="#L608" aria-label="Line 608">608</a>                    }</span>
-<span id="L609"><a href="#L609" aria-label="Line 609">609</a>                    pending.store(false, AtomicOrdering::Relaxed);</span>
-<span id="L610"><a href="#L610" aria-label="Line 610">610</a>                });</span>
-<span id="L611"><a href="#L611" aria-label="Line 611">611</a>        }</span>
-<span id="L612"><a href="#L612" aria-label="Line 612">612</a>        self.queue.present(frame);</span>
-<span id="L613"><a href="#L613" aria-label="Line 613">613</a>        self.inspection_frame = Some(inspection_frame);</span>
-<span id="L614"><a href="#L614" aria-label="Line 614">614</a>        Ok(())</span>
-<span id="L615"><a href="#L615" aria-label="Line 615">615</a>    }</span>
-<span id="L616"><a href="#L616" aria-label="Line 616">616</a></span>
-<span id="L617"><a href="#L617" aria-label="Line 617">617</a>    #[wasm_bindgen(getter, js_name = prepareMs)]</span>
-<span id="L618"><a href="#L618" aria-label="Line 618">618</a>    pub fn prepare_ms(&amp;self) -&gt; f64 {</span>
-<span id="L619"><a href="#L619" aria-label="Line 619">619</a>        self.telemetry.prepare_ms</span>
-<span id="L620"><a href="#L620" aria-label="Line 620">620</a>    }</span>
-<span id="L621"><a href="#L621" aria-label="Line 621">621</a></span>
-<span id="L622"><a href="#L622" aria-label="Line 622">622</a>    #[wasm_bindgen(getter, js_name = sortMs)]</span>
-<span id="L623"><a href="#L623" aria-label="Line 623">623</a>    pub fn sort_ms(&amp;self) -&gt; f64 {</span>
-<span id="L624"><a href="#L624" aria-label="Line 624">624</a>        self.telemetry.sort_ms</span>
-<span id="L625"><a href="#L625" aria-label="Line 625">625</a>    }</span>
-<span id="L626"><a href="#L626" aria-label="Line 626">626</a></span>
-<span id="L627"><a href="#L627" aria-label="Line 627">627</a>    #[wasm_bindgen(getter)]</span>
-<span id="L628"><a href="#L628" aria-label="Line 628">628</a>    pub fn visible(&amp;self) -&gt; u32 {</span>
-<span id="L629"><a href="#L629" aria-label="Line 629">629</a>        self.telemetry.visible</span>
-<span id="L630"><a href="#L630" aria-label="Line 630">630</a>    }</span>
-<span id="L631"><a href="#L631" aria-label="Line 631">631</a></span>
-<span id="L632"><a href="#L632" aria-label="Line 632">632</a>    #[wasm_bindgen(getter, js_name = uploadBytes)]</span>
-<span id="L633"><a href="#L633" aria-label="Line 633">633</a>    pub fn upload_bytes(&amp;self) -&gt; u32 {</span>
-<span id="L634"><a href="#L634" aria-label="Line 634">634</a>        self.telemetry.upload_bytes</span>
-<span id="L635"><a href="#L635" aria-label="Line 635">635</a>    }</span>
-<span id="L636"><a href="#L636" aria-label="Line 636">636</a></span>
-<span id="L637"><a href="#L637" aria-label="Line 637">637</a>    #[wasm_bindgen(getter, js_name = gpuRenderMs)]</span>
-<span id="L638"><a href="#L638" aria-label="Line 638">638</a>    pub fn gpu_render_ms(&amp;self) -&gt; f64 {</span>
-<span id="L639"><a href="#L639" aria-label="Line 639">639</a>        self.gpu_timer</span>
-<span id="L640"><a href="#L640" aria-label="Line 640">640</a>            .as_ref()</span>
-<span id="L641"><a href="#L641" aria-label="Line 641">641</a>            .map(|timer| f64::from_bits(timer.latest_ms_bits.load(AtomicOrdering::Relaxed)))</span>
-<span id="L642"><a href="#L642" aria-label="Line 642">642</a>            .unwrap_or(-1.0)</span>
-<span id="L643"><a href="#L643" aria-label="Line 643">643</a>    }</span>
-<span id="L644"><a href="#L644" aria-label="Line 644">644</a></span>
-<span id="L645"><a href="#L645" aria-label="Line 645">645</a>    #[wasm_bindgen(getter, js_name = gpuTimingSupported)]</span>
-<span id="L646"><a href="#L646" aria-label="Line 646">646</a>    pub fn gpu_timing_supported(&amp;self) -&gt; bool {</span>
-<span id="L647"><a href="#L647" aria-label="Line 647">647</a>        self.gpu_timer.is_some()</span>
-<span id="L648"><a href="#L648" aria-label="Line 648">648</a>    }</span>
-<span id="L649"><a href="#L649" aria-label="Line 649">649</a></span>
-<span id="L650"><a href="#L650" aria-label="Line 650">650</a>    #[wasm_bindgen(getter, js_name = adapterName)]</span>
-<span id="L651"><a href="#L651" aria-label="Line 651">651</a>    pub fn adapter_name(&amp;self) -&gt; String {</span>
-<span id="L652"><a href="#L652" aria-label="Line 652">652</a>        self.adapter_name.clone()</span>
-<span id="L653"><a href="#L653" aria-label="Line 653">653</a>    }</span>
-<span id="L654"><a href="#L654" aria-label="Line 654">654</a></span>
-<span id="L655"><a href="#L655" aria-label="Line 655">655</a>    #[wasm_bindgen(getter, js_name = sourceCount)]</span>
-<span id="L656"><a href="#L656" aria-label="Line 656">656</a>    pub fn source_count(&amp;self) -&gt; u32 {</span>
-<span id="L657"><a href="#L657" aria-label="Line 657">657</a>        self.source.len() as u32</span>
-<span id="L658"><a href="#L658" aria-label="Line 658">658</a>    }</span>
-<span id="L659"><a href="#L659" aria-label="Line 659">659</a></span>
-<span id="L660"><a href="#L660" aria-label="Line 660">660</a>    #[wasm_bindgen(js_name = splatRecord)]</span>
-<span id="L661"><a href="#L661" aria-label="Line 661">661</a>    pub fn splat_record(&amp;self, id: u32) -&gt; Vec&lt;f32&gt; {</span>
-<span id="L662"><a href="#L662" aria-label="Line 662">662</a>        self.inspection_records</span>
-<span id="L663"><a href="#L663" aria-label="Line 663">663</a>            .get(id as usize)</span>
-<span id="L664"><a href="#L664" aria-label="Line 664">664</a>            .map_or_else(Vec::new, |r| r.to_vec())</span>
-<span id="L665"><a href="#L665" aria-label="Line 665">665</a>    }</span>
-<span id="L666"><a href="#L666" aria-label="Line 666">666</a></span>
-<span id="L667"><a href="#L667" aria-label="Line 667">667</a>    #[wasm_bindgen(js_name = inspectSplat)]</span>
-<span id="L668"><a href="#L668" aria-label="Line 668">668</a>    pub fn inspect_splat(&amp;self, id: u32) -&gt; Vec&lt;f32&gt; {</span>
-<span id="L669"><a href="#L669" aria-label="Line 669">669</a>        match (</span>
-<span id="L670"><a href="#L670" aria-label="Line 670">670</a>            self.inspection_records.get(id as usize),</span>
-<span id="L671"><a href="#L671" aria-label="Line 671">671</a>            self.inspection_frame.as_ref(),</span>
-<span id="L672"><a href="#L672" aria-label="Line 672">672</a>        ) {</span>
-<span id="L673"><a href="#L673" aria-label="Line 673">673</a>            (Some(row), Some(frame)) =&gt; {</span>
-<span id="L674"><a href="#L674" aria-label="Line 674">674</a>                inspection::project(row, frame).map_or_else(Vec::new, |s| s.pack(frame))</span>
-<span id="L675"><a href="#L675" aria-label="Line 675">675</a>            }</span>
-<span id="L676"><a href="#L676" aria-label="Line 676">676</a>            _ =&gt; vec![],</span>
-<span id="L677"><a href="#L677" aria-label="Line 677">677</a>        }</span>
-<span id="L678"><a href="#L678" aria-label="Line 678">678</a>    }</span>
-<span id="L679"><a href="#L679" aria-label="Line 679">679</a></span>
-<span id="L680"><a href="#L680" aria-label="Line 680">680</a>    #[wasm_bindgen(js_name = pickSplats)]</span>
-<span id="L681"><a href="#L681" aria-label="Line 681">681</a>    pub fn pick_splats(&amp;self, x: f32, y: f32) -&gt; Vec&lt;f32&gt; {</span>
-<span id="L682"><a href="#L682" aria-label="Line 682">682</a>        self.inspection_frame</span>
-<span id="L683"><a href="#L683" aria-label="Line 683">683</a>            .as_ref()</span>
-<span id="L684"><a href="#L684" aria-label="Line 684">684</a>            .map_or_else(Vec::new, |frame| {</span>
-<span id="L685"><a href="#L685" aria-label="Line 685">685</a>                inspection::pick(</span>
-<span id="L686"><a href="#L686" aria-label="Line 686">686</a>                    &amp;self.inspection_records,</span>
-<span id="L687"><a href="#L687" aria-label="Line 687">687</a>                    &amp;self.frame,</span>
-<span id="L688"><a href="#L688" aria-label="Line 688">688</a>                    frame,</span>
-<span id="L689"><a href="#L689" aria-label="Line 689">689</a>                    glam::Vec2::new(x, y),</span>
-<span id="L690"><a href="#L690" aria-label="Line 690">690</a>                )</span>
-<span id="L691"><a href="#L691" aria-label="Line 691">691</a>            })</span>
-<span id="L692"><a href="#L692" aria-label="Line 692">692</a>    }</span>
-<span id="L693"><a href="#L693" aria-label="Line 693">693</a>}</span>
-<span id="L694"><a href="#L694" aria-label="Line 694">694</a></span>
-<span id="L695"><a href="#L695" aria-label="Line 695">695</a>struct ParsedPly {</span>
-<span id="L696"><a href="#L696" aria-label="Line 696">696</a>    source: Vec&lt;ResearchSplat&gt;,</span>
-<span id="L697"><a href="#L697" aria-label="Line 697">697</a>    payload_offset: usize,</span>
-<span id="L698"><a href="#L698" aria-label="Line 698">698</a>    payload_end: usize,</span>
-<span id="L699"><a href="#L699" aria-label="Line 699">699</a>}</span>
-<span id="L700"><a href="#L700" aria-label="Line 700">700</a></span>
-<span id="L701"><a href="#L701" aria-label="Line 701">701</a>fn parse_stg_ply(bytes: &amp;[u8]) -&gt; Result&lt;ParsedPly, String&gt; {</span>
-<span id="L702"><a href="#L702" aria-label="Line 702">702</a>    const END_HEADER: &amp;[u8] = b&quot;end_header\n&quot;;</span>
-<span id="L703"><a href="#L703" aria-label="Line 703">703</a>    let header_start = bytes</span>
-<span id="L704"><a href="#L704" aria-label="Line 704">704</a>        .windows(END_HEADER.len())</span>
-<span id="L705"><a href="#L705" aria-label="Line 705">705</a>        .position(|window| window == END_HEADER)</span>
-<span id="L706"><a href="#L706" aria-label="Line 706">706</a>        .ok_or_else(|| &quot;PLY header is missing end_header&quot;.to_string())?;</span>
-<span id="L707"><a href="#L707" aria-label="Line 707">707</a>    let payload_offset = header_start + END_HEADER.len();</span>
-<span id="L708"><a href="#L708" aria-label="Line 708">708</a>    let header = std::str::from_utf8(&amp;bytes[..payload_offset])</span>
-<span id="L709"><a href="#L709" aria-label="Line 709">709</a>        .map_err(|_| &quot;PLY header is not UTF-8&quot;.to_string())?;</span>
-<span id="L710"><a href="#L710" aria-label="Line 710">710</a>    if !header.contains(&quot;format binary_little_endian 1.0&quot;) {</span>
-<span id="L711"><a href="#L711" aria-label="Line 711">711</a>        return Err(&quot;Expected a binary little-endian PLY&quot;.to_string());</span>
+<span id="L586"><a href="#L586" aria-label="Line 586">586</a>            wgpu::CurrentSurfaceTexture::Timeout | wgpu::CurrentSurfaceTexture::Occluded =&gt; {</span>
+<span id="L587"><a href="#L587" aria-label="Line 587">587</a>                return Ok(())</span>
+<span id="L588"><a href="#L588" aria-label="Line 588">588</a>            }</span>
+<span id="L589"><a href="#L589" aria-label="Line 589">589</a>            wgpu::CurrentSurfaceTexture::Validation =&gt; {</span>
+<span id="L590"><a href="#L590" aria-label="Line 590">590</a>                return Err(JsValue::from_str(&quot;WebGPU surface validation failed&quot;))</span>
+<span id="L591"><a href="#L591" aria-label="Line 591">591</a>            }</span>
+<span id="L592"><a href="#L592" aria-label="Line 592">592</a>        };</span>
+<span id="L593"><a href="#L593" aria-label="Line 593">593</a>        let view = frame.texture.create_view(&amp;Default::default());</span>
+<span id="L594"><a href="#L594" aria-label="Line 594">594</a>        let mut encoder = self</span>
+<span id="L595"><a href="#L595" aria-label="Line 595">595</a>            .device</span>
+<span id="L596"><a href="#L596" aria-label="Line 596">596</a>            .create_command_encoder(&amp;wgpu::CommandEncoderDescriptor {</span>
+<span id="L597"><a href="#L597" aria-label="Line 597">597</a>                label: Some(&quot;stg-frame&quot;),</span>
+<span id="L598"><a href="#L598" aria-label="Line 598">598</a>            });</span>
+<span id="L599"><a href="#L599" aria-label="Line 599">599</a>        {</span>
+<span id="L600"><a href="#L600" aria-label="Line 600">600</a>            let mut pass = encoder.begin_render_pass(&amp;wgpu::RenderPassDescriptor {</span>
+<span id="L601"><a href="#L601" aria-label="Line 601">601</a>                label: Some(&quot;stg-splats&quot;),</span>
+<span id="L602"><a href="#L602" aria-label="Line 602">602</a>                color_attachments: &amp;[Some(wgpu::RenderPassColorAttachment {</span>
+<span id="L603"><a href="#L603" aria-label="Line 603">603</a>                    view: &amp;view,</span>
+<span id="L604"><a href="#L604" aria-label="Line 604">604</a>                    resolve_target: None,</span>
+<span id="L605"><a href="#L605" aria-label="Line 605">605</a>                    depth_slice: None,</span>
+<span id="L606"><a href="#L606" aria-label="Line 606">606</a>                    ops: wgpu::Operations {</span>
+<span id="L607"><a href="#L607" aria-label="Line 607">607</a>                        load: wgpu::LoadOp::Clear(wgpu::Color {</span>
+<span id="L608"><a href="#L608" aria-label="Line 608">608</a>                            r: 0.0,</span>
+<span id="L609"><a href="#L609" aria-label="Line 609">609</a>                            g: 0.0,</span>
+<span id="L610"><a href="#L610" aria-label="Line 610">610</a>                            b: 0.0,</span>
+<span id="L611"><a href="#L611" aria-label="Line 611">611</a>                            a: 1.0,</span>
+<span id="L612"><a href="#L612" aria-label="Line 612">612</a>                        }),</span>
+<span id="L613"><a href="#L613" aria-label="Line 613">613</a>                        store: wgpu::StoreOp::Store,</span>
+<span id="L614"><a href="#L614" aria-label="Line 614">614</a>                    },</span>
+<span id="L615"><a href="#L615" aria-label="Line 615">615</a>                })],</span>
+<span id="L616"><a href="#L616" aria-label="Line 616">616</a>                depth_stencil_attachment: None,</span>
+<span id="L617"><a href="#L617" aria-label="Line 617">617</a>                timestamp_writes: self.gpu_timer.as_ref().map(|timer| {</span>
+<span id="L618"><a href="#L618" aria-label="Line 618">618</a>                    wgpu::RenderPassTimestampWrites {</span>
+<span id="L619"><a href="#L619" aria-label="Line 619">619</a>                        query_set: &amp;timer.query_set,</span>
+<span id="L620"><a href="#L620" aria-label="Line 620">620</a>                        beginning_of_pass_write_index: Some(0),</span>
+<span id="L621"><a href="#L621" aria-label="Line 621">621</a>                        end_of_pass_write_index: Some(1),</span>
+<span id="L622"><a href="#L622" aria-label="Line 622">622</a>                    }</span>
+<span id="L623"><a href="#L623" aria-label="Line 623">623</a>                }),</span>
+<span id="L624"><a href="#L624" aria-label="Line 624">624</a>                occlusion_query_set: None,</span>
+<span id="L625"><a href="#L625" aria-label="Line 625">625</a>                multiview_mask: None,</span>
+<span id="L626"><a href="#L626" aria-label="Line 626">626</a>            });</span>
+<span id="L627"><a href="#L627" aria-label="Line 627">627</a>            pass.set_pipeline(&amp;self.pipeline);</span>
+<span id="L628"><a href="#L628" aria-label="Line 628">628</a>            pass.set_bind_group(0, &amp;self.bind_group, &amp;[]);</span>
+<span id="L629"><a href="#L629" aria-label="Line 629">629</a>            pass.set_vertex_buffer(0, self.index_buffer.slice(..));</span>
+<span id="L630"><a href="#L630" aria-label="Line 630">630</a>            pass.set_viewport(viewport[0], viewport[1], viewport[2], viewport[3], 0.0, 1.0);</span>
+<span id="L631"><a href="#L631" aria-label="Line 631">631</a>            pass.draw(0..6, 0..self.telemetry.visible);</span>
+<span id="L632"><a href="#L632" aria-label="Line 632">632</a>        }</span>
+<span id="L633"><a href="#L633" aria-label="Line 633">633</a>        let mut timestamp_readback = None;</span>
+<span id="L634"><a href="#L634" aria-label="Line 634">634</a>        if let Some(timer) = self.gpu_timer.as_mut() {</span>
+<span id="L635"><a href="#L635" aria-label="Line 635">635</a>            if let Some((buffer, pending)) = timer.reserve_readback() {</span>
+<span id="L636"><a href="#L636" aria-label="Line 636">636</a>                encoder.resolve_query_set(&amp;timer.query_set, 0..2, &amp;timer.resolve_buffer, 0);</span>
+<span id="L637"><a href="#L637" aria-label="Line 637">637</a>                encoder.copy_buffer_to_buffer(</span>
+<span id="L638"><a href="#L638" aria-label="Line 638">638</a>                    &amp;timer.resolve_buffer,</span>
+<span id="L639"><a href="#L639" aria-label="Line 639">639</a>                    0,</span>
+<span id="L640"><a href="#L640" aria-label="Line 640">640</a>                    &amp;buffer,</span>
+<span id="L641"><a href="#L641" aria-label="Line 641">641</a>                    0,</span>
+<span id="L642"><a href="#L642" aria-label="Line 642">642</a>                    GPU_TIMESTAMP_BYTES,</span>
+<span id="L643"><a href="#L643" aria-label="Line 643">643</a>                );</span>
+<span id="L644"><a href="#L644" aria-label="Line 644">644</a>                timestamp_readback = Some((</span>
+<span id="L645"><a href="#L645" aria-label="Line 645">645</a>                    buffer,</span>
+<span id="L646"><a href="#L646" aria-label="Line 646">646</a>                    pending,</span>
+<span id="L647"><a href="#L647" aria-label="Line 647">647</a>                    timer.latest_ms_bits.clone(),</span>
+<span id="L648"><a href="#L648" aria-label="Line 648">648</a>                    timer.timestamp_period_ns,</span>
+<span id="L649"><a href="#L649" aria-label="Line 649">649</a>                ));</span>
+<span id="L650"><a href="#L650" aria-label="Line 650">650</a>            }</span>
+<span id="L651"><a href="#L651" aria-label="Line 651">651</a>        }</span>
+<span id="L652"><a href="#L652" aria-label="Line 652">652</a>        self.queue.submit([encoder.finish()]);</span>
+<span id="L653"><a href="#L653" aria-label="Line 653">653</a>        if let Some((buffer, pending, latest_ms_bits, timestamp_period_ns)) = timestamp_readback {</span>
+<span id="L654"><a href="#L654" aria-label="Line 654">654</a>            let callback_buffer = buffer.clone();</span>
+<span id="L655"><a href="#L655" aria-label="Line 655">655</a>            buffer</span>
+<span id="L656"><a href="#L656" aria-label="Line 656">656</a>                .slice(..GPU_TIMESTAMP_BYTES)</span>
+<span id="L657"><a href="#L657" aria-label="Line 657">657</a>                .map_async(wgpu::MapMode::Read, move |result| {</span>
+<span id="L658"><a href="#L658" aria-label="Line 658">658</a>                    if result.is_ok() {</span>
+<span id="L659"><a href="#L659" aria-label="Line 659">659</a>                        let mapped_result = callback_buffer</span>
+<span id="L660"><a href="#L660" aria-label="Line 660">660</a>                            .slice(..GPU_TIMESTAMP_BYTES)</span>
+<span id="L661"><a href="#L661" aria-label="Line 661">661</a>                            .get_mapped_range();</span>
+<span id="L662"><a href="#L662" aria-label="Line 662">662</a>                        if let Ok(mapped) = mapped_result {</span>
+<span id="L663"><a href="#L663" aria-label="Line 663">663</a>                            let begin = u64::from_le_bytes(mapped[0..8].try_into().unwrap());</span>
+<span id="L664"><a href="#L664" aria-label="Line 664">664</a>                            let end = u64::from_le_bytes(mapped[8..16].try_into().unwrap());</span>
+<span id="L665"><a href="#L665" aria-label="Line 665">665</a>                            if end &gt;= begin {</span>
+<span id="L666"><a href="#L666" aria-label="Line 666">666</a>                                let elapsed_ms =</span>
+<span id="L667"><a href="#L667" aria-label="Line 667">667</a>                                    (end - begin) as f64 * timestamp_period_ns / 1_000_000.0;</span>
+<span id="L668"><a href="#L668" aria-label="Line 668">668</a>                                latest_ms_bits.store(elapsed_ms.to_bits(), AtomicOrdering::Relaxed);</span>
+<span id="L669"><a href="#L669" aria-label="Line 669">669</a>                            }</span>
+<span id="L670"><a href="#L670" aria-label="Line 670">670</a>                            drop(mapped);</span>
+<span id="L671"><a href="#L671" aria-label="Line 671">671</a>                        }</span>
+<span id="L672"><a href="#L672" aria-label="Line 672">672</a>                        callback_buffer.unmap();</span>
+<span id="L673"><a href="#L673" aria-label="Line 673">673</a>                    }</span>
+<span id="L674"><a href="#L674" aria-label="Line 674">674</a>                    pending.store(false, AtomicOrdering::Relaxed);</span>
+<span id="L675"><a href="#L675" aria-label="Line 675">675</a>                });</span>
+<span id="L676"><a href="#L676" aria-label="Line 676">676</a>        }</span>
+<span id="L677"><a href="#L677" aria-label="Line 677">677</a>        self.queue.present(frame);</span>
+<span id="L678"><a href="#L678" aria-label="Line 678">678</a>        self.last_presented = Some(presented_key);</span>
+<span id="L679"><a href="#L679" aria-label="Line 679">679</a>        self.submitted_frames = self.submitted_frames.wrapping_add(1);</span>
+<span id="L680"><a href="#L680" aria-label="Line 680">680</a>        self.inspection_frame = Some(inspection_frame);</span>
+<span id="L681"><a href="#L681" aria-label="Line 681">681</a>        Ok(())</span>
+<span id="L682"><a href="#L682" aria-label="Line 682">682</a>    }</span>
+<span id="L683"><a href="#L683" aria-label="Line 683">683</a></span>
+<span id="L684"><a href="#L684" aria-label="Line 684">684</a>    /// Hosts with external canvas invalidation may request an explicit redraw.</span>
+<span id="L685"><a href="#L685" aria-label="Line 685">685</a>    #[wasm_bindgen(js_name = invalidate)]</span>
+<span id="L686"><a href="#L686" aria-label="Line 686">686</a>    pub fn invalidate(&amp;mut self) {</span>
+<span id="L687"><a href="#L687" aria-label="Line 687">687</a>        self.last_presented = None;</span>
+<span id="L688"><a href="#L688" aria-label="Line 688">688</a>    }</span>
+<span id="L689"><a href="#L689" aria-label="Line 689">689</a>    #[wasm_bindgen(js_name = setRenderOnDemand)]</span>
+<span id="L690"><a href="#L690" aria-label="Line 690">690</a>    pub fn set_render_on_demand(&amp;mut self, enabled: bool) {</span>
+<span id="L691"><a href="#L691" aria-label="Line 691">691</a>        self.render_on_demand = enabled;</span>
+<span id="L692"><a href="#L692" aria-label="Line 692">692</a>        self.invalidate();</span>
+<span id="L693"><a href="#L693" aria-label="Line 693">693</a>    }</span>
+<span id="L694"><a href="#L694" aria-label="Line 694">694</a>    #[wasm_bindgen(getter, js_name = submittedFrames)]</span>
+<span id="L695"><a href="#L695" aria-label="Line 695">695</a>    pub fn submitted_frames(&amp;self) -&gt; u32 {</span>
+<span id="L696"><a href="#L696" aria-label="Line 696">696</a>        self.submitted_frames</span>
+<span id="L697"><a href="#L697" aria-label="Line 697">697</a>    }</span>
+<span id="L698"><a href="#L698" aria-label="Line 698">698</a></span>
+<span id="L699"><a href="#L699" aria-label="Line 699">699</a>    #[wasm_bindgen(getter, js_name = prepareMs)]</span>
+<span id="L700"><a href="#L700" aria-label="Line 700">700</a>    pub fn prepare_ms(&amp;self) -&gt; f64 {</span>
+<span id="L701"><a href="#L701" aria-label="Line 701">701</a>        self.telemetry.prepare_ms</span>
+<span id="L702"><a href="#L702" aria-label="Line 702">702</a>    }</span>
+<span id="L703"><a href="#L703" aria-label="Line 703">703</a></span>
+<span id="L704"><a href="#L704" aria-label="Line 704">704</a>    #[wasm_bindgen(getter, js_name = sortMs)]</span>
+<span id="L705"><a href="#L705" aria-label="Line 705">705</a>    pub fn sort_ms(&amp;self) -&gt; f64 {</span>
+<span id="L706"><a href="#L706" aria-label="Line 706">706</a>        self.telemetry.sort_ms</span>
+<span id="L707"><a href="#L707" aria-label="Line 707">707</a>    }</span>
+<span id="L708"><a href="#L708" aria-label="Line 708">708</a></span>
+<span id="L709"><a href="#L709" aria-label="Line 709">709</a>    #[wasm_bindgen(getter)]</span>
+<span id="L710"><a href="#L710" aria-label="Line 710">710</a>    pub fn visible(&amp;self) -&gt; u32 {</span>
+<span id="L711"><a href="#L711" aria-label="Line 711">711</a>        self.telemetry.visible</span>
 <span id="L712"><a href="#L712" aria-label="Line 712">712</a>    }</span>
-<span id="L713"><a href="#L713" aria-label="Line 713">713</a>    let count = header</span>
-<span id="L714"><a href="#L714" aria-label="Line 714">714</a>        .lines()</span>
-<span id="L715"><a href="#L715" aria-label="Line 715">715</a>        .find_map(|line| line.strip_prefix(&quot;element vertex &quot;))</span>
-<span id="L716"><a href="#L716" aria-label="Line 716">716</a>        .ok_or_else(|| &quot;PLY vertex count is missing&quot;.to_string())?</span>
-<span id="L717"><a href="#L717" aria-label="Line 717">717</a>        .parse::&lt;usize&gt;()</span>
-<span id="L718"><a href="#L718" aria-label="Line 718">718</a>        .map_err(|_| &quot;PLY vertex count is invalid&quot;.to_string())?;</span>
-<span id="L719"><a href="#L719" aria-label="Line 719">719</a>    let properties: Vec&lt;_&gt; = header</span>
-<span id="L720"><a href="#L720" aria-label="Line 720">720</a>        .lines()</span>
-<span id="L721"><a href="#L721" aria-label="Line 721">721</a>        .filter_map(|line| line.strip_prefix(&quot;property float &quot;))</span>
-<span id="L722"><a href="#L722" aria-label="Line 722">722</a>        .collect();</span>
-<span id="L723"><a href="#L723" aria-label="Line 723">723</a>    if properties.len() != FLOATS_PER_SPLAT {</span>
-<span id="L724"><a href="#L724" aria-label="Line 724">724</a>        return Err(format!(</span>
-<span id="L725"><a href="#L725" aria-label="Line 725">725</a>            &quot;Expected the 32-field STG-Lite layout, found {} fields&quot;,</span>
-<span id="L726"><a href="#L726" aria-label="Line 726">726</a>            properties.len()</span>
-<span id="L727"><a href="#L727" aria-label="Line 727">727</a>        ));</span>
-<span id="L728"><a href="#L728" aria-label="Line 728">728</a>    }</span>
-<span id="L729"><a href="#L729" aria-label="Line 729">729</a>    for (index, (actual, expected)) in properties.iter().zip(STG_PROPERTIES).enumerate() {</span>
-<span id="L730"><a href="#L730" aria-label="Line 730">730</a>        if *actual != expected {</span>
-<span id="L731"><a href="#L731" aria-label="Line 731">731</a>            return Err(format!(</span>
-<span id="L732"><a href="#L732" aria-label="Line 732">732</a>                &quot;STG-Lite field {index} must be {expected}, found {actual}&quot;</span>
-<span id="L733"><a href="#L733" aria-label="Line 733">733</a>            ));</span>
-<span id="L734"><a href="#L734" aria-label="Line 734">734</a>        }</span>
+<span id="L713"><a href="#L713" aria-label="Line 713">713</a></span>
+<span id="L714"><a href="#L714" aria-label="Line 714">714</a>    #[wasm_bindgen(getter, js_name = uploadBytes)]</span>
+<span id="L715"><a href="#L715" aria-label="Line 715">715</a>    pub fn upload_bytes(&amp;self) -&gt; u32 {</span>
+<span id="L716"><a href="#L716" aria-label="Line 716">716</a>        self.telemetry.upload_bytes</span>
+<span id="L717"><a href="#L717" aria-label="Line 717">717</a>    }</span>
+<span id="L718"><a href="#L718" aria-label="Line 718">718</a></span>
+<span id="L719"><a href="#L719" aria-label="Line 719">719</a>    #[wasm_bindgen(getter, js_name = gpuRenderMs)]</span>
+<span id="L720"><a href="#L720" aria-label="Line 720">720</a>    pub fn gpu_render_ms(&amp;self) -&gt; f64 {</span>
+<span id="L721"><a href="#L721" aria-label="Line 721">721</a>        self.gpu_timer</span>
+<span id="L722"><a href="#L722" aria-label="Line 722">722</a>            .as_ref()</span>
+<span id="L723"><a href="#L723" aria-label="Line 723">723</a>            .map(|timer| f64::from_bits(timer.latest_ms_bits.load(AtomicOrdering::Relaxed)))</span>
+<span id="L724"><a href="#L724" aria-label="Line 724">724</a>            .unwrap_or(-1.0)</span>
+<span id="L725"><a href="#L725" aria-label="Line 725">725</a>    }</span>
+<span id="L726"><a href="#L726" aria-label="Line 726">726</a></span>
+<span id="L727"><a href="#L727" aria-label="Line 727">727</a>    #[wasm_bindgen(getter, js_name = gpuTimingSupported)]</span>
+<span id="L728"><a href="#L728" aria-label="Line 728">728</a>    pub fn gpu_timing_supported(&amp;self) -&gt; bool {</span>
+<span id="L729"><a href="#L729" aria-label="Line 729">729</a>        self.gpu_timer.is_some()</span>
+<span id="L730"><a href="#L730" aria-label="Line 730">730</a>    }</span>
+<span id="L731"><a href="#L731" aria-label="Line 731">731</a></span>
+<span id="L732"><a href="#L732" aria-label="Line 732">732</a>    #[wasm_bindgen(getter, js_name = adapterName)]</span>
+<span id="L733"><a href="#L733" aria-label="Line 733">733</a>    pub fn adapter_name(&amp;self) -&gt; String {</span>
+<span id="L734"><a href="#L734" aria-label="Line 734">734</a>        self.adapter_name.clone()</span>
 <span id="L735"><a href="#L735" aria-label="Line 735">735</a>    }</span>
-<span id="L736"><a href="#L736" aria-label="Line 736">736</a>    if count == 0 || count &gt; MAX_SPLATS {</span>
-<span id="L737"><a href="#L737" aria-label="Line 737">737</a>        return Err(format!(</span>
-<span id="L738"><a href="#L738" aria-label="Line 738">738</a>            &quot;Expected 1..={MAX_SPLATS} STG-Lite splats, found {count}&quot;</span>
-<span id="L739"><a href="#L739" aria-label="Line 739">739</a>        ));</span>
+<span id="L736"><a href="#L736" aria-label="Line 736">736</a></span>
+<span id="L737"><a href="#L737" aria-label="Line 737">737</a>    #[wasm_bindgen(getter, js_name = sourceCount)]</span>
+<span id="L738"><a href="#L738" aria-label="Line 738">738</a>    pub fn source_count(&amp;self) -&gt; u32 {</span>
+<span id="L739"><a href="#L739" aria-label="Line 739">739</a>        self.preparation.len() as u32</span>
 <span id="L740"><a href="#L740" aria-label="Line 740">740</a>    }</span>
-<span id="L741"><a href="#L741" aria-label="Line 741">741</a>    let payload_end = count</span>
-<span id="L742"><a href="#L742" aria-label="Line 742">742</a>        .checked_mul(BYTES_PER_SPLAT)</span>
-<span id="L743"><a href="#L743" aria-label="Line 743">743</a>        .and_then(|length| payload_offset.checked_add(length))</span>
-<span id="L744"><a href="#L744" aria-label="Line 744">744</a>        .ok_or_else(|| &quot;PLY payload length overflowed&quot;.to_string())?;</span>
-<span id="L745"><a href="#L745" aria-label="Line 745">745</a>    if payload_end &gt; bytes.len() {</span>
-<span id="L746"><a href="#L746" aria-label="Line 746">746</a>        return Err(&quot;PLY payload is truncated&quot;.to_string());</span>
+<span id="L741"><a href="#L741" aria-label="Line 741">741</a></span>
+<span id="L742"><a href="#L742" aria-label="Line 742">742</a>    #[wasm_bindgen(js_name = splatRecord)]</span>
+<span id="L743"><a href="#L743" aria-label="Line 743">743</a>    pub fn splat_record(&amp;self, id: u32) -&gt; Vec&lt;f32&gt; {</span>
+<span id="L744"><a href="#L744" aria-label="Line 744">744</a>        self.inspection_records</span>
+<span id="L745"><a href="#L745" aria-label="Line 745">745</a>            .get(id as usize)</span>
+<span id="L746"><a href="#L746" aria-label="Line 746">746</a>            .map_or_else(Vec::new, |r| r.to_vec())</span>
 <span id="L747"><a href="#L747" aria-label="Line 747">747</a>    }</span>
 <span id="L748"><a href="#L748" aria-label="Line 748">748</a></span>
-<span id="L749"><a href="#L749" aria-label="Line 749">749</a>    let payload = &amp;bytes[payload_offset..payload_end];</span>
-<span id="L750"><a href="#L750" aria-label="Line 750">750</a>    let mut source = Vec::with_capacity(count);</span>
-<span id="L751"><a href="#L751" aria-label="Line 751">751</a>    for (index, record) in payload.chunks_exact(BYTES_PER_SPLAT).enumerate() {</span>
-<span id="L752"><a href="#L752" aria-label="Line 752">752</a>        let value = |index: usize| {</span>
-<span id="L753"><a href="#L753" aria-label="Line 753">753</a>            let offset = index * 4;</span>
-<span id="L754"><a href="#L754" aria-label="Line 754">754</a>            f32::from_le_bytes(record[offset..offset + 4].try_into().unwrap())</span>
-<span id="L755"><a href="#L755" aria-label="Line 755">755</a>        };</span>
-<span id="L756"><a href="#L756" aria-label="Line 756">756</a>        if (0..FLOATS_PER_SPLAT).any(|field| !value(field).is_finite()) {</span>
-<span id="L757"><a href="#L757" aria-label="Line 757">757</a>            return Err(format!(</span>
-<span id="L758"><a href="#L758" aria-label="Line 758">758</a>                &quot;STG-Lite record {index} contains a non-finite value&quot;</span>
-<span id="L759"><a href="#L759" aria-label="Line 759">759</a>            ));</span>
-<span id="L760"><a href="#L760" aria-label="Line 760">760</a>        }</span>
-<span id="L761"><a href="#L761" aria-label="Line 761">761</a>        if [4, 21, 22, 23]</span>
-<span id="L762"><a href="#L762" aria-label="Line 762">762</a>            .iter()</span>
-<span id="L763"><a href="#L763" aria-label="Line 763">763</a>            .any(|&amp;field| !value(field).exp().is_finite())</span>
-<span id="L764"><a href="#L764" aria-label="Line 764">764</a>        {</span>
-<span id="L765"><a href="#L765" aria-label="Line 765">765</a>            return Err(format!(</span>
-<span id="L766"><a href="#L766" aria-label="Line 766">766</a>                &quot;STG-Lite record {index} has an overflowing log scale&quot;</span>
-<span id="L767"><a href="#L767" aria-label="Line 767">767</a>            ));</span>
-<span id="L768"><a href="#L768" aria-label="Line 768">768</a>        }</span>
-<span id="L769"><a href="#L769" aria-label="Line 769">769</a>        source.push(ResearchSplat {</span>
-<span id="L770"><a href="#L770" aria-label="Line 770">770</a>            base: Vec3::new(value(0), value(1), value(2)),</span>
-<span id="L771"><a href="#L771" aria-label="Line 771">771</a>            temporal_center: value(3),</span>
-<span id="L772"><a href="#L772" aria-label="Line 772">772</a>            temporal_scale: value(4).exp().max(1e-6),</span>
-<span id="L773"><a href="#L773" aria-label="Line 773">773</a>            motion_linear: Vec3::new(value(8), value(9), value(10)),</span>
-<span id="L774"><a href="#L774" aria-label="Line 774">774</a>            motion_quadratic: Vec3::new(value(11), value(12), value(13)),</span>
-<span id="L775"><a href="#L775" aria-label="Line 775">775</a>            motion_cubic: Vec3::new(value(14), value(15), value(16)),</span>
-<span id="L776"><a href="#L776" aria-label="Line 776">776</a>            opacity_logit: value(20),</span>
-<span id="L777"><a href="#L777" aria-label="Line 777">777</a>        });</span>
-<span id="L778"><a href="#L778" aria-label="Line 778">778</a>    }</span>
-<span id="L779"><a href="#L779" aria-label="Line 779">779</a>    Ok(ParsedPly {</span>
-<span id="L780"><a href="#L780" aria-label="Line 780">780</a>        source,</span>
-<span id="L781"><a href="#L781" aria-label="Line 781">781</a>        payload_offset,</span>
-<span id="L782"><a href="#L782" aria-label="Line 782">782</a>        payload_end,</span>
-<span id="L783"><a href="#L783" aria-label="Line 783">783</a>    })</span>
-<span id="L784"><a href="#L784" aria-label="Line 784">784</a>}</span>
-<span id="L785"><a href="#L785" aria-label="Line 785">785</a></span>
-<span id="L786"><a href="#L786" aria-label="Line 786">786</a>fn sigmoid(value: f32) -&gt; f32 {</span>
-<span id="L787"><a href="#L787" aria-label="Line 787">787</a>    1.0 / (1.0 + (-value).exp())</span>
-<span id="L788"><a href="#L788" aria-label="Line 788">788</a>}</span>
-<span id="L789"><a href="#L789" aria-label="Line 789">789</a></span>
-<span id="L790"><a href="#L790" aria-label="Line 790">790</a>fn js_error(error: impl std::fmt::Display) -&gt; JsValue {</span>
-<span id="L791"><a href="#L791" aria-label="Line 791">791</a>    JsValue::from_str(&amp;error.to_string())</span>
-<span id="L792"><a href="#L792" aria-label="Line 792">792</a>}</span>
-<span id="L793"><a href="#L793" aria-label="Line 793">793</a></span>
-<span id="L794"><a href="#L794" aria-label="Line 794">794</a>#[cfg(test)]</span>
-<span id="L795"><a href="#L795" aria-label="Line 795">795</a>mod tests {</span>
-<span id="L796"><a href="#L796" aria-label="Line 796">796</a>    use super::*;</span>
-<span id="L797"><a href="#L797" aria-label="Line 797">797</a></span>
-<span id="L798"><a href="#L798" aria-label="Line 798">798</a>    fn fixture_ply() -&gt; Vec&lt;u8&gt; {</span>
-<span id="L799"><a href="#L799" aria-label="Line 799">799</a>        let mut bytes = b&quot;ply\nformat binary_little_endian 1.0\nelement vertex 1\n&quot;.to_vec();</span>
-<span id="L800"><a href="#L800" aria-label="Line 800">800</a>        for property in STG_PROPERTIES {</span>
-<span id="L801"><a href="#L801" aria-label="Line 801">801</a>            bytes.extend_from_slice(format!(&quot;property float {property}\n&quot;).as_bytes());</span>
-<span id="L802"><a href="#L802" aria-label="Line 802">802</a>        }</span>
-<span id="L803"><a href="#L803" aria-label="Line 803">803</a>        bytes.extend_from_slice(b&quot;end_header\n&quot;);</span>
-<span id="L804"><a href="#L804" aria-label="Line 804">804</a>        let mut values = [0.0_f32; FLOATS_PER_SPLAT];</span>
-<span id="L805"><a href="#L805" aria-label="Line 805">805</a>        values[0] = 1.0;</span>
-<span id="L806"><a href="#L806" aria-label="Line 806">806</a>        values[1] = 2.0;</span>
-<span id="L807"><a href="#L807" aria-label="Line 807">807</a>        values[2] = 3.0;</span>
-<span id="L808"><a href="#L808" aria-label="Line 808">808</a>        values[4] = 0.0;</span>
-<span id="L809"><a href="#L809" aria-label="Line 809">809</a>        values[8] = 2.0;</span>
-<span id="L810"><a href="#L810" aria-label="Line 810">810</a>        values[20] = 0.0;</span>
-<span id="L811"><a href="#L811" aria-label="Line 811">811</a>        for value in values {</span>
-<span id="L812"><a href="#L812" aria-label="Line 812">812</a>            bytes.extend_from_slice(&amp;value.to_le_bytes());</span>
-<span id="L813"><a href="#L813" aria-label="Line 813">813</a>        }</span>
-<span id="L814"><a href="#L814" aria-label="Line 814">814</a>        bytes</span>
-<span id="L815"><a href="#L815" aria-label="Line 815">815</a>    }</span>
-<span id="L816"><a href="#L816" aria-label="Line 816">816</a></span>
-<span id="L817"><a href="#L817" aria-label="Line 817">817</a>    #[test]</span>
-<span id="L818"><a href="#L818" aria-label="Line 818">818</a>    fn parses_the_official_stg_lite_record_shape() {</span>
-<span id="L819"><a href="#L819" aria-label="Line 819">819</a>        let parsed = parse_stg_ply(&amp;fixture_ply()).unwrap();</span>
-<span id="L820"><a href="#L820" aria-label="Line 820">820</a>        assert_eq!(parsed.source.len(), 1);</span>
-<span id="L821"><a href="#L821" aria-label="Line 821">821</a>        let (position, opacity) = parsed.source[0].sample(0.5);</span>
-<span id="L822"><a href="#L822" aria-label="Line 822">822</a>        assert_eq!(position, Vec3::new(2.0, 2.0, 3.0));</span>
-<span id="L823"><a href="#L823" aria-label="Line 823">823</a>        assert!(opacity &gt; 0.38 &amp;&amp; opacity &lt; 0.40);</span>
-<span id="L824"><a href="#L824" aria-label="Line 824">824</a>    }</span>
-<span id="L825"><a href="#L825" aria-label="Line 825">825</a></span>
-<span id="L826"><a href="#L826" aria-label="Line 826">826</a>    #[test]</span>
-<span id="L827"><a href="#L827" aria-label="Line 827">827</a>    fn rejects_an_unrelated_ply_layout() {</span>
-<span id="L828"><a href="#L828" aria-label="Line 828">828</a>        let bytes = b&quot;ply\nformat binary_little_endian 1.0\nelement vertex 0\nend_header\n&quot;;</span>
-<span id="L829"><a href="#L829" aria-label="Line 829">829</a>        assert!(parse_stg_ply(bytes).is_err());</span>
-<span id="L830"><a href="#L830" aria-label="Line 830">830</a>    }</span>
-<span id="L831"><a href="#L831" aria-label="Line 831">831</a></span>
-<span id="L832"><a href="#L832" aria-label="Line 832">832</a>    #[test]</span>
-<span id="L833"><a href="#L833" aria-label="Line 833">833</a>    fn rejects_a_reordered_stg_layout() {</span>
-<span id="L834"><a href="#L834" aria-label="Line 834">834</a>        let mut bytes = fixture_ply();</span>
-<span id="L835"><a href="#L835" aria-label="Line 835">835</a>        let x = bytes</span>
-<span id="L836"><a href="#L836" aria-label="Line 836">836</a>            .windows(b&quot;property float x\n&quot;.len())</span>
-<span id="L837"><a href="#L837" aria-label="Line 837">837</a>            .position(|window| window == b&quot;property float x\n&quot;)</span>
-<span id="L838"><a href="#L838" aria-label="Line 838">838</a>            .unwrap();</span>
-<span id="L839"><a href="#L839" aria-label="Line 839">839</a>        bytes[x + &quot;property float &quot;.len()] = b'q';</span>
-<span id="L840"><a href="#L840" aria-label="Line 840">840</a>        assert!(parse_stg_ply(&amp;bytes).is_err());</span>
-<span id="L841"><a href="#L841" aria-label="Line 841">841</a>    }</span>
-<span id="L842"><a href="#L842" aria-label="Line 842">842</a></span>
-<span id="L843"><a href="#L843" aria-label="Line 843">843</a>    #[test]</span>
-<span id="L844"><a href="#L844" aria-label="Line 844">844</a>    fn rejects_non_finite_attributes_and_oversized_counts_before_allocation() {</span>
-<span id="L845"><a href="#L845" aria-label="Line 845">845</a>        let mut bytes = fixture_ply();</span>
-<span id="L846"><a href="#L846" aria-label="Line 846">846</a>        let offset = parse_stg_ply(&amp;bytes).unwrap().payload_offset;</span>
-<span id="L847"><a href="#L847" aria-label="Line 847">847</a>        bytes[offset..offset + 4].copy_from_slice(&amp;f32::NAN.to_le_bytes());</span>
-<span id="L848"><a href="#L848" aria-label="Line 848">848</a>        assert!(matches!(parse_stg_ply(&amp;bytes), Err(message) if message.contains(&quot;non-finite&quot;)));</span>
-<span id="L849"><a href="#L849" aria-label="Line 849">849</a>        let bytes = fixture_ply();</span>
-<span id="L850"><a href="#L850" aria-label="Line 850">850</a>        let header = String::from_utf8_lossy(&amp;bytes[..offset])</span>
-<span id="L851"><a href="#L851" aria-label="Line 851">851</a>            .replace(&quot;element vertex 1&quot;, &quot;element vertex 18446744073709551615&quot;);</span>
-<span id="L852"><a href="#L852" aria-label="Line 852">852</a>        assert!(parse_stg_ply(header.as_bytes()).is_err());</span>
-<span id="L853"><a href="#L853" aria-label="Line 853">853</a>    }</span>
-<span id="L854"><a href="#L854" aria-label="Line 854">854</a>}</span>
-<span id="L855"><a href="#L855" aria-label="Line 855">855</a></span></code></pre></main></body></html>
+<span id="L749"><a href="#L749" aria-label="Line 749">749</a>    #[wasm_bindgen(js_name = inspectSplat)]</span>
+<span id="L750"><a href="#L750" aria-label="Line 750">750</a>    pub fn inspect_splat(&amp;self, id: u32) -&gt; Vec&lt;f32&gt; {</span>
+<span id="L751"><a href="#L751" aria-label="Line 751">751</a>        match (</span>
+<span id="L752"><a href="#L752" aria-label="Line 752">752</a>            self.inspection_records.get(id as usize),</span>
+<span id="L753"><a href="#L753" aria-label="Line 753">753</a>            self.inspection_frame.as_ref(),</span>
+<span id="L754"><a href="#L754" aria-label="Line 754">754</a>        ) {</span>
+<span id="L755"><a href="#L755" aria-label="Line 755">755</a>            (Some(row), Some(frame)) =&gt; {</span>
+<span id="L756"><a href="#L756" aria-label="Line 756">756</a>                inspection::project(row, frame).map_or_else(Vec::new, |s| s.pack(frame))</span>
+<span id="L757"><a href="#L757" aria-label="Line 757">757</a>            }</span>
+<span id="L758"><a href="#L758" aria-label="Line 758">758</a>            _ =&gt; vec![],</span>
+<span id="L759"><a href="#L759" aria-label="Line 759">759</a>        }</span>
+<span id="L760"><a href="#L760" aria-label="Line 760">760</a>    }</span>
+<span id="L761"><a href="#L761" aria-label="Line 761">761</a></span>
+<span id="L762"><a href="#L762" aria-label="Line 762">762</a>    #[wasm_bindgen(js_name = pickSplats)]</span>
+<span id="L763"><a href="#L763" aria-label="Line 763">763</a>    pub fn pick_splats(&amp;self, x: f32, y: f32) -&gt; Vec&lt;f32&gt; {</span>
+<span id="L764"><a href="#L764" aria-label="Line 764">764</a>        self.inspection_frame</span>
+<span id="L765"><a href="#L765" aria-label="Line 765">765</a>            .as_ref()</span>
+<span id="L766"><a href="#L766" aria-label="Line 766">766</a>            .map_or_else(Vec::new, |frame| {</span>
+<span id="L767"><a href="#L767" aria-label="Line 767">767</a>                inspection::pick(</span>
+<span id="L768"><a href="#L768" aria-label="Line 768">768</a>                    &amp;self.inspection_records,</span>
+<span id="L769"><a href="#L769" aria-label="Line 769">769</a>                    self.preparation.ordered(),</span>
+<span id="L770"><a href="#L770" aria-label="Line 770">770</a>                    frame,</span>
+<span id="L771"><a href="#L771" aria-label="Line 771">771</a>                    glam::Vec2::new(x, y),</span>
+<span id="L772"><a href="#L772" aria-label="Line 772">772</a>                )</span>
+<span id="L773"><a href="#L773" aria-label="Line 773">773</a>            })</span>
+<span id="L774"><a href="#L774" aria-label="Line 774">774</a>    }</span>
+<span id="L775"><a href="#L775" aria-label="Line 775">775</a>}</span>
+<span id="L776"><a href="#L776" aria-label="Line 776">776</a></span>
+<span id="L777"><a href="#L777" aria-label="Line 777">777</a>struct ParsedPly {</span>
+<span id="L778"><a href="#L778" aria-label="Line 778">778</a>    source: Vec&lt;ResearchSplat&gt;,</span>
+<span id="L779"><a href="#L779" aria-label="Line 779">779</a>    payload_offset: usize,</span>
+<span id="L780"><a href="#L780" aria-label="Line 780">780</a>    payload_end: usize,</span>
+<span id="L781"><a href="#L781" aria-label="Line 781">781</a>}</span>
+<span id="L782"><a href="#L782" aria-label="Line 782">782</a></span>
+<span id="L783"><a href="#L783" aria-label="Line 783">783</a>fn parse_stg_ply(bytes: &amp;[u8]) -&gt; Result&lt;ParsedPly, String&gt; {</span>
+<span id="L784"><a href="#L784" aria-label="Line 784">784</a>    const END_HEADER: &amp;[u8] = b&quot;end_header\n&quot;;</span>
+<span id="L785"><a href="#L785" aria-label="Line 785">785</a>    let header_start = bytes</span>
+<span id="L786"><a href="#L786" aria-label="Line 786">786</a>        .windows(END_HEADER.len())</span>
+<span id="L787"><a href="#L787" aria-label="Line 787">787</a>        .position(|window| window == END_HEADER)</span>
+<span id="L788"><a href="#L788" aria-label="Line 788">788</a>        .ok_or_else(|| &quot;PLY header is missing end_header&quot;.to_string())?;</span>
+<span id="L789"><a href="#L789" aria-label="Line 789">789</a>    let payload_offset = header_start + END_HEADER.len();</span>
+<span id="L790"><a href="#L790" aria-label="Line 790">790</a>    let header = std::str::from_utf8(&amp;bytes[..payload_offset])</span>
+<span id="L791"><a href="#L791" aria-label="Line 791">791</a>        .map_err(|_| &quot;PLY header is not UTF-8&quot;.to_string())?;</span>
+<span id="L792"><a href="#L792" aria-label="Line 792">792</a>    if !header.contains(&quot;format binary_little_endian 1.0&quot;) {</span>
+<span id="L793"><a href="#L793" aria-label="Line 793">793</a>        return Err(&quot;Expected a binary little-endian PLY&quot;.to_string());</span>
+<span id="L794"><a href="#L794" aria-label="Line 794">794</a>    }</span>
+<span id="L795"><a href="#L795" aria-label="Line 795">795</a>    let count = header</span>
+<span id="L796"><a href="#L796" aria-label="Line 796">796</a>        .lines()</span>
+<span id="L797"><a href="#L797" aria-label="Line 797">797</a>        .find_map(|line| line.strip_prefix(&quot;element vertex &quot;))</span>
+<span id="L798"><a href="#L798" aria-label="Line 798">798</a>        .ok_or_else(|| &quot;PLY vertex count is missing&quot;.to_string())?</span>
+<span id="L799"><a href="#L799" aria-label="Line 799">799</a>        .parse::&lt;usize&gt;()</span>
+<span id="L800"><a href="#L800" aria-label="Line 800">800</a>        .map_err(|_| &quot;PLY vertex count is invalid&quot;.to_string())?;</span>
+<span id="L801"><a href="#L801" aria-label="Line 801">801</a>    let properties: Vec&lt;_&gt; = header</span>
+<span id="L802"><a href="#L802" aria-label="Line 802">802</a>        .lines()</span>
+<span id="L803"><a href="#L803" aria-label="Line 803">803</a>        .filter_map(|line| line.strip_prefix(&quot;property float &quot;))</span>
+<span id="L804"><a href="#L804" aria-label="Line 804">804</a>        .collect();</span>
+<span id="L805"><a href="#L805" aria-label="Line 805">805</a>    if properties.len() != FLOATS_PER_SPLAT {</span>
+<span id="L806"><a href="#L806" aria-label="Line 806">806</a>        return Err(format!(</span>
+<span id="L807"><a href="#L807" aria-label="Line 807">807</a>            &quot;Expected the 32-field STG-Lite layout, found {} fields&quot;,</span>
+<span id="L808"><a href="#L808" aria-label="Line 808">808</a>            properties.len()</span>
+<span id="L809"><a href="#L809" aria-label="Line 809">809</a>        ));</span>
+<span id="L810"><a href="#L810" aria-label="Line 810">810</a>    }</span>
+<span id="L811"><a href="#L811" aria-label="Line 811">811</a>    for (index, (actual, expected)) in properties.iter().zip(STG_PROPERTIES).enumerate() {</span>
+<span id="L812"><a href="#L812" aria-label="Line 812">812</a>        if *actual != expected {</span>
+<span id="L813"><a href="#L813" aria-label="Line 813">813</a>            return Err(format!(</span>
+<span id="L814"><a href="#L814" aria-label="Line 814">814</a>                &quot;STG-Lite field {index} must be {expected}, found {actual}&quot;</span>
+<span id="L815"><a href="#L815" aria-label="Line 815">815</a>            ));</span>
+<span id="L816"><a href="#L816" aria-label="Line 816">816</a>        }</span>
+<span id="L817"><a href="#L817" aria-label="Line 817">817</a>    }</span>
+<span id="L818"><a href="#L818" aria-label="Line 818">818</a>    if count == 0 || count &gt; MAX_SPLATS {</span>
+<span id="L819"><a href="#L819" aria-label="Line 819">819</a>        return Err(format!(</span>
+<span id="L820"><a href="#L820" aria-label="Line 820">820</a>            &quot;Expected 1..={MAX_SPLATS} STG-Lite splats, found {count}&quot;</span>
+<span id="L821"><a href="#L821" aria-label="Line 821">821</a>        ));</span>
+<span id="L822"><a href="#L822" aria-label="Line 822">822</a>    }</span>
+<span id="L823"><a href="#L823" aria-label="Line 823">823</a>    let payload_end = count</span>
+<span id="L824"><a href="#L824" aria-label="Line 824">824</a>        .checked_mul(BYTES_PER_SPLAT)</span>
+<span id="L825"><a href="#L825" aria-label="Line 825">825</a>        .and_then(|length| payload_offset.checked_add(length))</span>
+<span id="L826"><a href="#L826" aria-label="Line 826">826</a>        .ok_or_else(|| &quot;PLY payload length overflowed&quot;.to_string())?;</span>
+<span id="L827"><a href="#L827" aria-label="Line 827">827</a>    if payload_end &gt; bytes.len() {</span>
+<span id="L828"><a href="#L828" aria-label="Line 828">828</a>        return Err(&quot;PLY payload is truncated&quot;.to_string());</span>
+<span id="L829"><a href="#L829" aria-label="Line 829">829</a>    }</span>
+<span id="L830"><a href="#L830" aria-label="Line 830">830</a></span>
+<span id="L831"><a href="#L831" aria-label="Line 831">831</a>    let payload = &amp;bytes[payload_offset..payload_end];</span>
+<span id="L832"><a href="#L832" aria-label="Line 832">832</a>    let mut source = Vec::with_capacity(count);</span>
+<span id="L833"><a href="#L833" aria-label="Line 833">833</a>    for (index, record) in payload.chunks_exact(BYTES_PER_SPLAT).enumerate() {</span>
+<span id="L834"><a href="#L834" aria-label="Line 834">834</a>        let value = |index: usize| {</span>
+<span id="L835"><a href="#L835" aria-label="Line 835">835</a>            let offset = index * 4;</span>
+<span id="L836"><a href="#L836" aria-label="Line 836">836</a>            f32::from_le_bytes(record[offset..offset + 4].try_into().unwrap())</span>
+<span id="L837"><a href="#L837" aria-label="Line 837">837</a>        };</span>
+<span id="L838"><a href="#L838" aria-label="Line 838">838</a>        if (0..FLOATS_PER_SPLAT).any(|field| !value(field).is_finite()) {</span>
+<span id="L839"><a href="#L839" aria-label="Line 839">839</a>            return Err(format!(</span>
+<span id="L840"><a href="#L840" aria-label="Line 840">840</a>                &quot;STG-Lite record {index} contains a non-finite value&quot;</span>
+<span id="L841"><a href="#L841" aria-label="Line 841">841</a>            ));</span>
+<span id="L842"><a href="#L842" aria-label="Line 842">842</a>        }</span>
+<span id="L843"><a href="#L843" aria-label="Line 843">843</a>        if [4, 21, 22, 23]</span>
+<span id="L844"><a href="#L844" aria-label="Line 844">844</a>            .iter()</span>
+<span id="L845"><a href="#L845" aria-label="Line 845">845</a>            .any(|&amp;field| !value(field).exp().is_finite())</span>
+<span id="L846"><a href="#L846" aria-label="Line 846">846</a>        {</span>
+<span id="L847"><a href="#L847" aria-label="Line 847">847</a>            return Err(format!(</span>
+<span id="L848"><a href="#L848" aria-label="Line 848">848</a>                &quot;STG-Lite record {index} has an overflowing log scale&quot;</span>
+<span id="L849"><a href="#L849" aria-label="Line 849">849</a>            ));</span>
+<span id="L850"><a href="#L850" aria-label="Line 850">850</a>        }</span>
+<span id="L851"><a href="#L851" aria-label="Line 851">851</a>        source.push(ResearchSplat {</span>
+<span id="L852"><a href="#L852" aria-label="Line 852">852</a>            base: Vec3::new(value(0), value(1), value(2)),</span>
+<span id="L853"><a href="#L853" aria-label="Line 853">853</a>            temporal_center: value(3),</span>
+<span id="L854"><a href="#L854" aria-label="Line 854">854</a>            temporal_scale: value(4).exp().max(1e-6),</span>
+<span id="L855"><a href="#L855" aria-label="Line 855">855</a>            motion_linear: Vec3::new(value(8), value(9), value(10)),</span>
+<span id="L856"><a href="#L856" aria-label="Line 856">856</a>            motion_quadratic: Vec3::new(value(11), value(12), value(13)),</span>
+<span id="L857"><a href="#L857" aria-label="Line 857">857</a>            motion_cubic: Vec3::new(value(14), value(15), value(16)),</span>
+<span id="L858"><a href="#L858" aria-label="Line 858">858</a>            opacity_logit: value(20),</span>
+<span id="L859"><a href="#L859" aria-label="Line 859">859</a>        });</span>
+<span id="L860"><a href="#L860" aria-label="Line 860">860</a>    }</span>
+<span id="L861"><a href="#L861" aria-label="Line 861">861</a>    Ok(ParsedPly {</span>
+<span id="L862"><a href="#L862" aria-label="Line 862">862</a>        source,</span>
+<span id="L863"><a href="#L863" aria-label="Line 863">863</a>        payload_offset,</span>
+<span id="L864"><a href="#L864" aria-label="Line 864">864</a>        payload_end,</span>
+<span id="L865"><a href="#L865" aria-label="Line 865">865</a>    })</span>
+<span id="L866"><a href="#L866" aria-label="Line 866">866</a>}</span>
+<span id="L867"><a href="#L867" aria-label="Line 867">867</a></span>
+<span id="L868"><a href="#L868" aria-label="Line 868">868</a>fn sigmoid(value: f32) -&gt; f32 {</span>
+<span id="L869"><a href="#L869" aria-label="Line 869">869</a>    1.0 / (1.0 + (-value).exp())</span>
+<span id="L870"><a href="#L870" aria-label="Line 870">870</a>}</span>
+<span id="L871"><a href="#L871" aria-label="Line 871">871</a></span>
+<span id="L872"><a href="#L872" aria-label="Line 872">872</a>fn js_error(error: impl std::fmt::Display) -&gt; JsValue {</span>
+<span id="L873"><a href="#L873" aria-label="Line 873">873</a>    JsValue::from_str(&amp;error.to_string())</span>
+<span id="L874"><a href="#L874" aria-label="Line 874">874</a>}</span>
+<span id="L875"><a href="#L875" aria-label="Line 875">875</a></span>
+<span id="L876"><a href="#L876" aria-label="Line 876">876</a>#[cfg(test)]</span>
+<span id="L877"><a href="#L877" aria-label="Line 877">877</a>mod tests {</span>
+<span id="L878"><a href="#L878" aria-label="Line 878">878</a>    use super::*;</span>
+<span id="L879"><a href="#L879" aria-label="Line 879">879</a></span>
+<span id="L880"><a href="#L880" aria-label="Line 880">880</a>    fn fixture_ply() -&gt; Vec&lt;u8&gt; {</span>
+<span id="L881"><a href="#L881" aria-label="Line 881">881</a>        let mut bytes = b&quot;ply\nformat binary_little_endian 1.0\nelement vertex 1\n&quot;.to_vec();</span>
+<span id="L882"><a href="#L882" aria-label="Line 882">882</a>        for property in STG_PROPERTIES {</span>
+<span id="L883"><a href="#L883" aria-label="Line 883">883</a>            bytes.extend_from_slice(format!(&quot;property float {property}\n&quot;).as_bytes());</span>
+<span id="L884"><a href="#L884" aria-label="Line 884">884</a>        }</span>
+<span id="L885"><a href="#L885" aria-label="Line 885">885</a>        bytes.extend_from_slice(b&quot;end_header\n&quot;);</span>
+<span id="L886"><a href="#L886" aria-label="Line 886">886</a>        let mut values = [0.0_f32; FLOATS_PER_SPLAT];</span>
+<span id="L887"><a href="#L887" aria-label="Line 887">887</a>        values[0] = 1.0;</span>
+<span id="L888"><a href="#L888" aria-label="Line 888">888</a>        values[1] = 2.0;</span>
+<span id="L889"><a href="#L889" aria-label="Line 889">889</a>        values[2] = 3.0;</span>
+<span id="L890"><a href="#L890" aria-label="Line 890">890</a>        values[4] = 0.0;</span>
+<span id="L891"><a href="#L891" aria-label="Line 891">891</a>        values[8] = 2.0;</span>
+<span id="L892"><a href="#L892" aria-label="Line 892">892</a>        values[20] = 0.0;</span>
+<span id="L893"><a href="#L893" aria-label="Line 893">893</a>        for value in values {</span>
+<span id="L894"><a href="#L894" aria-label="Line 894">894</a>            bytes.extend_from_slice(&amp;value.to_le_bytes());</span>
+<span id="L895"><a href="#L895" aria-label="Line 895">895</a>        }</span>
+<span id="L896"><a href="#L896" aria-label="Line 896">896</a>        bytes</span>
+<span id="L897"><a href="#L897" aria-label="Line 897">897</a>    }</span>
+<span id="L898"><a href="#L898" aria-label="Line 898">898</a></span>
+<span id="L899"><a href="#L899" aria-label="Line 899">899</a>    #[test]</span>
+<span id="L900"><a href="#L900" aria-label="Line 900">900</a>    fn parses_the_official_stg_lite_record_shape() {</span>
+<span id="L901"><a href="#L901" aria-label="Line 901">901</a>        let parsed = parse_stg_ply(&amp;fixture_ply()).unwrap();</span>
+<span id="L902"><a href="#L902" aria-label="Line 902">902</a>        assert_eq!(parsed.source.len(), 1);</span>
+<span id="L903"><a href="#L903" aria-label="Line 903">903</a>        let (position, opacity) = parsed.source[0].sample(0.5);</span>
+<span id="L904"><a href="#L904" aria-label="Line 904">904</a>        assert_eq!(position, Vec3::new(2.0, 2.0, 3.0));</span>
+<span id="L905"><a href="#L905" aria-label="Line 905">905</a>        assert!(opacity &gt; 0.38 &amp;&amp; opacity &lt; 0.40);</span>
+<span id="L906"><a href="#L906" aria-label="Line 906">906</a>    }</span>
+<span id="L907"><a href="#L907" aria-label="Line 907">907</a></span>
+<span id="L908"><a href="#L908" aria-label="Line 908">908</a>    #[test]</span>
+<span id="L909"><a href="#L909" aria-label="Line 909">909</a>    fn rejects_an_unrelated_ply_layout() {</span>
+<span id="L910"><a href="#L910" aria-label="Line 910">910</a>        let bytes = b&quot;ply\nformat binary_little_endian 1.0\nelement vertex 0\nend_header\n&quot;;</span>
+<span id="L911"><a href="#L911" aria-label="Line 911">911</a>        assert!(parse_stg_ply(bytes).is_err());</span>
+<span id="L912"><a href="#L912" aria-label="Line 912">912</a>    }</span>
+<span id="L913"><a href="#L913" aria-label="Line 913">913</a></span>
+<span id="L914"><a href="#L914" aria-label="Line 914">914</a>    #[test]</span>
+<span id="L915"><a href="#L915" aria-label="Line 915">915</a>    fn rejects_a_reordered_stg_layout() {</span>
+<span id="L916"><a href="#L916" aria-label="Line 916">916</a>        let mut bytes = fixture_ply();</span>
+<span id="L917"><a href="#L917" aria-label="Line 917">917</a>        let x = bytes</span>
+<span id="L918"><a href="#L918" aria-label="Line 918">918</a>            .windows(b&quot;property float x\n&quot;.len())</span>
+<span id="L919"><a href="#L919" aria-label="Line 919">919</a>            .position(|window| window == b&quot;property float x\n&quot;)</span>
+<span id="L920"><a href="#L920" aria-label="Line 920">920</a>            .unwrap();</span>
+<span id="L921"><a href="#L921" aria-label="Line 921">921</a>        bytes[x + &quot;property float &quot;.len()] = b'q';</span>
+<span id="L922"><a href="#L922" aria-label="Line 922">922</a>        assert!(parse_stg_ply(&amp;bytes).is_err());</span>
+<span id="L923"><a href="#L923" aria-label="Line 923">923</a>    }</span>
+<span id="L924"><a href="#L924" aria-label="Line 924">924</a></span>
+<span id="L925"><a href="#L925" aria-label="Line 925">925</a>    #[test]</span>
+<span id="L926"><a href="#L926" aria-label="Line 926">926</a>    fn rejects_non_finite_attributes_and_oversized_counts_before_allocation() {</span>
+<span id="L927"><a href="#L927" aria-label="Line 927">927</a>        let mut bytes = fixture_ply();</span>
+<span id="L928"><a href="#L928" aria-label="Line 928">928</a>        let offset = parse_stg_ply(&amp;bytes).unwrap().payload_offset;</span>
+<span id="L929"><a href="#L929" aria-label="Line 929">929</a>        bytes[offset..offset + 4].copy_from_slice(&amp;f32::NAN.to_le_bytes());</span>
+<span id="L930"><a href="#L930" aria-label="Line 930">930</a>        assert!(matches!(parse_stg_ply(&amp;bytes), Err(message) if message.contains(&quot;non-finite&quot;)));</span>
+<span id="L931"><a href="#L931" aria-label="Line 931">931</a>        let bytes = fixture_ply();</span>
+<span id="L932"><a href="#L932" aria-label="Line 932">932</a>        let header = String::from_utf8_lossy(&amp;bytes[..offset])</span>
+<span id="L933"><a href="#L933" aria-label="Line 933">933</a>            .replace(&quot;element vertex 1&quot;, &quot;element vertex 18446744073709551615&quot;);</span>
+<span id="L934"><a href="#L934" aria-label="Line 934">934</a>        assert!(parse_stg_ply(header.as_bytes()).is_err());</span>
+<span id="L935"><a href="#L935" aria-label="Line 935">935</a>    }</span>
+<span id="L936"><a href="#L936" aria-label="Line 936">936</a>}</span>
+<span id="L937"><a href="#L937" aria-label="Line 937">937</a></span></code></pre></main></body></html>

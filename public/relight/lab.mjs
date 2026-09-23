@@ -1,4 +1,4 @@
-import init,{WorkshopRenderer} from '/pkg/pajama_gaussian_lab.js?v=relight-1';
+import init,{WorkshopRenderer} from '/pkg/pajama_gaussian_lab.js?v=stream-2';
 const $=id=>document.getElementById(id),canvas=$('relight-view');
 const ids=['azimuth','elevation','intensity','roughness','metallic','time','yaw'];
 const defaults={azimuth:-.6,elevation:.5,intensity:3,roughness:.4,metallic:0,time:0,yaw:0};
@@ -70,7 +70,7 @@ const lesson=Number(new URL(location.href).searchParams.get('lesson'));
 setPreset(lesson===3?'material':lesson===7?'deform':'light');
 try{
  if(!navigator.gpu)throw Error('This browser does not expose WebGPU');
- await init({module_or_path:'/pkg/pajama_gaussian_lab_bg.wasm?v=relight-1'});
+ await init({module_or_path:'/pkg/pajama_gaussian_lab_bg.wasm?v=stream-2'});
  renderer=await WorkshopRenderer.create(canvas);adapter=renderer.adapter().replace(/·\s*$/,'').trim();ready=true;
  resize();new ResizeObserver(resize).observe(canvas);window.addEventListener('resize',resize);request();copy();
 }catch(e){error(e);}

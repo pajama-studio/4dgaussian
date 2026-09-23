@@ -42,7 +42,7 @@
         <div class="sidebar-heading"><span>Scenes</span><small>2 fixtures</small></div>
         <button class="scene-card is-active" type="button" data-scene="stg" aria-pressed="true">
           <img src="/data/sear-steak-poster.jpg" alt="Sear steak scene" />
-          <span class="scene-card-copy"><span><b>Live 4D</b><i>Active</i></span><strong>Sear steak</strong><small>108,317 learned Gaussians · 10 s</small></span>
+          <span class="scene-card-copy"><span><b>Live 4D</b><i>Active</i></span><strong>Sear steak</strong><small>108,317 learned Gaussians · 50 frames</small></span>
         </button>
         <button class="scene-card" type="button" data-scene="flames" aria-pressed="false">
           <img src="/data/flames-stream/poster.jpg" alt="02 Flames source scene" />
@@ -85,7 +85,7 @@
           </div>
           <div class="transport">
             <button id="play" class="icon-button" type="button" aria-label="Pause playback">Ⅱ</button><span id="timecode">00:00.000</span>
-            <input id="timeline" type="range" min="0" max="10" step="0.001" value="0" aria-label="Playback time" /><span>00:10.000</span>
+            <input id="timeline" type="range" min="0" max="1.6666666667" step="0.001" value="0" aria-label="Playback time" /><span>00:01.667</span>
             <label class="rate-control" for="playback-rate"><span>Speed</span><select id="playback-rate" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
             <select id="camera-mode" aria-label="Viewer camera"><option value="orbit">Novel orbit</option></select>
             <button id="compare-toggle" type="button" aria-pressed="false">Compare RGB</button><button id="reset-camera" type="button">Camera 00</button>

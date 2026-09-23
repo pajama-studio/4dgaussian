@@ -1,7 +1,7 @@
-import initWasm, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=relight-1";
+import initWasm, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=stream-2";
 
 const DATA_URL = "/data/n3d-sear-steak-stg-lite.ply.gz";
-const LOOP_SECONDS = 10;
+const LOOP_SECONDS = 50 / 30;
 const EMPTY_CAMERA = new Float32Array();
 const $ = selector => document.querySelector(selector);
 
@@ -43,10 +43,11 @@ export async function mountStgSample() {
   const setStatus = message => { loading.querySelector("span").textContent = message; };
   const bytes = await downloadAsset(setStatus);
   setStatus("Building the WebGPU STG-Lite scene…");
-  await initWasm({ module_or_path: "/pkg/pajama_gaussian_lab_bg.wasm?v=relight-1" });
+  await initWasm({ module_or_path: "/pkg/pajama_gaussian_lab_bg.wasm?v=stream-2" });
   const renderer = await GaussianRenderer.create(canvas, bytes);
 
-  let yaw = 0, pitch = 0.03, distance = 17.2, time = 5;
+  timeInput.max = String(LOOP_SECONDS);
+  let yaw = 0, pitch = 0.03, distance = 17.2, time = LOOP_SECONDS / 2;
   let playing = false, pointer = null, lastFrame = performance.now();
   const updateTime = () => {
     timeInput.value = time.toFixed(2);
@@ -107,7 +108,7 @@ export async function mountStgSample() {
     if (playing && !document.hidden) { time = (time + delta) % LOOP_SECONDS; updateTime(); }
     try {
       const { width, height } = resizeCanvas(canvas);
-      renderer.render(time, yaw, pitch, distance, width, height, EMPTY_CAMERA);
+      renderer.render(Math.min(time / LOOP_SECONDS, 1 - 1e-7) * 10, yaw, pitch, distance, width, height, EMPTY_CAMERA);
       badge.textContent = "WebGPU · STG-Lite · " + renderer.visible.toLocaleString() + " visible splats";
       if (!window.__stgSampleState.ready) {
         window.__stgSampleState.ready = true;

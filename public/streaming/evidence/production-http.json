@@ -1,0 +1,18 @@
+[
+  {
+    "id": "flames-v1",
+    "sourceCount": 332865,
+    "duration": 1.66833333333333,
+    "chunksForRange": 49,
+    "verifiedChunk": "6cee80d4a19a689b8ed793089883d711bfd6eefe8ab1e9059200fea010157222",
+    "status": "pass: hash, 206, 304, 416, HEAD, invalid time"
+  },
+  {
+    "id": "sear-steak-v1",
+    "sourceCount": 108317,
+    "duration": 1.66666666666667,
+    "chunksForRange": 25,
+    "verifiedChunk": "7e728911db58c4656ca0a645c70ae8c8a4fe3bed150c3077e063423f12c1f1fb",
+    "status": "pass: hash, 206, 304, 416, HEAD, invalid time"
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "url": "https://4dgaussian.pajama.studio/streaming/",
+  "wasmVersion": "stream-2",
+  "browser": "Codex in-app browser / WebGPU",
+  "flamesInitial": {
+    "windowSeconds": [
+      0,
+      0.209
+    ],
+    "residentCount": 301265,
+    "verifiedPayloadMiB": 33.38
+  },
+  "flamesSeek": {
+    "timeSeconds": 1.2,
+    "residentCount": 309724,
+    "verifiedPayloadMiB": 36.04,
+    "cacheHits": 35,
+    "selectedChunks": 49
+  },
+  "flamesRevisit": {
+    "timeSeconds": 0,
+    "verifiedPayloadMiB": 36.04,
+    "cacheHits": 48,
+    "selectedChunks": 48
+  },
+  "checks": [
+    "actual calibrated model visibly rendered",
+    "playback and camera change",
+    "scene switch",
+    "English/Chinese toggle",
+    "no console errors",
+    "390px viewport: no horizontal overflow; Chinese layout visually checked",
+    "paused root inspector selected real Gaussian #41338"
+  ],
+  "note": "Observed DOM telemetry and browser UI; startup/seek timings are individual smoke samples, not a network latency benchmark."
+}

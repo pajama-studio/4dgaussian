@@ -1,0 +1,722 @@
+{
+  "schema": "pajama.performance-ledger.v1",
+  "date": "2026-09-22",
+  "hardware": {
+    "cpu": "AMD Ryzen Threadripper 3990X 64-Core Processor",
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "vramMiB": 24564,
+    "driver": "591.86",
+    "ramBytes": 137326149632,
+    "os": "Windows",
+    "gpuBackend": "DX12"
+  },
+  "method": "CPU: 2 warmup + 7 recorded rounds × 48 frames, rotated variant order, release opt-level=s. GPU: render-pass timestamps at 1280×960, synchronous readback outside query; not presentation FPS. Single host, short official STG-Lite models; no claim of a measured minute-long or million-point renderer.",
+  "iterations": [
+    {
+      "iteration": 1,
+      "change": "Cache the learned opacity sigmoid",
+      "evidence": "13.571 → 12.508 ms (7.8% lower; playback)",
+      "decision": "Adopted; exact visible IDs and depth order"
+    },
+    {
+      "iteration": 2,
+      "change": "Reject outside conservative temporal support before evaluation",
+      "evidence": "12.508 → 11.434 ms (8.6% lower; playback)",
+      "decision": "Adopted; floating-point boundary margin retained"
+    },
+    {
+      "iteration": 3,
+      "change": "Replace comparison sorting with stable 32-bit radix sorting",
+      "evidence": "11.482 → 8.983 ms (21.8% lower; playback)",
+      "decision": "Adopted; 4 × 8-bit passes; original-ID tie order"
+    },
+    {
+      "iteration": 4,
+      "change": "Reuse a prepared frame for an unchanged time and camera",
+      "evidence": "8.900 → <0.001 ms CPU preparation; paused workload",
+      "decision": "Adopted; not a playback FPS claim"
+    },
+    {
+      "iteration": 5,
+      "change": "Reuse sampled positions when only the camera moves",
+      "evidence": "8.897 → 5.688 ms (36.1% lower; camera-only)",
+      "decision": "Adopted for repeated time; initial playback overhead addressed in iteration 8"
+    },
+    {
+      "iteration": 6,
+      "change": "Skip exp() inside a conservatively guaranteed visible time interval",
+      "evidence": "9.595 → 8.703 ms (9.3% lower; playback)",
+      "decision": "Adopted; exact threshold retained in the narrow boundary band"
+    },
+    {
+      "iteration": 7,
+      "change": "Reduce radix passes from four to three (11/11/10 bits)",
+      "evidence": "8.703 → 8.382 ms (3.7% lower; playback)",
+      "decision": "Adopted; full float precision preserved"
+    },
+    {
+      "iteration": 8,
+      "change": "Build the position cache only after time stops changing",
+      "evidence": "8.382 → 8.121 ms (3.1% lower; playback)",
+      "decision": "Adopted; removes unnecessary playback cache writes"
+    },
+    {
+      "iteration": 9,
+      "change": "Disable an unselective 64-bucket temporal index",
+      "evidence": "70.40 → 0.00 MiB index payload; 8.121 → 8.003 ms (1.4% lower; playback)",
+      "decision": "Adopted for high temporal coverage; primary benefit is memory, not a universal speedup"
+    },
+    {
+      "iteration": 10,
+      "change": "Render on demand; invalidate on time, camera, viewport or source changes",
+      "evidence": "120 → 1 actual GPU submissions in two 2000 ms idle windows",
+      "decision": "Adopted; idle work reduction, not faster moving frames"
+    }
+  ],
+  "rejectedExperiments": [
+    {
+      "change": "Always enable 64 temporal buckets",
+      "reason": "No reliable CPU improvement on high-coverage short scenes; adaptive construction replaces it."
+    },
+    {
+      "change": "Preactivate opacity and log scales for the GPU",
+      "baselineGpuMs": 0.649216,
+      "candidateGpuMs": 0.652288,
+      "reason": "No stable measured GPU improvement; production shader unchanged."
+    },
+    {
+      "change": "Triangle strip: four rather than six vertices",
+      "baselineGpuMs": 0.652288,
+      "candidateGpuMs": 0.647168,
+      "reason": "Difference within timing variation on this host; production topology unchanged."
+    }
+  ],
+  "summary": [
+    {
+      "sourceCount": 108317,
+      "baselinePlaybackMs": 4.696,
+      "productionPlaybackMs": 2.2428
+    },
+    {
+      "sourceCount": 332865,
+      "baselinePlaybackMs": 13.571299999999999,
+      "productionPlaybackMs": 8.003
+    }
+  ],
+  "streaming": [
+    {
+      "id": "sear-steak-v1",
+      "sourceCount": 108317,
+      "retainedCount": 104754,
+      "durationSeconds": 1.66666666666667,
+      "modelSha256": "0f0dd4ed584811c3b4f13b7048b3449eb8878a8de87a3ce336f7cc6aa7ad376c",
+      "chunks": 74,
+      "totalCompressedBytes": 10788438,
+      "firstWindowBytes": 10345465
+    },
+    {
+      "id": "flames-v1",
+      "sourceCount": 332865,
+      "retainedCount": 330246,
+      "durationSeconds": 1.66833333333333,
+      "modelSha256": "1580fa418c0e8236ba891c7b95f11ffd538ccd6b630e5f4af6989704b0233a73",
+      "chunks": 99,
+      "totalCompressedBytes": 38348891,
+      "firstWindowBytes": 35004892
+    }
+  ],
+  "pixelEquality": [
+    {
+      "adapter": "NVIDIA GeForce RTX 4090",
+      "backend": "Dx12",
+      "cameraFixture": "public/data/n3d-sear-steak-reference-cameras.json",
+      "frames": [
+        {
+          "firstIndexUploadBytes": 348904,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 5.2303999999999995,
+          "repeatIndexUploadBytes": 348904,
+          "resident": 108317,
+          "streamed": false,
+          "time": 0.10000000149011612,
+          "visible": 87226
+        },
+        {
+          "firstIndexUploadBytes": 360200,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 5.0095,
+          "repeatIndexUploadBytes": 360200,
+          "resident": 108317,
+          "streamed": false,
+          "time": 0.5,
+          "visible": 90050
+        },
+        {
+          "firstIndexUploadBytes": 345292,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 4.9688,
+          "repeatIndexUploadBytes": 345292,
+          "resident": 108317,
+          "streamed": false,
+          "time": 0.8999999761581421,
+          "visible": 86323
+        },
+        {
+          "firstIndexUploadBytes": 348904,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 3.1001000000000003,
+          "repeatIndexUploadBytes": 0,
+          "resident": 100099,
+          "streamed": true,
+          "time": 0.10000000149011612,
+          "visible": 87226
+        },
+        {
+          "firstIndexUploadBytes": 360200,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 3.0956,
+          "repeatIndexUploadBytes": 0,
+          "resident": 101503,
+          "streamed": true,
+          "time": 0.5,
+          "visible": 90050
+        },
+        {
+          "firstIndexUploadBytes": 345292,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 2.8087,
+          "repeatIndexUploadBytes": 0,
+          "resident": 99303,
+          "streamed": true,
+          "time": 0.8999999761581421,
+          "visible": 86323
+        }
+      ],
+      "height": 480,
+      "model": "public/data/n3d-sear-steak-stg-lite.ply.gz",
+      "scope": "native GPU smoke; synchronous readback; not a performance benchmark",
+      "width": 640
+    },
+    {
+      "adapter": "NVIDIA GeForce RTX 4090",
+      "backend": "Dx12",
+      "cameraFixture": "artifacts/streaming/flames-cameras.json",
+      "frames": [
+        {
+          "firstIndexUploadBytes": 648164,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 14.0632,
+          "repeatIndexUploadBytes": 648164,
+          "resident": 332865,
+          "streamed": false,
+          "time": 0.10000000149011612,
+          "visible": 162041
+        },
+        {
+          "firstIndexUploadBytes": 657252,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 13.4619,
+          "repeatIndexUploadBytes": 657252,
+          "resident": 332865,
+          "streamed": false,
+          "time": 0.5,
+          "visible": 164313
+        },
+        {
+          "firstIndexUploadBytes": 668204,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 13.624600000000001,
+          "repeatIndexUploadBytes": 668204,
+          "resident": 332865,
+          "streamed": false,
+          "time": 0.8999999761581421,
+          "visible": 167051
+        },
+        {
+          "firstIndexUploadBytes": 648164,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 7.6784,
+          "repeatIndexUploadBytes": 0,
+          "resident": 300225,
+          "streamed": true,
+          "time": 0.10000000149011612,
+          "visible": 162041
+        },
+        {
+          "firstIndexUploadBytes": 657252,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 7.8615,
+          "repeatIndexUploadBytes": 0,
+          "resident": 313095,
+          "streamed": true,
+          "time": 0.5,
+          "visible": 164313
+        },
+        {
+          "firstIndexUploadBytes": 668204,
+          "maxPixelError": 0,
+          "prepareMsSmokeOnly": 8.1478,
+          "repeatIndexUploadBytes": 0,
+          "resident": 308280,
+          "streamed": true,
+          "time": 0.8999999761581421,
+          "visible": 167051
+        }
+      ],
+      "height": 480,
+      "model": "artifacts/streaming/flames.ply",
+      "scope": "native GPU smoke; synchronous readback; not a performance benchmark",
+      "width": 640
+    }
+  ],
+  "idleBrowser": {
+    "schema": "pajama.idle-evidence.v1",
+    "scene": "flames-v1",
+    "windowMs": 2000,
+    "continuousGpuFrames": 120,
+    "onDemandGpuFrames": 1,
+    "visible": 158374,
+    "sourceCount": 301265
+  },
+  "longSequence": {
+    "dataset": "turandai/4DGV_DeskGames",
+    "revision": "17d0f77ec65516102806d038d83bcc0583ea0aab",
+    "probeUrl": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam00.mp4",
+    "sourceFileBytes": 180437278,
+    "frames": 6000,
+    "durationSeconds": 200,
+    "meanFps": 30,
+    "cameraCount": 21,
+    "cubeVideoBytes": 4057149467,
+    "representation": "RGB multi-view training input, NOT a renderable 4D Gaussian checkpoint",
+    "license": "No license asserted by this probe; verify dataset terms before redistribution",
+    "project": "https://turandai.github.io/projects/4d_gaussian_video/"
+  },
+  "longInputInspection": {
+    "schema": "pajama.training-input-inspection.v1",
+    "revision": "17d0f77ec65516102806d038d83bcc0583ea0aab",
+    "bytes": 4063313316,
+    "verifiedFiles": 24,
+    "videos": [
+      {
+        "path": "cube/videos/cam00.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam01.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam03.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam02.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam04.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam05.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam06.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam07.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam08.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam09.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam10.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam11.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam12.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam13.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam14.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam15.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam16.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam17.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam18.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam19.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "path": "cube/videos/cam20.mp4",
+        "frames": 6000,
+        "durationSeconds": 200,
+        "width": 2560,
+        "height": 1440
+      }
+    ],
+    "calibration": {
+      "cameraId": 1,
+      "model": "PINHOLE",
+      "width": 2521,
+      "height": 1418,
+      "fx": 1840.1365691451574,
+      "fy": 1841.8621307222388,
+      "cx": 1260.5,
+      "cy": 709
+    },
+    "poses": [
+      {
+        "name": "20.png",
+        "cameraId": 1
+      },
+      {
+        "name": "19.png",
+        "cameraId": 1
+      },
+      {
+        "name": "18.png",
+        "cameraId": 1
+      },
+      {
+        "name": "17.png",
+        "cameraId": 1
+      },
+      {
+        "name": "16.png",
+        "cameraId": 1
+      },
+      {
+        "name": "15.png",
+        "cameraId": 1
+      },
+      {
+        "name": "14.png",
+        "cameraId": 1
+      },
+      {
+        "name": "13.png",
+        "cameraId": 1
+      },
+      {
+        "name": "00.png",
+        "cameraId": 1
+      },
+      {
+        "name": "01.png",
+        "cameraId": 1
+      },
+      {
+        "name": "02.png",
+        "cameraId": 1
+      },
+      {
+        "name": "03.png",
+        "cameraId": 1
+      },
+      {
+        "name": "04.png",
+        "cameraId": 1
+      },
+      {
+        "name": "06.png",
+        "cameraId": 1
+      },
+      {
+        "name": "05.png",
+        "cameraId": 1
+      },
+      {
+        "name": "07.png",
+        "cameraId": 1
+      },
+      {
+        "name": "08.png",
+        "cameraId": 1
+      },
+      {
+        "name": "09.png",
+        "cameraId": 1
+      },
+      {
+        "name": "10.png",
+        "cameraId": 1
+      },
+      {
+        "name": "11.png",
+        "cameraId": 1
+      },
+      {
+        "name": "12.png",
+        "cameraId": 1
+      }
+    ],
+    "dimensionsMatch": false,
+    "note": "Metadata checks only; pose-to-video correspondence, synchronization and reconstruction quality still require decoded-frame validation."
+  },
+  "acquisition": {
+    "repo": "turandai/4DGV_DeskGames",
+    "revision": "17d0f77ec65516102806d038d83bcc0583ea0aab",
+    "files": [
+      {
+        "path": "cube/colmap/sparse/0/cameras.bin",
+        "size": 64,
+        "sha256": "f14553315f6321af7912c77e5ab8b69bb6aa68366f35d13bdbf4bd25f8482e4d",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/colmap/sparse/0/cameras.bin",
+        "status": "verified"
+      },
+      {
+        "path": "cube/colmap/sparse/0/images.bin",
+        "size": 5216411,
+        "sha256": "55d2bfedb1052c71a91caad77b154655ad4d8967756c4e48effee1144776915a",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/colmap/sparse/0/images.bin",
+        "status": "verified"
+      },
+      {
+        "path": "cube/colmap/sparse/0/points3D.bin",
+        "size": 947374,
+        "sha256": "2708d05289540d0a2eb53edfc1b580d302b68512aa3b1622257d729bc3d90981",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/colmap/sparse/0/points3D.bin",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam00.mp4",
+        "size": 180437278,
+        "sha256": "ee74905bfc7c0aaf525dee8a6aa4d413d46ae44dedffac3f09050d940b14cf51",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam00.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam01.mp4",
+        "size": 192337947,
+        "sha256": "b13333be0e1ee215731837541ea98bd60a0b260c3622abc4546bf2e8b97cca75",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam01.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam03.mp4",
+        "size": 203139977,
+        "sha256": "54fcf778d426adb08f19e63008fd9f905f257f38be1f9d2fef88ca22e0b81410",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam03.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam02.mp4",
+        "size": 218183765,
+        "sha256": "e68d4fac87ef974845cb8c22ad49df6d545b6bd0dadf2172ec72d688dcfd746a",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam02.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam04.mp4",
+        "size": 199775829,
+        "sha256": "b37dad11f4262cd160aaff2acde1edd8aa5c8352d71b860f9fe614fdfcca6104",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam04.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam05.mp4",
+        "size": 199133451,
+        "sha256": "3af587f4e94d2865aa7ae8f850ed0df5928e4cfc1b79ebb506078f07ed5ba2af",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam05.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam06.mp4",
+        "size": 212868719,
+        "sha256": "8de7fbd030ac15f1779f3aea49b751ebcf6164007666b93b08d4f21b3f862401",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam06.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam07.mp4",
+        "size": 185461257,
+        "sha256": "c97b952b3b0b1f18dceaec59806906edfaa35d4f82129e2abdd055fe0d438d67",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam07.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam08.mp4",
+        "size": 226600640,
+        "sha256": "0c59432b0b156b39919a2af89dabd91f9ec3d9ce972366ff474720b02f0d1523",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam08.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam09.mp4",
+        "size": 177649056,
+        "sha256": "75cb8be004a5de12b014b5daf70a4ac0c568bdbe80a997b6d3753017cdc33e7e",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam09.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam10.mp4",
+        "size": 163586746,
+        "sha256": "2d91fba91b95650c80a182acc1cec5753b3aeb3c2353ef640fff2e223bff5584",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam10.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam11.mp4",
+        "size": 194673942,
+        "sha256": "97482a9ebded7c007496d30f50ea53a006023d0cee5acdf3a337c19ce70d7808",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam11.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam12.mp4",
+        "size": 185938559,
+        "sha256": "af6a5d5498036249947ae06f7c32a606b8dd5e1f48c2fd5276fddf5e79254a8e",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam12.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam13.mp4",
+        "size": 183690295,
+        "sha256": "4aa0131b8ecbe6dcfa93dacff040a4a47159420426ba7aba2fba0017bcbe2a2f",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam13.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam14.mp4",
+        "size": 155868579,
+        "sha256": "a83b83ed324972d59f6a0b2fff4a30b6a586a722a42ba360c886d0cf66c5606c",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam14.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam15.mp4",
+        "size": 168556446,
+        "sha256": "3d795185bca19ed949854281b80ddff7dd82f9f19098c866133d430ef166910a",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam15.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam16.mp4",
+        "size": 204134238,
+        "sha256": "867ca0d15092de26572c4567d0612e65ce790a69b8eec5541641a8c5cceb53a6",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam16.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam17.mp4",
+        "size": 211931574,
+        "sha256": "cc1861bf29587c4d086594efad025869990e02c407b48ff175214e70f4c3d3a9",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam17.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam18.mp4",
+        "size": 197978378,
+        "sha256": "2f442e93686c40818af3a69c5014cc95c158da0cbdf3edaebf931022cea97b64",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam18.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam19.mp4",
+        "size": 197214924,
+        "sha256": "63c827902dfba9636f5bbe8c25ef9897c176a71528e6d9829bd1abb77373e351",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam19.mp4",
+        "status": "verified"
+      },
+      {
+        "path": "cube/videos/cam20.mp4",
+        "size": 197987867,
+        "sha256": "754fe7c9923c4d5a8b22b42782bc1e5108846f4de50b4753df1eacba0710c140",
+        "url": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam20.mp4",
+        "status": "verified"
+      }
+    ]
+  }
+}

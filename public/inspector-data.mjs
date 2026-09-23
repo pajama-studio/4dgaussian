@@ -44,5 +44,5 @@ export function sourceSnapshot(id,row,state,mode,coefficients,degree,direction) 
     appearance:{sourceFormat:'direct RGB; no learned SH coefficients',
       mode:mode==='teaching'?'synthetic SH experiment; does not modify scene':'equivalent DC derived from clamped RGB',
       coefficients,degree,direction,color:sampleSH(coefficients,direction,degree)},
-    timeContract:'Normalized model time; UI 10-second loop is the existing viewer convention, not metadata from the PLY.'};
+    timeContract:'Normalized model time; the host maps seconds using separately verified checkpoint duration, not metadata from the PLY.'};
 }

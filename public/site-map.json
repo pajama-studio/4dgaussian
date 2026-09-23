@@ -1,5 +1,13 @@
 [
   {
+    "href": "/streaming/",
+    "en": "Temporal streaming & benchmarks",
+    "zh": "时序流式加载与性能实测",
+    "detail": "Real STG chunks · time range API · Rust optimization evidence",
+    "detailZh": "真实 STG 分块、时间范围 API 与 Rust 优化证据",
+    "group": "lab"
+  },
+  {
     "href": "/learn/",
     "en": "Start learning",
     "zh": "从零学习",

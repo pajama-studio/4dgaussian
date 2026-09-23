@@ -610,7 +610,7 @@
   "返回值 vec4(rgb*alpha,alpha) 明确是预乘。": "Returning vec4(rgb*alpha,alpha) explicitly produces premultiplied output.",
   "c̃s ↔ input.color_opacity.rgb*alpha": "c̃s ↔ input.color_opacity.rgb*alpha",
   "PREMULTIPLIED_ALPHA_BLENDING 与这份输出匹配；StgPass 按远到近排序，透明 splat 不写深度。": "PREMULTIPLIED_ALPHA_BLENDING matches that output. StgPass sorts far to near, and transparent splats do not write depth.",
-  "over ↔ blend state；顺序 ↔ sort_unstable_by": "over ↔ blend state; order ↔ sort_unstable_by",
+  "over ↔ blend state；顺序 ↔ radix depth sort": "over ↔ blend state; order ↔ exact radix depth sort",
   "透明混合一般要禁用 Gaussian 自身的深度写入。与不透明场景的深度测试是另一个独立开关。": "Gaussian depth writes should generally be disabled for transparent composition. Testing against opaque-scene depth is a separate decision.",
   "预乘颜色仍要乘 Ti 吗？": "Does premultiplied color still need Ti?",
   "逐层 GPU over 已经隐式完成遮挡；若在手写近到远累积器里，则仍需乘到达该层的 Ti。": "Sequential hardware over already implements occlusion implicitly. A handwritten near-to-far accumulator still needs to multiply by the incoming Ti.",
@@ -639,7 +639,7 @@
   "帧号需要匹配分母约定": "Match the frame-index denominator",
   "若训练器定义 t=j/N，帧率为 fps，则 s−s0=j/fps，与 D=N/fps 对齐；最后一帧 t=(N−1)/N，不等于 1。若定义 j/(N−1)，D 则不同。": "If training uses t=j/N at frame rate fps, then s−s0=j/fps and D=N/fps. The final frame has t=(N−1)/N, not 1. Using j/(N−1) instead requires a different D.",
   "沿代码找到时间只被换算一次": "Find where time is converted in the code",
-  "浏览器 baseline 的 10 秒循环是播放约定，不能据此认定数据真实时长为 10 秒。原生 StgPass 直接接收 normalized_time，不做秒数推断。": "The browser baseline’s 10-second loop is a playback convention, not evidence that the capture lasted 10 seconds. Native StgPass accepts normalized_time directly and does not infer seconds.",
+  "当前 host 用已核实的片段时长把秒换算为 t；兼容旧接口时先传入 t×10，Rust 再除以 10。这不表示片段长 10 秒。原生 StgPass 直接接收 normalized_time。": "The host converts seconds to t using the verified checkpoint duration. For the legacy browser API it passes t×10, which Rust divides by 10; this does not make the clip ten seconds long. Native StgPass accepts normalized_time directly.",
   "若有 100 帧、25fps，并采用 j/N，第 50 帧的模型时间为 0.5。": "With 100 frames at 25fps and the j/N convention, frame 50 has model time 0.5.",
   "当前 LOOP_SECONDS=10，用 rem_euclid 后除以它；这只描述播放器速度。": "The current LOOP_SECONDS is 10. Playback uses rem_euclid and divides by this value; this only specifies playback speed.",
   "s ↔ time_seconds；D ↔ LOOP_SECONDS": "s ↔ time_seconds; D ↔ LOOP_SECONDS",
@@ -1265,7 +1265,7 @@
   "物理秒与模型时间": "Physical seconds and model time",
   "复制 物理秒与模型时间 的 LaTeX": "Copy LaTeX: Physical seconds and model time",
   "物理秒与模型时间，较长公式可横向滚动": "Physical seconds and model time; scroll horizontally for long equations",
-  "D 是有来源的时间尺度。例如 loader 使用 frame/N 时，通常需与 N/fps 对齐，而不是擅自换成最后一帧时间。当前研究模型 PLY 不携带 fps/时长，播放器的 10 秒映射仍需追溯验证。": "D must come from a documented time convention. For a loader using frame/N, it typically aligns with N/fps, not arbitrarily with the final frame’s timestamp. The current research-model PLY contains no fps or duration; the player’s 10-second mapping still needs provenance verification.",
+  "D 是有来源的时间尺度。例如 loader 使用 frame/N 时，通常需与 N/fps 对齐，而不是擅自换成最后一帧时间。当前研究模型 PLY 不携带 fps/时长；已追溯官方 50 帧训练配置，Sear 播放器采用 D=50/30 秒。": "D must come from a documented time convention. For a loader using frame/N, it typically aligns with N/fps, not arbitrarily with the final frame’s timestamp. The research-model PLY contains no fps or duration; the verified official 50-frame training configuration gives D=50/30 seconds for Sear.",
   "停下来想一想：同一个模型以两倍播放速度播放，运动系数需要改吗？": "Pause and think: Must motion coefficients change to play the same model at double speed?",
   "STG-Lite 的时间核": "The STG-Lite temporal kernel",
   "复制 STG-Lite 的时间核 的 LaTeX": "Copy LaTeX: The STG-Lite temporal kernel",
@@ -1498,5 +1498,6 @@
   "scripts/train_toy_stg.py · 数学源码": "scripts/train_toy_stg.py · Math source",
   "src/lib.rs · 数学源码": "src/lib.rs · Math source",
   "src/splat.wgsl · 数学源码": "src/splat.wgsl · Math source",
-  "src/stg_pass.rs · 数学源码": "src/stg_pass.rs · Math source"
+  "src/stg_pass.rs · 数学源码": "src/stg_pass.rs · Math source",
+  "src/stg_prepare.rs · 数学源码": "src/stg_prepare.rs · Math source"
 }

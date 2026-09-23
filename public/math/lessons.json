@@ -800,7 +800,7 @@
       {
         "id": "blend",
         "explanation": "PREMULTIPLIED_ALPHA_BLENDING 与这份输出匹配；StgPass 按远到近排序，透明 splat 不写深度。",
-        "symbols": "over ↔ blend state；顺序 ↔ sort_unstable_by"
+        "symbols": "over ↔ blend state；顺序 ↔ radix depth sort"
       }
     ],
     "pitfall": "透明混合一般要禁用 Gaussian 自身的深度写入。与不透明场景的深度测试是另一个独立开关。",
@@ -875,7 +875,7 @@
       },
       {
         "title": "沿代码找到时间只被换算一次",
-        "why": "浏览器 baseline 的 10 秒循环是播放约定，不能据此认定数据真实时长为 10 秒。原生 StgPass 直接接收 normalized_time，不做秒数推断。",
+        "why": "当前 host 用已核实的片段时长把秒换算为 t；兼容旧接口时先传入 t×10，Rust 再除以 10。这不表示片段长 10 秒。原生 StgPass 直接接收 normalized_time。",
         "source": "s=2,\\ s_0=0,\\ D=10,\\ \\tau=0.5\\Rightarrow t=0.2,\\ \\Delta t=-0.3"
       }
     ],

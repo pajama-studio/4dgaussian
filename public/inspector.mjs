@@ -22,7 +22,7 @@ export const copy={
   temporal:['01 · 当前时刻发生了什么？','01 · What happens at this time?'],time:['归一化时间 t','Normalized time t'],dt:['时间差 Δt','Time offset Δt'],rho:['时间宽度 ρ = exp(log ρ)','Temporal width ρ = exp(log ρ)'],
   gate:['时间权重 w(t)','Temporal weight w(t)'],opacity:['有效 opacity = sigmoid(β) × w','Effective opacity = sigmoid(β) × w'],
   baseopacity:['基础 opacity = sigmoid(β)','Base opacity = sigmoid(β)'],seek:['跳到它的时间中心 τ','Go to its temporal center τ'],
-  timehint:['横轴是模型时间 0–1，曲线是时间权重；亮线跟随当前帧。界面的 10 秒循环沿用查看器约定，PLY 本身不含时长。','The horizontal axis is model time 0–1; the curve is temporal weight and the bright line tracks the frame. The 10-second UI loop follows the viewer convention; the PLY contains no duration.'],
+  timehint:['横轴是模型时间 0–1，曲线是时间权重；亮线跟随当前帧。播放器按已核实的片段时长换算秒数；PLY 本身不含时长。','The horizontal axis is model time 0–1; the curve is temporal weight and the bright line tracks the frame. The player maps seconds using the verified checkpoint duration; the PLY itself contains no duration.'],
   geometry:['02 · 几何：从椭球到屏幕','02 · Geometry: ellipsoid to screen'],mean:['当前世界位置 μ(t)','Current world position μ(t)'],scales:['三轴尺度 exp(log s)','Axis scales exp(log s)'],
   quat:['当前单位四元数 wxyz','Current unit quaternion wxyz'],sigma:['世界协方差 Σ','World covariance Σ'],screen:['屏幕中心（像素）','Screen center (pixels)'],
   covariance:['屏幕协方差 (a,b,c)，y 向上','Screen covariance (a,b,c), Y up'],radii:['屏幕主 / 次轴 σ（像素）','Screen major / minor σ (pixels)'],
@@ -211,7 +211,7 @@ export function mountInspector({panel,canvas,overlay,getRenderer,pause,seek,work
   const selectId=()=>{picked=null;updateHits();const value=$('inspect-id').value;select(value.trim()===''?NaN:Number(value));};
   $('inspect-go').addEventListener('click',selectId);$('inspect-id').addEventListener('keydown',event=>{if(event.key==='Enter')selectId();});
   $('inspect-candidate').addEventListener('change',()=>select(Number($('inspect-candidate').value)));
-  $('inspect-seek').addEventListener('click',()=>{if(row)seek(Math.max(0,Math.min(0.999999,row[3]))*10);});
+  $('inspect-seek').addEventListener('click',()=>{if(row)seek(Math.max(0,Math.min(0.999999,row[3])));});
   panel.querySelectorAll('[data-insp-lang]').forEach(node=>node.addEventListener('click',()=>{language=node.dataset.inspLang;try{localStorage.setItem('pajama-math-language',language);}catch{}translate();}));
   $('inspect-mode').addEventListener('change',()=>{
     mode=$('inspect-mode').value;degree=mode==='teaching'?3:0;coefficients=appearanceCoefficients(row,mode==='teaching');selectedBasis=mode==='teaching'?2:0;syncCoefficients();updateReadouts();renderPlots();

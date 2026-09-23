@@ -62,4 +62,28 @@ The Neural 3D Video dataset convention designates `cam00` as its test camera. Th
 - Browser derivative: H.264 Main, 960 × 720, 29.97 FPS, split into a Media Source initialization segment and nine approximately two-second fMP4 media fragments
 - Purpose: a motion-rich source preview and delivery experiment for a future second STG fixture
 
-The page labels this video as a source-only preview. It is not presented as the output of the active `sear_steak` renderer. The separately downloaded official `immersive_02_Flames_ud_lite_allcam` PLY reports 332,865 vertices; that checkpoint has not been shipped in this version.
+The page labels this video as a source-only preview. It is not presented as the output of the active `sear_steak` renderer. The separately downloaded official `immersive_02_Flames_ud_lite_allcam` PLY reports 332,865 vertices; that checkpoint is now independently rendered at `/streaming/` using the R2 delivery described below. The root source-video preview remains labeled as video.
+
+
+## Time-addressed STG-Lite research fixtures (2026-09-22)
+
+The streaming endpoint publishes independently packaged, content-addressed STG-Lite records from the same author-published model repository. The existing Gaussian-Splatting / STG research and non-commercial restrictions still apply. Packaging is lossless for retained records; records that cannot reach the renderer opacity threshold in the checkpoint time interval are excluded. Source identity is retained in each chunk.
+
+| API scene | Official archive | Source vertices | Checkpoint duration | Uncompressed PLY SHA-256 |
+| --- | --- | ---: | --- | --- |
+| `sear-steak-v1` | `n3d_sear_steak_lite_allcam.zip` | 108,317 | 50 / 30 = 1.666667 s | `0f0dd4ed584811c3b4f13b7048b3449eb8878a8de87a3ce336f7cc6aa7ad376c` |
+| `flames-v1` | `immersive_02_Flames_ud_lite_allcam.zip` | 332,865 | 50 / (30000/1001) = 1.668333 s | `1580fa418c0e8236ba891c7b95f11ffd538ccd6b630e5f4af6989704b0233a73` |
+
+Model archives: https://huggingface.co/stack93/spacetimegaussians/tree/main
+
+The durations follow the official STG 50-frame training configuration; full source RGB videos are longer. Camera records are selected from each released archive without changing numeric calibration. Chunk hashes, source hashes and provenance are published in each `/api/gaussians/<scene>/manifest`. These all-camera checkpoints are renderer validation fixtures, not held-out reconstruction results.
+
+## DeskGames Cube acquisition
+
+Only metadata, source URLs and SHA-256 checksums are published by this site. The 21 original RGB videos and COLMAP calibration are downloaded into the ignored local `artifacts/datasets/4dgv-cube/` directory and are not redistributed in Git or R2.
+
+- Author-published dataset: https://huggingface.co/datasets/turandai/4DGV_DeskGames
+- Pinned revision: `17d0f77ec65516102806d038d83bcc0583ea0aab`
+- Project: https://turandai.github.io/projects/4d_gaussian_video/
+- Representation: synchronized multi-view RGB training inputs and static initialization, not a released dynamic Gaussian checkpoint.
+- No dataset license is inferred from public download access. Consult the dataset authors before redistributing the source or using it commercially.

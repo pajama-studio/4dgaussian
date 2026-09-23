@@ -23,7 +23,7 @@ export const timeLessons = {
     S('映射到固定混合硬件的两个乘数', '硬件计算 src×srcFactor + dst×dstFactor。于是 srcFactor=One，dstFactor=OneMinusSrcAlpha。alpha 通道也按 over 规则累积。', "\\alpha_{\\rm out}=\\alpha_s+(1-\\alpha_s)\\alpha_{\\rm dst}"),
     S('与近到远公式核对', '先画远处蓝，再画近处红；展开正好得到上一式的红 0.5、蓝 0.25。顺序不同，代数结果一致。', "\\widetilde{\\mathbf c}_{\\rm blue}=0.5(0,0,1),\\quad \\widetilde{\\mathbf c}_{\\rm out}=0.5(1,0,0)+0.5\\,\\widetilde{\\mathbf c}_{\\rm blue}"),
   ], ['若 shader 已输出红色 (0.5,0,0)，却又配置 SrcAlpha=0.5，会错误地再乘一次。', "0.5\\times0.5=0.25\\ne0.5"],
-  [C('fragment','返回值 vec4(rgb*alpha,alpha) 明确是预乘。','c̃s ↔ input.color_opacity.rgb*alpha'), C('blend','PREMULTIPLIED_ALPHA_BLENDING 与这份输出匹配；StgPass 按远到近排序，透明 splat 不写深度。','over ↔ blend state；顺序 ↔ sort_unstable_by')],
+  [C('fragment','返回值 vec4(rgb*alpha,alpha) 明确是预乘。','c̃s ↔ input.color_opacity.rgb*alpha'), C('blend','PREMULTIPLIED_ALPHA_BLENDING 与这份输出匹配；StgPass 按远到近排序，透明 splat 不写深度。','over ↔ blend state；顺序 ↔ radix depth sort')],
   '透明混合一般要禁用 Gaussian 自身的深度写入。与不透明场景的深度测试是另一个独立开关。', '预乘颜色仍要乘 Ti 吗？', '逐层 GPU over 已经隐式完成遮挡；若在手写近到远累积器里，则仍需乘到达该层的 Ti。'),
   'volume-bridge': L('薄层极限，非精确 GS 射线积分', '连续密度为什么会产生指数透射率？', ['integral','exp'], [
     S('把一段路切成 N 个薄层', '密度 σ 表示单位长度上的消光强度；薄层厚 Δs 足够小时，透过比例约为 1−σΔs。把总长度 l 平分。', "T_N=\\left(1-\\sigma\\frac lN\\right)^N"),
@@ -37,7 +37,7 @@ export const timeLessons = {
     S('先确定时间起点和尺度', '物理时刻 s 减去起点 s0，得到经过的秒数；除以 D 秒，得到无单位的模型时间 t。D 必须来自训练约定。', "t=\\frac{s-s_0}{D},\\qquad s=s_0+Dt"),
     S('再对齐每个 Gaussian 自己的中心时刻', 'τ 是该 Gaussian 最活跃的模型时间。运动系数围绕 τ 展开，所以实际使用 Δt=t−τ。', "\\Delta t=\\frac{s-s_0}{D}-\\tau"),
     S('帧号需要匹配分母约定', '若训练器定义 t=j/N，帧率为 fps，则 s−s0=j/fps，与 D=N/fps 对齐；最后一帧 t=(N−1)/N，不等于 1。若定义 j/(N−1)，D 则不同。', "\\frac{j/fps}{N/fps}=\\frac jN"),
-    S('沿代码找到时间只被换算一次', '浏览器 baseline 的 10 秒循环是播放约定，不能据此认定数据真实时长为 10 秒。原生 StgPass 直接接收 normalized_time，不做秒数推断。', "s=2,\\ s_0=0,\\ D=10,\\ \\tau=0.5\\Rightarrow t=0.2,\\ \\Delta t=-0.3"),
+    S('沿代码找到时间只被换算一次', '当前 host 用已核实的片段时长把秒换算为 t；兼容旧接口时先传入 t×10，Rust 再除以 10。这不表示片段长 10 秒。原生 StgPass 直接接收 normalized_time。', "s=2,\\ s_0=0,\\ D=10,\\ \\tau=0.5\\Rightarrow t=0.2,\\ \\Delta t=-0.3"),
   ], ['若有 100 帧、25fps，并采用 j/N，第 50 帧的模型时间为 0.5。', "D=100/25=4\\ {\\rm s},\\qquad t=(50/25)/4=0.5"],
   [C('browser-time','当前 LOOP_SECONDS=10，用 rem_euclid 后除以它；这只描述播放器速度。','s ↔ time_seconds；D ↔ LOOP_SECONDS'), C('host-camera','原生接入显式传归一化时间；prepare 检查 0..1。','t ↔ normalized_time → camera.scene.x')],
   'PLY 的 32 个浮点字段没有 fps 和 capture duration，不能只看模型文件猜秒数。', '同一个模型以两倍播放速度播放，运动系数需要改吗？', '不需要；改变输入 t 随真实时间推进的速度即可。若重新定义模型时间坐标本身，则系数必须换算。'),

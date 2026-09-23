@@ -1,5 +1,13 @@
 # Performance ledger
 
+## 2026-09-22: paired optimization and streaming evidence
+
+See [the ten-change ledger and reproduction commands](STREAMING.md) and [raw published evidence](https://4dgaussian.pajama.studio/streaming/report.json). On the same Windows / Threadripper 3990X host, Sear CPU preparation p50 changed from 4.696 to 2.243 ms; Flames from 13.571 to 8.003 ms. GPU-only experiments did not show a stable improvement and were rejected. Full-source and streamed frames matched exactly at three timestamps on each fixture. Browser idle submissions changed from 120 to 1 in paired two-second windows.
+
+**Correction to historical timing and fidelity claims below:** the released STG-Lite checkpoints represent the first 50 training frames, about 1.67 seconds, not all 300 / 500 frames of their source videos. The former ten-second UI loop stretched normalized model time. In particular, the old RGB comparisons at 1, 5 and 9 seconds below used an incorrect time mapping; their PSNR/SSIM values must not be used as reconstruction-quality evidence. They are preserved as historical diagnostics, not validated synchronized comparisons. The current UI maps source seconds to checkpoint time explicitly. Historical CPU/GPU costs below remain observations of that former playback workload, not comparable hardware A/B measurements against the new host.
+
+## Historical profiles (2026-09-15–16)
+
 These numbers describe one research fixture on one browser/device. They are not general 4DGS or cross-platform claims.
 
 ## Research fixture

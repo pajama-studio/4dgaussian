@@ -1,0 +1,14 @@
+{
+  "dataset": "turandai/4DGV_DeskGames",
+  "revision": "17d0f77ec65516102806d038d83bcc0583ea0aab",
+  "probeUrl": "https://huggingface.co/datasets/turandai/4DGV_DeskGames/resolve/17d0f77ec65516102806d038d83bcc0583ea0aab/cube/videos/cam00.mp4",
+  "sourceFileBytes": 180437278,
+  "frames": 6000,
+  "durationSeconds": 200,
+  "meanFps": 30,
+  "cameraCount": 21,
+  "cubeVideoBytes": 4057149467,
+  "representation": "RGB multi-view training input, NOT a renderable 4D Gaussian checkpoint",
+  "license": "No license asserted by this probe; verify dataset terms before redistribution",
+  "project": "https://turandai.github.io/projects/4d_gaussian_video/"
+}

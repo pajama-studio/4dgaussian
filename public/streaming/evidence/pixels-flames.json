@@ -1,0 +1,71 @@
+{
+  "adapter": "NVIDIA GeForce RTX 4090",
+  "backend": "Dx12",
+  "cameraFixture": "artifacts/streaming/flames-cameras.json",
+  "frames": [
+    {
+      "firstIndexUploadBytes": 648164,
+      "maxPixelError": 0,
+      "prepareMsSmokeOnly": 14.0632,
+      "repeatIndexUploadBytes": 648164,
+      "resident": 332865,
+      "streamed": false,
+      "time": 0.10000000149011612,
+      "visible": 162041
+    },
+    {
+      "firstIndexUploadBytes": 657252,
+      "maxPixelError": 0,
+      "prepareMsSmokeOnly": 13.4619,
+      "repeatIndexUploadBytes": 657252,
+      "resident": 332865,
+      "streamed": false,
+      "time": 0.5,
+      "visible": 164313
+    },
+    {
+      "firstIndexUploadBytes": 668204,
+      "maxPixelError": 0,
+      "prepareMsSmokeOnly": 13.624600000000001,
+      "repeatIndexUploadBytes": 668204,
+      "resident": 332865,
+      "streamed": false,
+      "time": 0.8999999761581421,
+      "visible": 167051
+    },
+    {
+      "firstIndexUploadBytes": 648164,
+      "maxPixelError": 0,
+      "prepareMsSmokeOnly": 7.6784,
+      "repeatIndexUploadBytes": 0,
+      "resident": 300225,
+      "streamed": true,
+      "time": 0.10000000149011612,
+      "visible": 162041
+    },
+    {
+      "firstIndexUploadBytes": 657252,
+      "maxPixelError": 0,
+      "prepareMsSmokeOnly": 7.8615,
+      "repeatIndexUploadBytes": 0,
+      "resident": 313095,
+      "streamed": true,
+      "time": 0.5,
+      "visible": 164313
+    },
+    {
+      "firstIndexUploadBytes": 668204,
+      "maxPixelError": 0,
+      "prepareMsSmokeOnly": 8.1478,
+      "repeatIndexUploadBytes": 0,
+      "resident": 308280,
+      "streamed": true,
+      "time": 0.8999999761581421,
+      "visible": 167051
+    }
+  ],
+  "height": 480,
+  "model": "artifacts/streaming/flames.ply",
+  "scope": "native GPU smoke; synchronous readback; not a performance benchmark",
+  "width": 640
+}

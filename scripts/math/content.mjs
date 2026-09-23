@@ -142,7 +142,7 @@ export const sections = [
   blocks: [
     E('time-domain', '物理秒与模型时间', 't=\\frac{s-s_0}{D},\\qquad \\Delta t=t-\\tau',
       align([[t,eq,f(r(i('s'),minus,s(i('s'),n(0))),i('D'))],[dt,eq,r(t,minus,tau)]]),
-      'D 是有来源的时间尺度。例如 loader 使用 frame/N 时，通常需与 N/fps 对齐，而不是擅自换成最后一帧时间。当前研究模型 PLY 不携带 fps/时长，播放器的 10 秒映射仍需追溯验证。'),
+      'D 是有来源的时间尺度。例如 loader 使用 frame/N 时，通常需与 N/fps 对齐，而不是擅自换成最后一帧时间。当前研究模型 PLY 不携带 fps/时长；已追溯官方 50 帧训练配置，Sear 播放器采用 D=50/30 秒。'),
     E('temporal-rbf', 'STG-Lite 的时间核', '\\rho=e^{\\ell_\\tau},\\quad w(t)=\\exp\\!\\left[-\\left(\\frac{t-\\tau}{\\rho}\\right)^2\\right],\\quad o(t)=\\operatorname{sigmoid}(\\beta)w(t)',
       align([[rho,eq,exp(s(i('ℓ'),tau))],[at(i('w')),eq,exp(neg(sq(par(f(dt,rho)))))],[at(i('o')),eq,r(fn('sigmoid',beta),at(i('w')))]]),
       '注意指数没有 1/2。若用标准 Gaussian 的标准差 σt 表示同一核，则 σt=ρ/√2。论文写 exp(−sτ·Δt²)，这里 sτ=ρ⁻²；代码对 ρ 还有最小值保护。'),
