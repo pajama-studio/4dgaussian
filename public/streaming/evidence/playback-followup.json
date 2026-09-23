@@ -1,0 +1,58 @@
+{
+  "schema": "pajama.playback-followup.v1",
+  "date": "2026-09-22",
+  "browser": "Codex in-app browser / WebGPU",
+  "method": "Actual browser button: one-second warmup followed by six seconds of playback, calibrated first camera. Single-host smoke samples, not a cross-device FPS guarantee. Current short fixtures fit the decoded 64 MiB residency budget.",
+  "results": [
+    {
+      "schema": "pajama.playback-evidence.v1",
+      "scene": "flames-v1",
+      "mode": "resident",
+      "windowMs": 6002.700000000001,
+      "submittedFrames": 360,
+      "frameIntervalP50Ms": 16.69999999999891,
+      "frameIntervalP95Ms": 16.799999999999272,
+      "framesOver50Ms": 0,
+      "bufferEvents": 0,
+      "bufferMs": 0,
+      "sourceReplacements": 0,
+      "mediaAdvancedSeconds": 6.0027000000000275,
+      "residentCount": 330246,
+      "canvasPixels": [
+        1179,
+        884
+      ],
+      "hiddenDuringMeasurement": false
+    },
+    {
+      "schema": "pajama.playback-evidence.v1",
+      "scene": "sear-steak-v1",
+      "mode": "resident",
+      "windowMs": 6002.699999999997,
+      "submittedFrames": 360,
+      "frameIntervalP50Ms": 16.69999999999709,
+      "frameIntervalP95Ms": 16.80000000000291,
+      "framesOver50Ms": 0,
+      "bufferEvents": 0,
+      "bufferMs": 0,
+      "sourceReplacements": 0,
+      "mediaAdvancedSeconds": 6.00270000000002,
+      "residentCount": 104754,
+      "canvasPixels": [
+        1179,
+        884
+      ],
+      "hiddenDuringMeasurement": false
+    }
+  ],
+  "interactionChecks": [
+    "Mouse drag changes the rendered camera",
+    "Scroll-wheel and keyboard zoom",
+    "Arrow-key rotation",
+    "Reset restores calibrated view",
+    "Scene and calibrated-camera switching",
+    "Timeline seek within resident clip",
+    "No browser console errors"
+  ],
+  "scope": "Background worker decodes and assembles source data. Budgeted prefetch for larger manifests is implemented and tested with synthetic manifest bounds; seamless playback of a large trained long-sequence model remains unverified."
+}

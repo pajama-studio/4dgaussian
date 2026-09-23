@@ -11,7 +11,7 @@ export class TemporalStream {
     return this.manifest;
   }
   cancel() { this.generation++; this.controller?.abort(); }
-  async window(start,end) {
+  async window(start,end,{residentKey=''}={}) {
     this.cancel(); const generation=this.generation;
     const controller=new AbortController();this.controller=controller;
     const signal=controller.signal;
@@ -52,8 +52,10 @@ export class TemporalStream {
     catch(error) { controller.abort(); throw error; }
     if(generation!==this.generation)throw new DOMException('Superseded seek','AbortError');
     const rows=range.chunks.map(c=>this.cache.get(c.name));
-    const ply=assemble(rows,this.manifest.headerTemplate,this.manifest.sourceCount);
-    return {ply,start,end,generation,stats:{seekMs:performance.now()-started,received,cacheHits:hits,selectedChunks:range.chunks.length,cacheBytes:this.cacheBytes,requests:this.requests,networkBytes:this.networkBytes}};
+    const key=range.chunks.map(c=>c.name).join('|');
+    const assemblyStarted=performance.now();
+    const ply=key===residentKey?null:assemble(rows,this.manifest.headerTemplate,this.manifest.sourceCount);
+    return {ply,key,start,end,generation,stats:{assemblyMs:performance.now()-assemblyStarted,seekMs:performance.now()-started,received,cacheHits:hits,selectedChunks:range.chunks.length,cacheBytes:this.cacheBytes,requests:this.requests,networkBytes:this.networkBytes}};
   }
 }
 
@@ -63,15 +65,36 @@ export function assemble(chunks,headerTemplate,sourceCount) {
   const rows=new Uint8Array(count*132);let offset=0;
   for(const chunk of chunks){if(chunk.length%132)throw Error('Misaligned chunk');rows.set(chunk,offset);offset+=chunk.length;}
   const view=new DataView(rows.buffer);
-  const order=Uint32Array.from({length:count},(_,i)=>i);
-  order.sort((a,b)=>view.getUint32(a*132,true)-view.getUint32(b*132,true));
+  // Dense original IDs make a linear scatter/gather cheaper than a JS comparator
+  // sort. The +1 sentinel detects duplicates without changing tie order.
+  if(!Number.isSafeInteger(sourceCount)||sourceCount<1||sourceCount>4000000)throw Error('Invalid source count');
+  const positions=new Uint32Array(sourceCount);
+  for(let row=0;row<count;row++){
+    const id=view.getUint32(row*132,true);
+    if(id>=sourceCount||positions[id])throw Error('Duplicate or invalid original Gaussian ID');
+    positions[id]=row+1;
+  }
   const header=new TextEncoder().encode(headerTemplate.replace('COUNT',String(count)));
   const ply=new Uint8Array(header.length+count*128);ply.set(header);
-  let last=-1;
-  for(let i=0;i<count;i++){
-    const row=order[i],id=view.getUint32(row*132,true);
-    if(id<=last || id>=sourceCount)throw Error('Duplicate or invalid original Gaussian ID');last=id;
-    ply.set(rows.subarray(row*132+4,row*132+132),header.length+i*128);
+  let target=header.length;
+  for(const position of positions){
+    if(!position)continue;
+    const row=position-1;
+    ply.set(rows.subarray(row*132+4,row*132+132),target);target+=128;
   }
   return ply;
+}
+
+export function focusCenter(ply) {
+  const marker=new TextEncoder().encode('end_header\n');let offset=-1;
+  for(let i=0;i<Math.min(ply.length,8192)-marker.length+1;i++){
+    if(marker.every((v,k)=>ply[i+k]===v)){offset=i+marker.length;break;}
+  }
+  if(offset<0)throw Error('Missing PLY header');
+  const view=new DataView(ply.buffer,ply.byteOffset,ply.byteLength),center=[0,0,0];let weight=0;
+  for(let p=offset;p+128<=ply.length;p+=128){
+    const a=1/(1+Math.exp(-view.getFloat32(p+80,true)));weight+=a;
+    for(let k=0;k<3;k++)center[k]+=a*view.getFloat32(p+k*4,true);
+  }
+  return center.map(x=>x/Math.max(weight,1e-12));
 }
