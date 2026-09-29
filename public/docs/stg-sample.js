@@ -1,4 +1,4 @@
-import initWasm, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=stream-2";
+import initWasm, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=gpu-1";
 
 const DATA_URL = "/data/n3d-sear-steak-stg-lite.ply.gz";
 const LOOP_SECONDS = 50 / 30;
@@ -43,8 +43,9 @@ export async function mountStgSample() {
   const setStatus = message => { loading.querySelector("span").textContent = message; };
   const bytes = await downloadAsset(setStatus);
   setStatus("Building the WebGPU STG-Lite scene…");
-  await initWasm({ module_or_path: "/pkg/pajama_gaussian_lab_bg.wasm?v=stream-2" });
+  await initWasm({ module_or_path: "/pkg/pajama_gaussian_lab_bg.wasm?v=gpu-1" });
   const renderer = await GaussianRenderer.create(canvas, bytes);
+  renderer.setGpuDriven(new URLSearchParams(location.search).get("backend") !== "cpu");
 
   timeInput.max = String(LOOP_SECONDS);
   let yaw = 0, pitch = 0.03, distance = 17.2, time = LOOP_SECONDS / 2;

@@ -1,0 +1,52 @@
+{
+  "createdAt": "2026-09-29T22:04:15.397Z",
+  "scope": "Native DX12, same real STG-Lite records and render shader. Serialized CPU-to-GPU-completion latency, not presentation FPS. Source hashes and every raw sample are in the scene reports.",
+  "scenes": [
+    {
+      "scene": "sear",
+      "sourceCount": 108317,
+      "adapter": "NVIDIA GeForce RTX 4090",
+      "backend": "Dx12",
+      "resolution": [
+        1280,
+        960
+      ],
+      "cpuPrepareMs": 2.3506,
+      "gpuPathCpuPrepareMs": 0.053,
+      "cpuPathFrameMs": 3.6212000000000004,
+      "gpuPathFrameMs": 1.5112,
+      "cpuPathP95Ms": 6.395600000000001,
+      "gpuPathP95Ms": 2.7634,
+      "frameReductionPercent": 58.26797746603336,
+      "gpuCullSortRenderMs": 0.7731199999999999,
+      "qualityCases": 12,
+      "maxRmse8bit": 0.042526129375802586,
+      "maxChannelDifference8bit": 7,
+      "allVisibleSetsMatch": true,
+      "report": "./evidence/gpu-driven-sear.json"
+    },
+    {
+      "scene": "flames",
+      "sourceCount": 332865,
+      "adapter": "NVIDIA GeForce RTX 4090",
+      "backend": "Dx12",
+      "resolution": [
+        1280,
+        960
+      ],
+      "cpuPrepareMs": 8.0868,
+      "gpuPathCpuPrepareMs": 0.0539,
+      "cpuPathFrameMs": 9.5138,
+      "gpuPathFrameMs": 1.7052,
+      "cpuPathP95Ms": 11.5319,
+      "gpuPathP95Ms": 5.275,
+      "frameReductionPercent": 82.07656246715298,
+      "gpuCullSortRenderMs": 0.999424,
+      "qualityCases": 12,
+      "maxRmse8bit": 0.002551551815399144,
+      "maxChannelDifference8bit": 2,
+      "allVisibleSetsMatch": false,
+      "report": "./evidence/gpu-driven-flames.json"
+    }
+  ]
+}

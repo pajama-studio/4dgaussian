@@ -9,6 +9,8 @@ use wgpu::util::DeviceExt;
 #[derive(Clone, Copy, Debug)]
 pub struct PreparedFrame {
     pub source_count: usize,
+    /// CPU path count. In GPU mode the count lives in indirect arguments;
+    /// this field is zero/unknown and must not be used to issue a direct draw.
     pub visible_count: usize,
     pub index_upload_bytes: usize,
 }
@@ -21,9 +23,20 @@ pub struct StgPass {
     preparation: StgPreparation,
     cpu_variant: u8,
     vertices: u32,
+    pub gpu: Option<crate::gpu_prepare::GpuPreparation>,
+    gpu_frame: Option<(f32, Mat4, Mat4)>,
 }
 
 impl StgPass {
+    /// Opt-in GPU path. Hosts call encode_prepare before beginning their render pass.
+    pub fn new_gpu(
+        device: &wgpu::Device,
+        ply: &[u8],
+        color_format: wgpu::TextureFormat,
+        depth: Option<(wgpu::TextureFormat, wgpu::CompareFunction)>,
+    ) -> Result<Self, String> {
+        Self::with_options(device, ply, color_format, depth, 11, 0)
+    }
     /// `depth` must match the host attachment. Gaussian depth writes are always
     /// disabled. Choose LessEqual for conventional Z or GreaterEqual for reverse Z.
     /// Colors retain the baseline's learned RGB convention; the host must decide
@@ -46,6 +59,11 @@ impl StgPass {
         cpu_variant: u8,
         gpu_variant: u8,
     ) -> Result<Self, String> {
+        if cpu_variant == 11 && gpu_variant != 0 {
+            return Err(
+                "GPU preparation requires the unchanged STG source layout (gpu_variant=0)".into(),
+            );
+        }
         let parsed = parse_stg_ply(ply)?;
         let mut payload = ply[parsed.payload_offset..parsed.payload_end].to_vec();
         if gpu_variant >= 1 {
@@ -77,6 +95,8 @@ impl StgPass {
             usage: wgpu::BufferUsages::STORAGE,
         });
         let count = parsed.source.len();
+        let gpu = (cpu_variant == 11)
+            .then(|| crate::gpu_prepare::GpuPreparation::new(device, &source_buffer, count as u32));
         let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("stg-host-order"),
             size: (count * 4) as u64,
@@ -197,6 +217,8 @@ impl StgPass {
             preparation: StgPreparation::new(parsed.source),
             cpu_variant,
             vertices: if gpu_variant >= 2 { 4 } else { 6 },
+            gpu,
+            gpu_frame: None,
         })
     }
 
@@ -226,8 +248,12 @@ impl StgPass {
         let projection = Mat4::from_cols_array_2d(&projection_columns);
         let view_projection = projection * view;
         let [width, height] = viewport.map(|v| v as f32);
-        self.preparation
-            .prepare(normalized_time, view, projection, self.cpu_variant);
+        if self.gpu.is_some() {
+            self.gpu_frame = Some((normalized_time, view, projection));
+        } else {
+            self.preparation
+                .prepare(normalized_time, view, projection, self.cpu_variant);
+        }
         let camera = CameraUniform {
             view_proj: view_projection.to_cols_array_2d(),
             viewport: [width, height, width.recip(), height.recip()],
@@ -255,7 +281,25 @@ impl StgPass {
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
         pass.set_pipeline(&self.pipeline);
         pass.set_bind_group(0, &self.bind_group, &[]);
-        pass.set_vertex_buffer(0, self.index_buffer.slice(..));
-        pass.draw(0..self.vertices, 0..self.preparation.indices().len() as u32);
+        if let Some(gpu) = &self.gpu {
+            pass.set_vertex_buffer(0, gpu.indices.slice(..));
+            pass.draw_indirect(&gpu.indirect, 0);
+        } else {
+            pass.set_vertex_buffer(0, self.index_buffer.slice(..));
+            pass.draw(0..self.vertices, 0..self.preparation.indices().len() as u32);
+        }
+    }
+
+    pub fn encode_prepare(
+        &mut self,
+        queue: &wgpu::Queue,
+        encoder: &mut wgpu::CommandEncoder,
+        queries: Option<(&wgpu::QuerySet, u32, u32)>,
+    ) -> bool {
+        if let (Some(gpu), Some((time, view, projection))) = (&mut self.gpu, self.gpu_frame) {
+            gpu.encode(queue, encoder, time, view, projection, queries)
+        } else {
+            false
+        }
     }
 }

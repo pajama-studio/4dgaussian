@@ -78,8 +78,8 @@
             <div class="scene-badge"><span>STG-Lite · CVPR 2024</span><strong id="view-state">Loading cameras…</strong></div>
             <div class="metrics-panel" aria-label="Live performance profile">
               <div><span>FPS</span><strong id="fps">—</strong></div><div><span>Visible</span><strong id="visible">—</strong></div>
-              <div><span>CPU prepare</span><strong id="prepare">—</strong></div><div><span>CPU sort</span><strong id="sort">—</strong></div>
-              <div><span>GPU pass timing</span><strong id="gpu-render">—</strong></div><div><span>Order upload</span><strong id="upload">—</strong></div>
+              <div><span>CPU prepare + encode</span><strong id="prepare">—</strong></div><div><span>Sort / GPU prepare</span><strong id="sort">—</strong></div>
+              <div><span>GPU total timing</span><strong id="gpu-render">—</strong></div><div><span>Order upload</span><strong id="upload">—</strong></div>
             </div>
             <div class="gesture-hint">Click to inspect when enabled · drag to orbit · wheel to zoom</div>
           </div>
@@ -87,7 +87,7 @@
             <button id="play" class="icon-button" type="button" aria-label="Pause playback">Ⅱ</button><span id="timecode">00:00.000</span>
             <input id="timeline" type="range" min="0" max="1.6666666667" step="0.001" value="0" aria-label="Playback time" /><span>00:01.667</span>
             <label class="rate-control" for="playback-rate"><span>Speed</span><select id="playback-rate" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
-            <select id="camera-mode" aria-label="Viewer camera"><option value="orbit">Novel orbit</option></select>
+            <select id="camera-mode" aria-label="Viewer camera"><option value="orbit">Novel orbit</option></select><select id="render-backend" aria-label="Renderer backend"><option value="gpu">GPU cull + sort</option><option value="cpu">CPU cull + sort</option></select>
             <button id="compare-toggle" type="button" aria-pressed="false">Compare RGB</button><button id="reset-camera" type="button">Camera 00</button>
           </div>
         </div>

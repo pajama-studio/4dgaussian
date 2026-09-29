@@ -1,4 +1,4 @@
-import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=stream-2";
+import init, { GaussianRenderer } from "/pkg/pajama_gaussian_lab.js?v=gpu-1";
 import { mountSegmentedVideo } from "/stream-player.js";
 import { mountInspector } from "/inspector.mjs";
 
@@ -91,13 +91,13 @@ function updateMetrics(now) {
   metrics.fps.textContent = frameWindow.length.toString();
   metrics.visible.textContent = renderer.visible.toLocaleString();
   metrics.prepare.textContent = `${renderer.prepareMs.toFixed(2)} ms`;
-  metrics.sort.textContent = `${renderer.sortMs.toFixed(2)} ms`;
-  const gpuRenderMs = renderer.gpuRenderMs;
+  metrics.sort.textContent = renderer.gpuDriven ? (renderer.gpuPrepareMs >= 0 ? `${renderer.gpuPrepareMs.toFixed(2)} ms GPU` : "GPU timing unavailable") : `${renderer.sortMs.toFixed(2)} ms CPU`;
+  const gpuRenderMs = renderer.gpuFrameMs;
   metrics.gpu.textContent = renderer.gpuTimingSupported
     ? (gpuRenderMs >= 0 ? `${gpuRenderMs.toFixed(2)} ms` : "pending")
     : "timing unavailable";
   metrics.gpu.title = renderer.gpuTimingSupported
-    ? "GPU render-pass time from WebGPU timestamp queries"
+    ? "GPU culling + sorting + rasterization from WebGPU timestamp queries"
     : "The WebGPU adapter did not expose the optional timestamp-query feature; rendering remains active";
   metrics.upload.textContent = `${(renderer.uploadBytes / 1048576).toFixed(2)} MiB`;
   window.__gaussianMetrics = {
@@ -339,11 +339,15 @@ wrap.addEventListener("wheel", (event) => {
 
 async function start() {
   if (!navigator.gpu) throw new Error("This browser does not expose WebGPU");
-  await init({module_or_path:"/pkg/pajama_gaussian_lab_bg.wasm?v=stream-2"});
+  await init({module_or_path:"/pkg/pajama_gaussian_lab_bg.wasm?v=gpu-1"});
   resize();
   const [plyData] = await Promise.all([loadResearchAsset(), loadReferenceCameras()]);
   status.textContent = "Building GPU-resident scene…";
   renderer = await GaussianRenderer.create(canvas, plyData);
+  const backend = document.querySelector("#render-backend");
+  backend.value = new URLSearchParams(location.search).get("backend") === "cpu" ? "cpu" : "gpu";
+  renderer.setGpuDriven(backend.value === "gpu");
+  backend.onchange = () => renderer.setGpuDriven(backend.value === "gpu");
   inspector.ready(renderer.sourceCount);
   setCameraMode("cam00");
   const timingLabel = renderer.gpuTimingSupported ? "GPU pass timer active" : "GPU pass timer unavailable · rendering active";

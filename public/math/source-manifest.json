@@ -8,17 +8,17 @@
     },
     {
       "path": "src/lib.rs",
-      "sha256": "03c89f4d7e4f10df9c8778c5742138de07d72ae73f3407cad9d66a1882679d1b",
+      "sha256": "3ebd65568c04ab84ac77393afd69ae3f8187ff125e4caca3bcade37c3567bc2f",
       "href": "code/src-lib.rs.txt"
     },
     {
       "path": "src/stg_pass.rs",
-      "sha256": "cd4748bb3dc1d18c7d205e5fa832cab39087fed7fae6ed3067c1b36082da3ce7",
+      "sha256": "34355b0b181f6afff032b67568e079409100488c68161b3c4ff523c360201907",
       "href": "code/src-stg_pass.rs.txt"
     },
     {
       "path": "src/stg_prepare.rs",
-      "sha256": "62e233d6a2a0ef73d1822dc5e969205556d7daf0055ffaa5253a4ff6a3b03cb8",
+      "sha256": "7f9d9ae9e00637cd37636ee99598d8ed006ec9bb3f4aa66d3f3b1c244ea5b6ca",
       "href": "code/src-stg_prepare.rs.txt"
     },
     {
@@ -116,38 +116,38 @@
     },
     "cpu-sample": {
       "path": "src/lib.rs",
-      "first": 83,
-      "last": 91,
-      "sha256": "03c89f4d7e4f10df9c8778c5742138de07d72ae73f3407cad9d66a1882679d1b",
-      "href": "/math/code/src-lib.rs.html#L83"
+      "first": 84,
+      "last": 92,
+      "sha256": "3ebd65568c04ab84ac77393afd69ae3f8187ff125e4caca3bcade37c3567bc2f",
+      "href": "/math/code/src-lib.rs.html#L84"
     },
     "browser-time": {
       "path": "src/lib.rs",
-      "first": 526,
-      "last": 536,
-      "sha256": "03c89f4d7e4f10df9c8778c5742138de07d72ae73f3407cad9d66a1882679d1b",
-      "href": "/math/code/src-lib.rs.html#L526"
+      "first": 543,
+      "last": 553,
+      "sha256": "3ebd65568c04ab84ac77393afd69ae3f8187ff125e4caca3bcade37c3567bc2f",
+      "href": "/math/code/src-lib.rs.html#L543"
     },
     "host-camera": {
       "path": "src/stg_pass.rs",
-      "first": 225,
-      "last": 228,
-      "sha256": "cd4748bb3dc1d18c7d205e5fa832cab39087fed7fae6ed3067c1b36082da3ce7",
-      "href": "/math/code/src-stg_pass.rs.html#L225"
+      "first": 247,
+      "last": 250,
+      "sha256": "34355b0b181f6afff032b67568e079409100488c68161b3c4ff523c360201907",
+      "href": "/math/code/src-stg_pass.rs.html#L247"
     },
     "blend": {
       "path": "src/stg_pass.rs",
-      "first": 169,
-      "last": 184,
-      "sha256": "cd4748bb3dc1d18c7d205e5fa832cab39087fed7fae6ed3067c1b36082da3ce7",
-      "href": "/math/code/src-stg_pass.rs.html#L169"
+      "first": 189,
+      "last": 204,
+      "sha256": "34355b0b181f6afff032b67568e079409100488c68161b3c4ff523c360201907",
+      "href": "/math/code/src-stg_pass.rs.html#L189"
     },
     "sort": {
       "path": "src/stg_prepare.rs",
-      "first": 189,
-      "last": 201,
-      "sha256": "62e233d6a2a0ef73d1822dc5e969205556d7daf0055ffaa5253a4ff6a3b03cb8",
-      "href": "/math/code/src-stg_prepare.rs.html#L189"
+      "first": 192,
+      "last": 204,
+      "sha256": "7f9d9ae9e00637cd37636ee99598d8ed006ec9bb3f4aa66d3f3b1c244ea5b6ca",
+      "href": "/math/code/src-stg_prepare.rs.html#L192"
     },
     "toy-project": {
       "path": "scripts/train_toy_stg.py",

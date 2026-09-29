@@ -1,0 +1,191 @@
+{
+  "schema": "pajama.browser-gpu-observed-summary.v1",
+  "environment": "Codex in-app browser / Windows; adapter name was not exposed by the browser",
+  "wasmVersion": "gpu-1",
+  "scope": "Observed DOM summaries of the live comparison. Summaries are rounded; per-frame raw data remains available when running the comparison in the player. Native reports publish synchronized per-frame GPU timing. Browser GPU telemetry is asynchronous and may lag/repeat. Frame intervals are display-refresh limited. A reported 0 ms is below the browser clock resolution, not zero CPU work.",
+  "pairedMethod": "3 rotated paired rounds, 24 warmup + 96 measured fixed-time RAF frames per backend per round. Identical resident records, calibrated camera, time sequence and canvas size.",
+  "comparisons": [
+    {
+      "scene": "flames-v1",
+      "residentCount": 330246,
+      "canvasPixels": [
+        435,
+        326
+      ],
+      "samplesPerBackend": 288,
+      "cpu": {
+        "renderCallMs": {
+          "p50": 9.2,
+          "p95": 9.7
+        },
+        "cpuPrepareEncodeMs": {
+          "p50": 9.1,
+          "p95": 9.6
+        },
+        "gpuCullSortRenderMs": {
+          "p50": 0.589824,
+          "p95": 0.65536
+        },
+        "frameIntervalMs": {
+          "p50": 16.7,
+          "p95": 16.8
+        },
+        "indexUploadBytes": {
+          "p50": 658472,
+          "p95": 675260
+        }
+      },
+      "gpu": {
+        "renderCallMs": {
+          "p50": 0.1,
+          "p95": 0.2
+        },
+        "cpuPrepareEncodeMs": {
+          "p50": 0.1,
+          "p95": 0.2
+        },
+        "gpuCullSortRenderMs": {
+          "p50": 1.96608,
+          "p95": 2.228224
+        },
+        "frameIntervalMs": {
+          "p50": 16.7,
+          "p95": 16.8
+        },
+        "indexUploadBytes": {
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "roundRenderCallP50Ms": [
+        {
+          "round": 0,
+          "cpu": 9.2,
+          "gpu": 0.1
+        },
+        {
+          "round": 1,
+          "cpu": 9.1,
+          "gpu": 0.1
+        },
+        {
+          "round": 2,
+          "cpu": 9.1,
+          "gpu": 0.1
+        }
+      ]
+    },
+    {
+      "scene": "sear-steak-v1",
+      "residentCount": 104754,
+      "canvasPixels": [
+        435,
+        326
+      ],
+      "samplesPerBackend": 288,
+      "cpu": {
+        "renderCallMs": {
+          "p50": 3,
+          "p95": 3.5
+        },
+        "cpuPrepareEncodeMs": {
+          "p50": 2.9,
+          "p95": 3.4
+        },
+        "gpuCullSortRenderMs": {
+          "p50": 0.32768,
+          "p95": 0.393216
+        },
+        "frameIntervalMs": {
+          "p50": 16.7,
+          "p95": 16.8
+        },
+        "indexUploadBytes": {
+          "p50": 355608,
+          "p95": 360240
+        }
+      },
+      "gpu": {
+        "renderCallMs": {
+          "p50": 0.1,
+          "p95": 0.2
+        },
+        "cpuPrepareEncodeMs": {
+          "p50": 0,
+          "p95": 0.2
+        },
+        "gpuCullSortRenderMs": {
+          "p50": 0.65536,
+          "p95": 0.917504
+        },
+        "frameIntervalMs": {
+          "p50": 16.7,
+          "p95": 16.8
+        },
+        "indexUploadBytes": {
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "roundRenderCallP50Ms": [
+        {
+          "round": 0,
+          "cpu": 3,
+          "gpu": 0.1
+        },
+        {
+          "round": 1,
+          "cpu": 2.9,
+          "gpu": 0.1
+        },
+        {
+          "round": 2,
+          "cpu": 3,
+          "gpu": 0.1
+        }
+      ]
+    }
+  ],
+  "playback": [
+    {
+      "backend": "gpu",
+      "scene": "flames-v1",
+      "mode": "resident",
+      "windowMs": 6002.5,
+      "submittedFrames": 360,
+      "frameIntervalP50Ms": 16.7,
+      "frameIntervalP95Ms": 16.8,
+      "framesOver50Ms": 0,
+      "bufferEvents": 0,
+      "bufferMs": 0,
+      "sourceReplacements": 0,
+      "mediaAdvancedSeconds": 6.0025,
+      "residentCount": 330246,
+      "canvasPixels": [
+        435,
+        326
+      ],
+      "hiddenDuringMeasurement": false
+    },
+    {
+      "backend": "gpu",
+      "scene": "sear-steak-v1",
+      "mode": "resident",
+      "windowMs": 6002.6,
+      "submittedFrames": 360,
+      "frameIntervalP50Ms": 16.7,
+      "frameIntervalP95Ms": 16.8,
+      "framesOver50Ms": 0,
+      "bufferEvents": 0,
+      "bufferMs": 0,
+      "sourceReplacements": 0,
+      "mediaAdvancedSeconds": 6.0026,
+      "residentCount": 104754,
+      "canvasPixels": [
+        435,
+        326
+      ],
+      "hiddenDuringMeasurement": false
+    }
+  ]
+}

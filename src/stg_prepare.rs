@@ -122,6 +122,9 @@ impl StgPreparation {
     pub fn ordered(&self) -> &[(f32, u32)] {
         &self.ordered
     }
+    pub fn invalidate(&mut self) {
+        self.last_frame = None;
+    }
 
     /// 0 baseline; 1 cached sigmoid; 2 temporal support rejection;
     /// 3 temporal buckets; 4 exact radix order; 5 repeated-frame cache;

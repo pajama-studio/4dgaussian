@@ -1,4 +1,4 @@
-import initWasm,{GaussianRenderer} from '/pkg/pajama_gaussian_lab.js?v=stream-2';
+import initWasm,{GaussianRenderer} from '/pkg/pajama_gaussian_lab.js?v=gpu-1';
 import {WorkerStream} from './worker-client.mjs';
 import {planWindow,covers,upcoming} from './policy.mjs';
 import {OrbitCamera,bindOrbit} from './orbit.mjs';
@@ -9,6 +9,7 @@ const tr=(en,zh)=>language==='zh'?zh:en;
 let stream,manifest,renderer,rig,camera,focus,active,pending,measurement;
 let shown=0,playing=false,busy=false,generation=0,requestSerial=0,prefetchFailed=false;
 let counters={replacements:0,bufferEvents:0,bufferMs:0,mediaSeconds:0},waitingSince=null;
+document.addEventListener('visibilitychange',()=>{if(measurement&&document.hidden)measurement.hidden=true;});
 function setPlaying(value){playing=value;$('#play').textContent=value?tr('Pause','暂停'):tr('Play','播放');}
 function viewChanged(){
   if(!rig)return;camera=rig.value();
@@ -19,6 +20,7 @@ $('#language').onclick=()=>{language=language==='en'?'zh':'en';translate();};tra
 bindOrbit(canvas,()=>rig,viewChanged,()=>!measurement);
 $('#reset-view').onclick=()=>{rig?.reset();viewChanged();};
 $('#camera').onchange=()=>{rig=new OrbitCamera(manifest.cameras[Number($('#camera').value)],focus);viewChanged();};
+$('#backend').onchange=()=>{renderer?.setGpuDriven($('#backend').value==='gpu');};
 function updateDelivery(window){
   $('#network').textContent=mib(window.stats.networkBytes);
   $('#cache').textContent=mib(window.stats.cacheBytes)+' / 64 MiB';
@@ -42,7 +44,7 @@ async function seek(time){
     const plan=planWindow(manifest,time),window=await owner.window(plan.start,plan.end,active?.key);
     if(ticket!==generation||serial!==requestSerial)return;
     let created=false;
-    if(!renderer){const next=await GaussianRenderer.create(canvas,window.ply);if(ticket!==generation||serial!==requestSerial){next.free();return;}renderer=next;created=true;}
+    if(!renderer){const next=await GaussianRenderer.create(canvas,window.ply);if(ticket!==generation||serial!==requestSerial){next.free();return;}renderer=next;renderer.setGpuDriven($('#backend').value==='gpu');created=true;}
     install(window,plan,time,created);
   }catch(error){if(ticket===generation&&serial===requestSerial&&error.name!=='AbortError'){setPlaying(false);$('#status').textContent=error.message;}}
   finally{if(ticket===generation&&serial===requestSerial){busy=false;finishWaiting();}}
@@ -63,16 +65,18 @@ $('#load').onclick=async()=>{
   const ticket=++generation;++requestSerial;setPlaying(false);stream?.dispose();
   active=null;pending=null;rig=null;busy=true;shown=0;finishWaiting();
   counters={replacements:0,bufferEvents:0,bufferMs:0,mediaSeconds:0};
-  for(const id of ['load','play','time','camera','reset-view','idle-test','playback-test'])$('#'+id).disabled=true;
+  $('#compare-result').textContent=tr('Load this scene, then compare.','加载此场景后开始对比。');
+  $('#playback-result').textContent=tr('Load this scene, then measure playback.','加载此场景后测量播放。');
+  for(const id of ['load','play','time','camera','reset-view','idle-test','playback-test','compare-test','backend'])$('#'+id).disabled=true;
   $('#status').textContent=tr('Loading manifest…','正在加载清单…');$('#buffer').textContent='—';
   try{
-    await initWasm({module_or_path:'/pkg/pajama_gaussian_lab_bg.wasm?v=stream-2'});
+    await initWasm({module_or_path:'/pkg/pajama_gaussian_lab_bg.wasm?v=gpu-1'});
     const next=new WorkerStream($('#dataset').value,p=>{if(ticket===generation){const message=`${p.completed}/${p.total} chunks · ${mib(p.received)}`;if(active)$('#buffer').textContent=message;else $('#status').textContent=message;}});
     stream=next;manifest=await next.open();if(ticket!==generation)return;
     $('#time').max=String(manifest.durationSeconds);$('#time').value=0;
     $('#camera').replaceChildren(...manifest.cameras.map((c,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=c.name??c.img_name??`Camera ${i}`;return o;}));
     await seek(0);
-    if(ticket===generation&&active)for(const id of ['play','time','camera','reset-view','idle-test','playback-test'])$('#'+id).disabled=false;
+    if(ticket===generation&&active)for(const id of ['play','time','camera','reset-view','idle-test','playback-test','compare-test','backend'])$('#'+id).disabled=false;
   }catch(error){if(error.name!=='AbortError')$('#status').textContent=error.message;}
   finally{if(ticket===generation){busy=false;$('#load').disabled=false;}}
 };
@@ -87,6 +91,7 @@ function resize(){renderWidth=Math.max(1,Math.round(canvas.clientWidth*Math.min(
 new ResizeObserver(resize).observe(canvas);window.addEventListener('resize',resize);resize();
 function frame(now){
   const dt=Math.min(.25,(now-last)/1000);last=now;
+  if(measurement?.kind==='ab'){requestAnimationFrame(frame);return;}
   if(renderer&&manifest&&active){
     if(playing&&!document.hidden){
       const next=(shown+dt)%manifest.durationSeconds;
@@ -103,6 +108,8 @@ function frame(now){
       meter=now;$('#clock').textContent=shown.toFixed(3)+' s';$('#time').value=shown;
       $('#submitted').textContent=String(renderer.submittedFrames);$('#cpu').textContent=renderer.prepareMs.toFixed(2)+' ms';
       $('#gpu').textContent=renderer.gpuRenderMs>=0?renderer.gpuRenderMs.toFixed(3)+' ms':tr('Unavailable','不可用');
+      $('#gpu-prepare').textContent=renderer.gpuPrepareMs>=0?renderer.gpuPrepareMs.toFixed(3)+' ms':tr('Unavailable','不可用');
+      $('#gpu-total').textContent=renderer.gpuFrameMs>=0?renderer.gpuFrameMs.toFixed(3)+' ms':tr('Unavailable','不可用');
       $('#visible').textContent=`${renderer.visible.toLocaleString()} / ${renderer.sourceCount.toLocaleString()}`;$('#upload').textContent=mib(renderer.uploadBytes);
     }
     measureFrame(now);
@@ -110,7 +117,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }requestAnimationFrame(frame);
 
-function lockControls(locked){for(const id of ['load','dataset','time','play','camera','reset-view','idle-test','playback-test'])$('#'+id).disabled=locked;}
+function lockControls(locked){for(const id of ['load','dataset','time','play','camera','reset-view','idle-test','playback-test','compare-test','backend'])$('#'+id).disabled=locked;}
 function measureFrame(now){
   const m=measurement;if(!m||m.kind!=='playback')return;
   if(document.hidden)m.hidden=true;
@@ -119,7 +126,7 @@ function measureFrame(now){
   m.intervals.push(now-m.last);m.last=now;
   if(now-m.start<6000)return;
   const sorted=m.intervals.slice().sort((a,b)=>a-b),quantile=p=>sorted[Math.min(sorted.length-1,Math.floor(sorted.length*p))];
-  const result={schema:'pajama.playback-evidence.v1',scene:stream.id,mode:active.mode,windowMs:now-m.start,submittedFrames:renderer.submittedFrames-m.frames,frameIntervalP50Ms:quantile(.5),frameIntervalP95Ms:quantile(.95),framesOver50Ms:m.intervals.filter(x=>x>50).length,bufferEvents:counters.bufferEvents-m.before.bufferEvents,bufferMs:counters.bufferMs-m.before.bufferMs,sourceReplacements:counters.replacements-m.before.replacements,mediaAdvancedSeconds:counters.mediaSeconds-m.before.mediaSeconds,residentCount:renderer.sourceCount,canvasPixels:[renderWidth,renderHeight],hiddenDuringMeasurement:!!m.hidden};
+  const result={schema:'pajama.playback-evidence.v1',backend:renderer.gpuDriven?'gpu':'cpu',scene:stream.id,mode:active.mode,windowMs:now-m.start,submittedFrames:renderer.submittedFrames-m.frames,frameIntervalP50Ms:quantile(.5),frameIntervalP95Ms:quantile(.95),framesOver50Ms:m.intervals.filter(x=>x>50).length,bufferEvents:counters.bufferEvents-m.before.bufferEvents,bufferMs:counters.bufferMs-m.before.bufferMs,sourceReplacements:counters.replacements-m.before.replacements,mediaAdvancedSeconds:counters.mediaSeconds-m.before.mediaSeconds,residentCount:renderer.sourceCount,canvasPixels:[renderWidth,renderHeight],hiddenDuringMeasurement:!!m.hidden};
   $('#playback-result').textContent=JSON.stringify(result,null,2);measurement=null;setPlaying(false);lockControls(false);
 }
 $('#playback-test').onclick=()=>{if(!renderer||busy)return;canvas.scrollIntoView({block:'center',behavior:'instant'});measurement={kind:'playback',warmupEnd:performance.now()+1000,intervals:[]};lockControls(true);$('#playback-result').textContent=tr('1 s warmup, then 6 s of actual playback…','预热 1 秒，然后测量实际播放 6 秒…');setPlaying(true);};
@@ -132,6 +139,33 @@ $('#idle-test').onclick=async()=>{
     const middle=renderer.submittedFrames;await new Promise(r=>setTimeout(r,2000));
     $('#idle-result').textContent=JSON.stringify({schema:'pajama.idle-evidence.v1',scene:stream.id,windowMs:2000,continuousGpuFrames:continuous,onDemandGpuFrames:renderer.submittedFrames-middle,visible:renderer.visible,sourceCount:renderer.sourceCount},null,2);
   }finally{renderer.setRenderOnDemand(true);measurement=null;lockControls(false);}
+};
+$('#compare-test').onclick=async()=>{
+  if(!renderer||busy||measurement)return;
+  if(active.mode!=='resident'){$('#compare-result').textContent=tr('This comparison requires the whole checkpoint to be resident.','此对比要求整个 checkpoint 驻留。');return;}
+  const saved={gpu:renderer.gpuDriven,time:shown,width:renderWidth,height:renderHeight};
+  setPlaying(false);measurement={kind:'ab'};lockControls(true);canvas.scrollIntoView({block:'center',behavior:'instant'});
+  $('#compare-result').textContent=tr('Warming up the paired CPU / GPU comparison…','正在预热 CPU / GPU 配对对比…');
+  const frames={cpu:[],gpu:[]},rounds=[];
+  const summarize=values=>{const a=values.slice().sort((x,y)=>x-y);return{p50:a[Math.floor(a.length*.5)],p95:a[Math.floor(a.length*.95)]};};
+  try{
+    for(let round=0;round<3;round++)for(const mode of round%2?['gpu','cpu']:['cpu','gpu']){
+      renderer.setGpuDriven(mode==='gpu');let previous=0;const samples=[];
+      for(let step=-24;step<96;step++){
+        const now=await new Promise(requestAnimationFrame);
+        if(document.hidden||measurement.hidden||renderWidth!==saved.width||renderHeight!==saved.height)throw Error(tr('Comparison cancelled: keep this tab visible and its size unchanged.','对比已取消：请保持页面可见且尺寸不变。'));
+        const time=((step+96)%96)/96;
+        const before=performance.now();renderer.render(time*10,0,0,17,renderWidth,renderHeight,camera);const callMs=performance.now()-before;
+        if(step>=0)samples.push({callMs,prepareMs:renderer.prepareMs,gpuFrameMs:renderer.gpuFrameMs,gpuPrepareMs:renderer.gpuPrepareMs,intervalMs:now-previous,indexUploadBytes:renderer.uploadBytes});
+        previous=now;
+        if(step%24===0)$('#compare-result').textContent=`${tr('Paired round','配对轮次')} ${round+1}/3 · ${mode.toUpperCase()} · ${Math.max(0,step)}/96`;
+      }
+      frames[mode].push(...samples);rounds.push({round,mode,callMs:summarize(samples.map(x=>x.callMs))});
+    }
+    const results=Object.entries(frames).map(([backend,samples])=>({backend,renderCallMs:summarize(samples.map(x=>x.callMs)),cpuPrepareEncodeMs:summarize(samples.map(x=>x.prepareMs)),gpuCullSortRenderMs:renderer.gpuTimingSupported?summarize(samples.map(x=>x.gpuFrameMs)):null,frameIntervalMs:summarize(samples.map(x=>x.intervalMs)),indexUploadBytes:summarize(samples.map(x=>x.indexUploadBytes)),samples}));
+    $('#compare-result').textContent=JSON.stringify({schema:'pajama.browser-gpu-ab.v1',scene:stream.id,residentCount:renderer.sourceCount,adapter:renderer.adapterName,canvasPixels:[renderWidth,renderHeight],camera:Array.from(camera),method:'3 rotated paired rounds; 24 warmup + 96 fixed-time RAF frames per backend. Same resident records, view, size and time sequence. GPU telemetry is asynchronous and may lag/repeat; native report supplies synchronized per-frame GPU timing. Frame intervals are refresh-limited, not uncapped throughput.',rounds,results},null,2);
+  }catch(error){$('#compare-result').textContent=error.message;}
+  finally{renderer.setGpuDriven(saved.gpu);shown=saved.time;measurement=null;lockControls(false);}
 };
 $('#query').onsubmit=async e=>{e.preventDefault();const url=`/api/gaussians/${$('#dataset').value}/range?start=${encodeURIComponent($('#start').value)}&end=${encodeURIComponent($('#end').value)}`;$('#query-link').href=url;try{const r=await fetch(url);$('#query-result').textContent=r.ok?JSON.stringify(await r.json(),null,2):`HTTP ${r.status}: ${await r.text()}`;}catch(e){$('#query-result').textContent=e.message;}};
 fetch('./report.json').then(r=>r.ok?r.json():null).then(report=>{if(!report)return;const table=document.createElement('table');const head=document.createElement('tr');for(const t of ['Iteration','Change','Evidence','Decision']){const h=document.createElement('th');h.textContent=t;head.append(h);}table.append(head);for(const row of report.iterations){const tr=document.createElement('tr');for(const t of [row.iteration,row.change,row.evidence,row.decision]){const td=document.createElement('td');td.textContent=String(t);tr.append(td);}table.append(tr);}$('#results').append(table);}).catch(()=>{});

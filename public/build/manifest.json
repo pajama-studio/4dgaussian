@@ -231,7 +231,7 @@
     },
     {
       "file": "public/build/lab.mjs",
-      "sha256": "eb8a2c90236a6017f9866980a812f75ba70e47aed1d304518a8e33fd38f7a61d",
+      "sha256": "5beff0a4c457c03275043ffabe66462e5ed0d82f604989ace001f6f5e8da88fc",
       "slug": "public-build-lab.mjs"
     },
     {
@@ -241,7 +241,7 @@
     },
     {
       "file": "src/stg_pass.rs",
-      "sha256": "cd4748bb3dc1d18c7d205e5fa832cab39087fed7fae6ed3067c1b36082da3ce7",
+      "sha256": "34355b0b181f6afff032b67568e079409100488c68161b3c4ff523c360201907",
       "slug": "src-stg_pass.rs"
     },
     {
@@ -251,7 +251,7 @@
     },
     {
       "file": "src/lib.rs",
-      "sha256": "03c89f4d7e4f10df9c8778c5742138de07d72ae73f3407cad9d66a1882679d1b",
+      "sha256": "3ebd65568c04ab84ac77393afd69ae3f8187ff125e4caca3bcade37c3567bc2f",
       "slug": "src-lib.rs"
     },
     {

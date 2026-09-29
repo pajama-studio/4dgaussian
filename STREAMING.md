@@ -18,6 +18,30 @@ The previous streamer rebuilt its resident source approximately every 0.2 second
 
 `node scripts/check-stream-playback.mjs` checks calibration preservation, orbit/reset invariants, synthetic long-manifest window budgets, and byte-identical assembly on both real fixtures. The former comparator-based assembly is retained only as a test oracle.
 
+## GPU culling, stable sorting and indirect drawing
+
+The browser streaming player, home viewer and STG docs sample now enable the GPU path by default; home and streaming controls retain the CPU baseline. Native hosts opt in with `StgPass::new_gpu`, then call `encode_prepare` before opening the render pass. `StgPass::new` preserves the existing CPU host contract. `GaussianRenderer.setGpuDriven` switches the browser path and invalidates preparation. Picking still evaluates the CPU reference on demand when the user clicks, not every playback frame.
+
+`src/gpu_cull.wgsl` evaluates cubic motion, temporal opacity and the existing center-frustum policy. Invisible entries get a sentinel. `src/gpu_radix.wgsl` performs eight stable 4-bit radix passes with workgroup histograms, tiled prefix scans and shared bit masks. All 32 depth bits are retained. Sorting places visible entries first and writes a packed 4-byte source-ID stream. A GPU atomic count drives `draw_indirect`. The renderer uploads only small uniforms/draw reset data instead of the per-frame visible-ID list; an optional asynchronous 16-byte count copy serves UI telemetry only. There are no subgroups, GPU spin locks or CPU readback dependencies in drawing. Extra GPU working buffers cost about 21 bytes per source record. Sorting still processes invisible sentinels; it is not a visibility-sized sort or occlusion culling.
+
+Native RTX 4090 / DX12, 1280×960, **the already optimized CPU v9** versus GPU preparation:
+
+| Real checkpoint | CPU path → GPU path serialized frame p50 | Reduction | CPU preparation + encoding p50 |
+| --- | --- | --- | --- |
+| Sear, 108,317 records | 3.621 → 1.511 ms | 58.3% | 2.351 → 0.053 ms |
+| Flames, 332,865 records | 9.514 → 1.705 ms | 82.1% | 8.087 → 0.054 ms |
+
+Two warmup + seven measured rounds × 12 frames, rotating backend order: three calibrated cameras × four normalized times (including 0 and 1). GPU timestamps include culling, all sort passes and rendering. Serialized CPU-to-completion latency includes a fixed small timestamp copy but excludes image/order correctness readbacks, networking and display refresh; **not browser FPS or pipelined throughput**. Full raw samples, p95, source/model hashes and 24 image comparisons: [Sear](public/streaming/evidence/gpu-driven-sear.json), [Flames](public/streaming/evidence/gpu-driven-flames.json). Website explanation: `/streaming/gpu-driven.html`. Browser **Compare CPU / GPU on this device** runs three rotated paired rounds, 24 warmup + 96 fixed-time frames per backend per round; browser GPU telemetry may lag/repeat and is explicitly labeled asynchronous.
+
+Quality is measured rather than assumed bit-identical. Every source ID survives exactly once in sorted keys; the sort is stable for equal GPU depth keys. All Sear visible sets match. In one Flames camera/time, GPU exp rounding retains ID 324748 at the 1/255 opacity threshold; the report retains its CPU opacity and the 16-ULP cutoff-band check. Non-threshold visible-set differences fail validation. GPU/CPU arithmetic can reorder nearly equal depths; maximum image RMSE is 0.04253 on the 0–255 scale, maximum individual channel difference is 7 (Sear), 2 (Flames). The image acceptance gate is RMSE ≤0.25. These are finite image regressions, not pixel-exact equivalence for every scene. `gpu_prepare_check` passes 18 synthetic hardware cases covering all-visible/all-hidden/mixed records, exact-depth ties, 128-lane tails, multi-tile prefix scans and unchanged-frame caching. Metal/mobile/iGPU correctness and performance remain unmeasured.
+
+```sh
+cargo run --release --example gpu_prepare_check
+cargo run --release --example gpu_driven_bench -- public/data/n3d-sear-steak-stg-lite.ply.gz public/data/n3d-sear-steak-reference-cameras.json artifacts/gpu-driven-sear
+cargo run --release --example gpu_driven_bench -- artifacts/streaming/flames.ply artifacts/streaming/flames-cameras.json artifacts/gpu-driven-flames
+node scripts/build-gpu-report.mjs
+```
+
 ## Ten measured changes
 
 The machine was Windows, Threadripper 3990X, RTX 4090 (24,564 MiB), driver 591.86, 128 GiB system RAM. Native CPU benchmark uses release `opt-level=s`, two warmup rounds followed by seven recorded rounds of 48 frames, rotating variant order. Workloads are playback, camera-only motion at fixed time, and an unchanged frame. Every variant must match baseline visible ID order. Raw samples and p95 are published under `public/streaming/evidence/`.
@@ -45,7 +69,7 @@ Rejected experiments remain in the report. Always allocating 64 temporal buckets
 - Temporal coverage checks include **all source rows, including discarded records**, at 201 times. A conservative floating-point margin prevents near-threshold drops.
 - Full-source baseline versus streamed production rendering has **maximum pixel difference 0** at normalized times 0.1, 0.5 and 0.9, on both fixtures and the calibrated first camera. This is a finite regression sample, not proof for every scene/view/time.
 - Unchanged native preparation uploads zero order-index bytes. Browser invalidation includes time, view, projection, viewport, canvas size, and source replacement. Paused inspection must retain the last presented frame.
-- The original center-based frustum margin is retained for equivalence. Exact ellipse-extent culling, GPU preprocessing/sort, portable GPU prefix scans and spatial/temporal LOD remain future work.
+- The original center-based frustum margin is retained. GPU culling/sorting and portable prefix scans are implemented above; exact ellipse-extent culling and spatial/temporal LOD remain future work.
 - `GaussianRenderer.render` retains its legacy 10-second normalized-time API. Hosts explicitly map real checkpoint seconds to that API; an exact slider endpoint is clamped just below normalized 1 to avoid wrapping to the beginning.
 
 ## Server contract

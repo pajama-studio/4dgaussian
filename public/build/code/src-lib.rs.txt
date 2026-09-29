@@ -1,5 +1,6 @@
 #![cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 
+pub mod gpu_prepare;
 mod inspection;
 pub mod relight;
 pub mod stg_pass;
@@ -22,7 +23,7 @@ const LOOP_SECONDS: f32 = 10.0;
 const FLOATS_PER_SPLAT: usize = 32;
 const BYTES_PER_SPLAT: usize = FLOATS_PER_SPLAT * std::mem::size_of::<f32>();
 const MAX_SPLATS: usize = 4_000_000;
-const GPU_TIMESTAMP_BYTES: u64 = 2 * std::mem::size_of::<u64>() as u64;
+const GPU_TIMESTAMP_BYTES: u64 = 4 * std::mem::size_of::<u64>() as u64;
 const GPU_TIMESTAMP_READBACK_SLOTS: usize = 3;
 const SCENE_TARGET: Vec3 = Vec3::new(0.0, 3.5, 14.0);
 const STG_PROPERTIES: [&str; FLOATS_PER_SPLAT] = [
@@ -111,6 +112,8 @@ struct GpuTimer {
     readbacks: Vec<TimestampReadback>,
     next_readback: usize,
     latest_ms_bits: Arc<AtomicU64>,
+    latest_prepare_ms_bits: Arc<AtomicU64>,
+    latest_frame_ms_bits: Arc<AtomicU64>,
     timestamp_period_ns: f64,
 }
 
@@ -119,7 +122,7 @@ impl GpuTimer {
         let query_set = device.create_query_set(&wgpu::QuerySetDescriptor {
             label: Some("stg-render-timestamps"),
             ty: wgpu::QueryType::Timestamp,
-            count: 2,
+            count: 4,
         });
         let resolve_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("stg-timestamp-resolve"),
@@ -144,6 +147,8 @@ impl GpuTimer {
             readbacks,
             next_readback: 0,
             latest_ms_bits: Arc::new(AtomicU64::new((-1.0_f64).to_bits())),
+            latest_prepare_ms_bits: Arc::new(AtomicU64::new((-1.0_f64).to_bits())),
+            latest_frame_ms_bits: Arc::new(AtomicU64::new((-1.0_f64).to_bits())),
             timestamp_period_ns: queue.get_timestamp_period() as f64,
         }
     }
@@ -172,6 +177,8 @@ pub struct GaussianRenderer {
     bind_group: wgpu::BindGroup,
     camera_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
+    source_buffer: wgpu::Buffer,
+    gpu_preparation: Option<gpu_prepare::GpuPreparation>,
     preparation: stg_prepare::StgPreparation,
     last_time: Option<f32>,
     last_presented: Option<(f32, Mat4, Mat4, [f32; 4], u32, u32)>,
@@ -371,6 +378,8 @@ impl GaussianRenderer {
             bind_group,
             camera_buffer,
             index_buffer,
+            source_buffer,
+            gpu_preparation: None,
             preparation: stg_prepare::StgPreparation::new(parsed.source),
             last_time: None,
             last_presented: None,
@@ -438,6 +447,14 @@ impl GaussianRenderer {
             })
             .collect();
         self.preparation = stg_prepare::StgPreparation::new(parsed.source);
+        if self.gpu_preparation.is_some() {
+            self.gpu_preparation = Some(gpu_prepare::GpuPreparation::new(
+                &self.device,
+                &source,
+                self.preparation.len() as u32,
+            ));
+        }
+        self.source_buffer = source;
         self.inspection_records = records;
         self.inspection_frame = None;
         self.last_time = None;
@@ -534,10 +551,16 @@ impl GaussianRenderer {
         }
         self.inspection_frame = None;
         let variant = 9;
-        self.preparation
-            .prepare(normalized_time, view, projection, variant);
+        if self.gpu_preparation.is_none() {
+            self.preparation
+                .prepare(normalized_time, view, projection, variant);
+        }
         self.last_time = Some(normalized_time);
-        self.telemetry.sort_ms = self.preparation.sort_ms;
+        self.telemetry.sort_ms = if self.gpu_preparation.is_some() {
+            0.0
+        } else {
+            self.preparation.sort_ms
+        };
 
         let camera = CameraUniform {
             view_proj: view_proj.to_cols_array_2d(),
@@ -551,7 +574,7 @@ impl GaussianRenderer {
         };
         self.queue
             .write_buffer(&self.camera_buffer, 0, bytemuck::bytes_of(&camera));
-        if !self.preparation.cache_hit {
+        if self.gpu_preparation.is_none() && !self.preparation.cache_hit {
             self.sorted_indices.clear();
             self.sorted_indices
                 .extend_from_slice(self.preparation.indices());
@@ -562,11 +585,12 @@ impl GaussianRenderer {
             );
         }
         self.telemetry.visible = self.sorted_indices.len() as u32;
-        self.telemetry.upload_bytes = if self.preparation.cache_hit {
-            0
-        } else {
-            (self.sorted_indices.len() * 4) as u32
-        };
+        self.telemetry.upload_bytes =
+            if self.gpu_preparation.is_some() || self.preparation.cache_hit {
+                0
+            } else {
+                (self.sorted_indices.len() * 4) as u32
+            };
         self.telemetry.prepare_ms = prepare_started.elapsed().as_secs_f64() * 1000.0;
 
         let inspection_frame = inspection::InspectionFrame {
@@ -590,17 +614,29 @@ impl GaussianRenderer {
                 return Err(JsValue::from_str("WebGPU surface validation failed"))
             }
         };
-        let view = frame.texture.create_view(&Default::default());
+        let target_view = frame.texture.create_view(&Default::default());
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("stg-frame"),
             });
+        let computed = if let Some(gpu) = self.gpu_preparation.as_mut() {
+            gpu.encode(
+                &self.queue,
+                &mut encoder,
+                normalized_time,
+                view,
+                projection,
+                self.gpu_timer.as_ref().map(|t| (&t.query_set, 0, 1)),
+            )
+        } else {
+            false
+        };
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("stg-splats"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
+                    view: &target_view,
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
@@ -617,8 +653,8 @@ impl GaussianRenderer {
                 timestamp_writes: self.gpu_timer.as_ref().map(|timer| {
                     wgpu::RenderPassTimestampWrites {
                         query_set: &timer.query_set,
-                        beginning_of_pass_write_index: Some(0),
-                        end_of_pass_write_index: Some(1),
+                        beginning_of_pass_write_index: Some(2),
+                        end_of_pass_write_index: Some(3),
                     }
                 }),
                 occlusion_query_set: None,
@@ -626,14 +662,24 @@ impl GaussianRenderer {
             });
             pass.set_pipeline(&self.pipeline);
             pass.set_bind_group(0, &self.bind_group, &[]);
-            pass.set_vertex_buffer(0, self.index_buffer.slice(..));
             pass.set_viewport(viewport[0], viewport[1], viewport[2], viewport[3], 0.0, 1.0);
-            pass.draw(0..6, 0..self.telemetry.visible);
+            if let Some(gpu) = &self.gpu_preparation {
+                pass.set_vertex_buffer(0, gpu.indices.slice(..));
+                pass.draw_indirect(&gpu.indirect, 0);
+            } else {
+                pass.set_vertex_buffer(0, self.index_buffer.slice(..));
+                pass.draw(0..6, 0..self.telemetry.visible);
+            }
         }
         let mut timestamp_readback = None;
         if let Some(timer) = self.gpu_timer.as_mut() {
             if let Some((buffer, pending)) = timer.reserve_readback() {
-                encoder.resolve_query_set(&timer.query_set, 0..2, &timer.resolve_buffer, 0);
+                encoder.resolve_query_set(
+                    &timer.query_set,
+                    if computed { 0..4 } else { 2..4 },
+                    &timer.resolve_buffer,
+                    0,
+                );
                 encoder.copy_buffer_to_buffer(
                     &timer.resolve_buffer,
                     0,
@@ -645,12 +691,30 @@ impl GaussianRenderer {
                     buffer,
                     pending,
                     timer.latest_ms_bits.clone(),
+                    timer.latest_prepare_ms_bits.clone(),
+                    timer.latest_frame_ms_bits.clone(),
                     timer.timestamp_period_ns,
                 ));
             }
         }
+        let count_copy = self
+            .gpu_preparation
+            .as_ref()
+            .is_some_and(|gpu| gpu.count_copy(&mut encoder));
+        self.telemetry.prepare_ms = prepare_started.elapsed().as_secs_f64() * 1000.0;
         self.queue.submit([encoder.finish()]);
-        if let Some((buffer, pending, latest_ms_bits, timestamp_period_ns)) = timestamp_readback {
+        if count_copy {
+            self.gpu_preparation.as_ref().unwrap().map_count();
+        }
+        if let Some((
+            buffer,
+            pending,
+            latest_ms_bits,
+            latest_prepare_ms_bits,
+            latest_frame_ms_bits,
+            timestamp_period_ns,
+        )) = timestamp_readback
+        {
             let callback_buffer = buffer.clone();
             buffer
                 .slice(..GPU_TIMESTAMP_BYTES)
@@ -660,12 +724,38 @@ impl GaussianRenderer {
                             .slice(..GPU_TIMESTAMP_BYTES)
                             .get_mapped_range();
                         if let Ok(mapped) = mapped_result {
-                            let begin = u64::from_le_bytes(mapped[0..8].try_into().unwrap());
-                            let end = u64::from_le_bytes(mapped[8..16].try_into().unwrap());
+                            let offset = if computed { 16 } else { 0 };
+                            let begin =
+                                u64::from_le_bytes(mapped[offset..offset + 8].try_into().unwrap());
+                            let end = u64::from_le_bytes(
+                                mapped[offset + 8..offset + 16].try_into().unwrap(),
+                            );
                             if end >= begin {
                                 let elapsed_ms =
                                     (end - begin) as f64 * timestamp_period_ns / 1_000_000.0;
                                 latest_ms_bits.store(elapsed_ms.to_bits(), AtomicOrdering::Relaxed);
+                                let first = if computed {
+                                    u64::from_le_bytes(mapped[0..8].try_into().unwrap())
+                                } else {
+                                    begin
+                                };
+                                let compute_end = if computed {
+                                    u64::from_le_bytes(mapped[8..16].try_into().unwrap())
+                                } else {
+                                    first
+                                };
+                                if compute_end >= first && end >= first {
+                                    latest_prepare_ms_bits.store(
+                                        ((compute_end - first) as f64 * timestamp_period_ns / 1e6)
+                                            .to_bits(),
+                                        AtomicOrdering::Relaxed,
+                                    );
+                                    latest_frame_ms_bits.store(
+                                        ((end - first) as f64 * timestamp_period_ns / 1e6)
+                                            .to_bits(),
+                                        AtomicOrdering::Relaxed,
+                                    );
+                                }
                             }
                             drop(mapped);
                         }
@@ -708,7 +798,9 @@ impl GaussianRenderer {
 
     #[wasm_bindgen(getter)]
     pub fn visible(&self) -> u32 {
-        self.telemetry.visible
+        self.gpu_preparation
+            .as_ref()
+            .map_or(self.telemetry.visible, |g| g.visible())
     }
 
     #[wasm_bindgen(getter, js_name = uploadBytes)]
@@ -722,6 +814,38 @@ impl GaussianRenderer {
             .as_ref()
             .map(|timer| f64::from_bits(timer.latest_ms_bits.load(AtomicOrdering::Relaxed)))
             .unwrap_or(-1.0)
+    }
+
+    #[wasm_bindgen(js_name = setGpuDriven)]
+    pub fn set_gpu_driven(&mut self, enabled: bool) {
+        if enabled == self.gpu_preparation.is_some() {
+            return;
+        }
+        self.gpu_preparation = enabled.then(|| {
+            gpu_prepare::GpuPreparation::new(
+                &self.device,
+                &self.source_buffer,
+                self.preparation.len() as u32,
+            )
+        });
+        self.preparation.invalidate();
+        self.invalidate();
+    }
+    #[wasm_bindgen(getter, js_name = gpuDriven)]
+    pub fn gpu_driven(&self) -> bool {
+        self.gpu_preparation.is_some()
+    }
+    #[wasm_bindgen(getter, js_name = gpuPrepareMs)]
+    pub fn gpu_prepare_ms(&self) -> f64 {
+        self.gpu_timer.as_ref().map_or(-1.0, |t| {
+            f64::from_bits(t.latest_prepare_ms_bits.load(AtomicOrdering::Relaxed))
+        })
+    }
+    #[wasm_bindgen(getter, js_name = gpuFrameMs)]
+    pub fn gpu_frame_ms(&self) -> f64 {
+        self.gpu_timer.as_ref().map_or(-1.0, |t| {
+            f64::from_bits(t.latest_frame_ms_bits.load(AtomicOrdering::Relaxed))
+        })
     }
 
     #[wasm_bindgen(getter, js_name = gpuTimingSupported)]
@@ -760,7 +884,18 @@ impl GaussianRenderer {
     }
 
     #[wasm_bindgen(js_name = pickSplats)]
-    pub fn pick_splats(&self, x: f32, y: f32) -> Vec<f32> {
+    pub fn pick_splats(&mut self, x: f32, y: f32) -> Vec<f32> {
+        if self.gpu_preparation.is_some() {
+            if let Some(frame) = self.inspection_frame {
+                // CPU picking is explicitly on-demand, never part of GPU playback.
+                self.preparation.prepare(
+                    frame.time,
+                    frame.view,
+                    frame.view_proj * frame.view.inverse(),
+                    9,
+                );
+            }
+        }
         self.inspection_frame
             .as_ref()
             .map_or_else(Vec::new, |frame| {
