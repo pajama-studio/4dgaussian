@@ -1,0 +1,398 @@
+{
+  "audited": "2026-09-30",
+  "scope": "Pinned source reading, not an engine benchmark",
+  "repositories": {
+    "spark": {
+      "name": "Spark",
+      "repo": "sparkjsdev/spark",
+      "sha": "cce78e2cf5505679abbaf64236e0834de385010c",
+      "version": "2.3.0",
+      "date": "2026-09-29"
+    },
+    "pc": {
+      "name": "PlayCanvas",
+      "repo": "playcanvas/engine",
+      "sha": "b52b7c1c15af41bb2f2eb1513ab42f4138af30af",
+      "version": "2.23.0-beta.24",
+      "date": "2026-09-30"
+    }
+  },
+  "references": {
+    "sparkLoad": {
+      "repo": "spark",
+      "path": "src/SplatLoader.ts",
+      "start": 103,
+      "end": 193,
+      "label": "SplatLoader · Worker decode",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SplatLoader.ts#L103-L193"
+    },
+    "sparkWorker": {
+      "repo": "spark",
+      "path": "src/worker.ts",
+      "start": 74,
+      "end": 174,
+      "label": "Worker RPC · sort / fetch",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/worker.ts#L74-L174"
+    },
+    "sparkPacked": {
+      "repo": "spark",
+      "path": "src/PackedSplats.ts",
+      "start": 106,
+      "end": 130,
+      "label": "PackedSplats · 16-byte base",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/PackedSplats.ts#L106-L130"
+    },
+    "sparkSH": {
+      "repo": "spark",
+      "path": "src/PackedSplats.ts",
+      "start": 337,
+      "end": 369,
+      "label": "fetchSplat · view-dependent SH",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/PackedSplats.ts#L337-L369"
+    },
+    "sparkSHBits": {
+      "repo": "spark",
+      "path": "src/PackedSplats.ts",
+      "start": 503,
+      "end": 522,
+      "label": "SH · additional packed bands",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/PackedSplats.ts#L503-L522"
+    },
+    "sparkSHMath": {
+      "repo": "spark",
+      "path": "src/PackedSplats.ts",
+      "start": 1081,
+      "end": 1102,
+      "label": "evaluatePackedSH1",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/PackedSplats.ts#L1081-L1102"
+    },
+    "sparkMesh": {
+      "repo": "spark",
+      "path": "src/SplatMesh.ts",
+      "start": 677,
+      "end": 749,
+      "label": "SplatMesh · generator graph",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SplatMesh.ts#L677-L749"
+    },
+    "sparkAcc": {
+      "repo": "spark",
+      "path": "src/SplatAccumulator.ts",
+      "start": 230,
+      "end": 345,
+      "label": "SplatAccumulator · GPU outputs",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SplatAccumulator.ts#L230-L345"
+    },
+    "sparkGenerate": {
+      "repo": "spark",
+      "path": "src/SplatAccumulator.ts",
+      "start": 375,
+      "end": 437,
+      "label": "generate · render splat data",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SplatAccumulator.ts#L375-L437"
+    },
+    "sparkUpdate": {
+      "repo": "spark",
+      "path": "src/SparkRenderer.ts",
+      "start": 928,
+      "end": 1038,
+      "label": "updateInternal · versions / display",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SparkRenderer.ts#L928-L1038"
+    },
+    "sparkSort": {
+      "repo": "spark",
+      "path": "src/SparkRenderer.ts",
+      "start": 1041,
+      "end": 1165,
+      "label": "driveSort · readback → WASM → order",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SparkRenderer.ts#L1041-L1165"
+    },
+    "sparkRead": {
+      "repo": "spark",
+      "path": "src/Readback.ts",
+      "start": 202,
+      "end": 262,
+      "label": "Readback · asynchronous pixels",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/Readback.ts#L202-L262"
+    },
+    "sparkRadix": {
+      "repo": "spark",
+      "path": "rust/spark-rs/src/sort.rs",
+      "start": 63,
+      "end": 251,
+      "label": "sort32 · two 16-bit radix passes",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/rust/spark-rs/src/sort.rs#L63-L251"
+    },
+    "sparkDefaults": {
+      "repo": "spark",
+      "path": "src/SparkRenderer.ts",
+      "start": 474,
+      "end": 540,
+      "label": "SparkRenderer · render defaults",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SparkRenderer.ts#L474-L540"
+    },
+    "sparkQuad": {
+      "repo": "spark",
+      "path": "src/SplatGeometry.ts",
+      "start": 1,
+      "end": 21,
+      "label": "SplatGeometry · instanced quad",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SplatGeometry.ts#L1-L21"
+    },
+    "sparkVS": {
+      "repo": "spark",
+      "path": "src/shaders/splatVertex.glsl",
+      "start": 48,
+      "end": 147,
+      "label": "Vertex · order ID / fetch / reject",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/shaders/splatVertex.glsl#L48-L147"
+    },
+    "sparkProject": {
+      "repo": "spark",
+      "path": "src/shaders/splatVertex.glsl",
+      "start": 177,
+      "end": 272,
+      "label": "Vertex · covariance / projection",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/shaders/splatVertex.glsl#L177-L272"
+    },
+    "sparkFS": {
+      "repo": "spark",
+      "path": "src/shaders/splatFragment.glsl",
+      "start": 27,
+      "end": 66,
+      "label": "Fragment · falloff / premultiply",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/shaders/splatFragment.glsl#L27-L66"
+    },
+    "sparkRange": {
+      "repo": "spark",
+      "path": "src/SplatPager.ts",
+      "start": 1393,
+      "end": 1426,
+      "label": "SplatPager · HTTP byte Range",
+      "url": "https://github.com/sparkjsdev/spark/blob/cce78e2cf5505679abbaf64236e0834de385010c/src/SplatPager.ts#L1393-L1426"
+    },
+    "pcLoad": {
+      "repo": "pc",
+      "path": "src/framework/handlers/gsplat.js",
+      "start": 1,
+      "end": 39,
+      "label": "GSplatHandler · parser registry",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/framework/handlers/gsplat.js#L1-L39"
+    },
+    "pcPly": {
+      "repo": "pc",
+      "path": "src/framework/parsers/ply.js",
+      "start": 591,
+      "end": 628,
+      "label": "PLY · resource creation",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/framework/parsers/ply.js#L591-L628"
+    },
+    "pcSog": {
+      "repo": "pc",
+      "path": "src/framework/parsers/sog.js",
+      "start": 127,
+      "end": 166,
+      "label": "SOG · texture assets",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/framework/parsers/sog.js#L127-L166"
+    },
+    "pcDefault": {
+      "repo": "pc",
+      "path": "src/framework/components/gsplat/component.js",
+      "start": 18,
+      "end": 31,
+      "label": "GSplatComponent · unified default",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/framework/components/gsplat/component.js#L18-L31"
+    },
+    "pcMode": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-params.js",
+      "start": 134,
+      "end": 215,
+      "label": "GSplatParams · AUTO / radial / stochastic",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-params.js#L134-L215"
+    },
+    "pcManager": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-manager.js",
+      "start": 420,
+      "end": 520,
+      "label": "Manager · CPU / GPU renderer selection",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-manager.js#L420-L520"
+    },
+    "pcApply": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-manager.js",
+      "start": 535,
+      "end": 546,
+      "label": "Manager · apply matching order",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-manager.js#L535-L546"
+    },
+    "pcLod": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-octree-instance.js",
+      "start": 383,
+      "end": 434,
+      "label": "Octree · loaded LoD fallback",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-octree-instance.js#L383-L434"
+    },
+    "pcWork": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-work-buffer.js",
+      "start": 182,
+      "end": 286,
+      "label": "Work buffer · per-format shader cache",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-work-buffer.js#L182-L286"
+    },
+    "pcBake": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/wgsl/chunks/gsplat/frag/gsplatCopyToWorkbuffer.js",
+      "start": 44,
+      "end": 145,
+      "label": "Work-buffer shader · geometry / SH",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/wgsl/chunks/gsplat/frag/gsplatCopyToWorkbuffer.js#L44-L145"
+    },
+    "pcBakeGL": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/glsl/chunks/gsplat/frag/gsplatCopyToWorkbuffer.js",
+      "start": 1,
+      "end": 136,
+      "label": "GLSL work-buffer · geometry / SH",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/glsl/chunks/gsplat/frag/gsplatCopyToWorkbuffer.js#L1-L136"
+    },
+    "pcCornerGL": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/glsl/chunks/gsplat/vert/gsplatCorner.js",
+      "start": 5,
+      "end": 112,
+      "label": "GLSL quad · covariance / ellipse",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/glsl/chunks/gsplat/vert/gsplatCorner.js#L5-L112"
+    },
+    "pcFSGL": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/glsl/chunks/gsplat/frag/gsplat.js",
+      "start": 50,
+      "end": 108,
+      "label": "GLSL fragment · falloff / output",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/glsl/chunks/gsplat/frag/gsplat.js#L50-L108"
+    },
+    "pcAsync": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-unified-sorter.js",
+      "start": 70,
+      "end": 115,
+      "label": "CPU sorter · pending versioned result",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-unified-sorter.js#L70-L115"
+    },
+    "pcCPU": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-unified-sort-worker.js",
+      "start": 83,
+      "end": 179,
+      "label": "CPU Worker · keys / counting sort",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-unified-sort-worker.js#L83-L179"
+    },
+    "pcCPUBits": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-unified-sort-worker.js",
+      "start": 267,
+      "end": 298,
+      "label": "CPU Worker · adaptive bucket count",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-unified-sort-worker.js#L267-L298"
+    },
+    "pcHybrid": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-hybrid-renderer.js",
+      "start": 462,
+      "end": 564,
+      "label": "Hybrid · cull → project → GPU sort",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-hybrid-renderer.js#L462-L564"
+    },
+    "pcProject": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/wgsl/chunks/gsplat/compute-gsplat-projector.js",
+      "start": 119,
+      "end": 146,
+      "label": "Projector · per-splat rejection",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/wgsl/chunks/gsplat/compute-gsplat-projector.js#L119-L146"
+    },
+    "pcCompact": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/wgsl/chunks/gsplat/compute-gsplat-projector.js",
+      "start": 203,
+      "end": 306,
+      "label": "Projector · key / compaction / cache",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/wgsl/chunks/gsplat/compute-gsplat-projector.js#L203-L306"
+    },
+    "pcRadix": {
+      "repo": "pc",
+      "path": "src/scene/graphics/radix-sort/compute-radix-sort.js",
+      "start": 72,
+      "end": 133,
+      "label": "Radix facade · portable / OneSweep",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/graphics/radix-sort/compute-radix-sort.js#L72-L133"
+    },
+    "pcPortable": {
+      "repo": "pc",
+      "path": "src/scene/graphics/radix-sort/compute-radix-sort-multipass.js",
+      "start": 18,
+      "end": 66,
+      "label": "Portable radix · histogram / scan / scatter",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/graphics/radix-sort/compute-radix-sort-multipass.js#L18-L66"
+    },
+    "pcHybridVS": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/wgsl/chunks/gsplat/vert/gsplatHybrid.js",
+      "start": 95,
+      "end": 209,
+      "label": "Hybrid vertex · cached projection",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/wgsl/chunks/gsplat/vert/gsplatHybrid.js#L95-L209"
+    },
+    "pcCorner": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/wgsl/chunks/gsplat/vert/gsplatCorner.js",
+      "start": 5,
+      "end": 123,
+      "label": "Quad vertex · covariance / ellipse",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/wgsl/chunks/gsplat/vert/gsplatCorner.js#L5-L123"
+    },
+    "pcQuadBlend": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-quad-renderer.js",
+      "start": 160,
+      "end": 187,
+      "label": "Quad · blending / depth state",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-quad-renderer.js#L160-L187"
+    },
+    "pcFS": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/wgsl/chunks/gsplat/frag/gsplat.js",
+      "start": 34,
+      "end": 140,
+      "label": "Fragment · normExp / alpha / output",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/wgsl/chunks/gsplat/frag/gsplat.js#L34-L140"
+    },
+    "pcColor": {
+      "repo": "pc",
+      "path": "src/scene/shader-lib/wgsl/chunks/gsplat/vert/gsplatOutput.js",
+      "start": 1,
+      "end": 42,
+      "label": "Output · gamma / tone map",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/shader-lib/wgsl/chunks/gsplat/vert/gsplatOutput.js#L1-L42"
+    },
+    "pcHalf": {
+      "repo": "pc",
+      "path": "src/platform/graphics/shader-chunks/frag/half-types.js",
+      "start": 1,
+      "end": 29,
+      "label": "Shader aliases · f16 capability",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/platform/graphics/shader-chunks/frag/half-types.js#L1-L29"
+    },
+    "pcSync": {
+      "repo": "pc",
+      "path": "src/scene/gsplat-unified/gsplat-hybrid-renderer.js",
+      "start": 537,
+      "end": 549,
+      "label": "Upstream workaround · picking submission",
+      "url": "https://github.com/playcanvas/engine/blob/b52b7c1c15af41bb2f2eb1513ab42f4138af30af/src/scene/gsplat-unified/gsplat-hybrid-renderer.js#L537-L549"
+    }
+  }
+}

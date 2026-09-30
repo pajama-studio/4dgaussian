@@ -1,5 +1,14 @@
 [
   {
+    "href": "/build/renderer-internals/",
+    "en": "Inside Spark & PlayCanvas",
+    "zh": "读懂 Spark 与 PlayCanvas",
+    "detail": "Source walk-through · loading, SH, CPU/GPU sorting and pixels",
+    "detailZh": "源码全流程 · 加载、SH、CPU／GPU 排序与像素",
+    "keywords": "spark playcanvas gsplat wasm radix projection cache gaussian 源码 基数排序 投影缓存",
+    "group": "engineering"
+  },
+  {
     "href": "/build/cross-platform/",
     "en": "Cross-platform rendering differences",
     "zh": "跨平台渲染差异",
