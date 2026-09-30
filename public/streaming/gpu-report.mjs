@@ -2,6 +2,7 @@ let language=new URLSearchParams(location.search).get('lang')==='zh'?'zh':'en',r
 function draw(){
   document.documentElement.lang=language;
   document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset[language]);
+  document.querySelectorAll('a[href^="/build/cross-platform/"]').forEach(a=>a.href='/build/cross-platform/?lang='+language);
   if(!report)return;
   const container=document.querySelector('#native-results');container.replaceChildren();
   const table=document.createElement('table'),head=document.createElement('tr');

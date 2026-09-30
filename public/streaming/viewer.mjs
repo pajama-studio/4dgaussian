@@ -15,7 +15,7 @@ function viewChanged(){
   if(!rig)return;camera=rig.value();
   $('#view-state').textContent=rig.changed?`${tr('Orbit','自由视角')} · ${Math.round(rig.yaw*180/Math.PI)}° / ${Math.round(rig.pitch*180/Math.PI)}° · ${rig.distance.toFixed(2)}`:tr('Calibrated view','标定视角');
 }
-function translate(){document.documentElement.lang=language;document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset[language]);setPlaying(playing);viewChanged();}
+function translate(){document.documentElement.lang=language;document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset[language]);document.querySelectorAll('a[href^="/build/cross-platform/"]').forEach(a=>a.href='/build/cross-platform/?lang='+language);setPlaying(playing);viewChanged();}
 $('#language').onclick=()=>{language=language==='en'?'zh':'en';translate();};translate();
 bindOrbit(canvas,()=>rig,viewChanged,()=>!measurement);
 $('#reset-view').onclick=()=>{rig?.reset();viewChanged();};

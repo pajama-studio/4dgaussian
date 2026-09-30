@@ -1,5 +1,14 @@
 [
   {
+    "href": "/build/cross-platform/",
+    "en": "Cross-platform rendering differences",
+    "zh": "跨平台渲染差异",
+    "detail": "Metal / DX12 / WebGPU · symptoms, code and validation",
+    "detailZh": "Metal／DX12／WebGPU · 现象、代码与验证",
+    "keywords": "pow alpha gamma srgb precision sorting synchronization 跨平台 精度 色差 排序 同步",
+    "group": "engineering"
+  },
+  {
     "href": "/streaming/",
     "en": "Temporal streaming & benchmarks",
     "zh": "时序流式加载与性能实测",

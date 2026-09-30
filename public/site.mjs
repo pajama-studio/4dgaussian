@@ -25,7 +25,7 @@ function label(node, en, zh, attr) {
 }
 const withLanguage = href => {
   const url = new URL(href, location.href);
-  if (/^\/(math|learn|build|relight)\//.test(url.pathname)) url.searchParams.set('lang', document.documentElement.lang.startsWith('zh') ? 'zh' : 'en');
+  if (/^\/(math|learn|build|relight|streaming)\//.test(url.pathname)) url.searchParams.set('lang', document.documentElement.lang.startsWith('zh') ? 'zh' : 'en');
   return url.pathname + url.search + url.hash;
 };
 

@@ -89,3 +89,7 @@ npm run capture:fidelity -- http://127.0.0.1:8787 5 /tmp/stg-render.png
 See [`STG_LITE_FORMAT.md`](STG_LITE_FORMAT.md) for the checked field/activation/camera contract, [`DESIGN.md`](DESIGN.md) for the renderer architecture, [`PERFORMANCE.md`](PERFORMANCE.md) for reproducible measurements and next gates, [`RENDERER_COMPARISON.md`](RENDERER_COMPARISON.md) for the bounded Spark/PlayCanvas comparison, and [`RESEARCH_FIXTURES.md`](RESEARCH_FIXTURES.md) for the evaluated research datasets/demos and selection rationale.
 
 The public research context that motivated the prototype is preserved in [`docs/PERIPHERAL_VIEWER_CONTEXT.md`](docs/PERIPHERAL_VIEWER_CONTEXT.md). It distinguishes public evidence from inference and does not claim knowledge of any company's private renderer or data format.
+
+### Cross-platform rendering field notes
+
+The bilingual [Metal / DX12 / browser WebGPU guide](https://4dgaussian.pajama.studio/build/cross-platform/) covers color/alpha, numeric domains, depth ordering, camera and buffer contracts, synchronization, limits and temporal streaming. It includes three teaching experiments and a staged validation protocol. Renderer source links pin the audited `07a2910` revision; potential hazards and unmeasured platforms are labeled explicitly. Source: `scripts/build-cross-platform.mjs`; regenerate with `node scripts/build-cross-platform.mjs`.

@@ -12,6 +12,7 @@ const destinations = [
   { href: '/', en: 'Explore the live viewer', zh: '探索实时 Viewer', detail: 'Inspect a real STG-Lite model', detailZh: '观察真实 STG-Lite 模型 · 英文', group: 'viewer' },
 ];
 const entries = [
+  { href: '/build/cross-platform/', en: 'Cross-platform rendering differences', zh: '跨平台渲染差异', detail: 'Metal / DX12 / WebGPU · symptoms, code and validation', detailZh: 'Metal／DX12／WebGPU · 现象、代码与验证', keywords: 'pow alpha gamma srgb precision sorting synchronization 跨平台 精度 色差 排序 同步', group: 'engineering' },
   { href: '/streaming/', en: 'Temporal streaming & benchmarks', zh: '时序流式加载与性能实测', detail: 'Real STG chunks · time range API · Rust optimization evidence', detailZh: '真实 STG 分块、时间范围 API 与 Rust 优化证据', group: 'lab' },
   ...destinations,
   ...lessons.map(l => ({ href: `/learn/${l.id}/`, ...l.title, detail: 'Theory lesson ' + l.id.slice(0, 2), detailZh: '原理课 ' + l.id.slice(0, 2), keywords: [l.lab,l.goal.en,l.goal.zh].join(' '), group: 'course' })),
