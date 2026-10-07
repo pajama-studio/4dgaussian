@@ -1,0 +1,944 @@
+{
+  "audited": "2026-10-07",
+  "models": [
+    {
+      "id": "sh",
+      "title": {
+        "en": "3DGS · RGB / SH",
+        "zh": "3DGS · RGB／SH"
+      },
+      "group": "geometry",
+      "maturity": {
+        "en": "Established baseline",
+        "zh": "成熟基础路线"
+      },
+      "availability": "web",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "time": {
+        "en": "Static",
+        "zh": "静态"
+      },
+      "summary": {
+        "en": "Explicit ellipsoids with constant RGB or a direction-dependent color function.",
+        "zh": "显式椭球，搭配固定 RGB 或随观察方向变化的颜色函数。"
+      },
+      "appearance": {
+        "en": "RGB or spherical harmonics",
+        "zh": "RGB 或球谐函数"
+      },
+      "parameters": {
+        "en": "Center μ; scales s; rotation q; opacity; RGB or per-channel SH coefficients.",
+        "zh": "中心 μ、尺度 s、旋转 q、透明度，以及 RGB 或各通道 SH 系数。"
+      },
+      "learn": {
+        "en": "Optimize geometry, opacity and color coefficients from calibrated images.",
+        "zh": "用标定图像优化几何、透明度和颜色系数。"
+      },
+      "exported": {
+        "en": "Explicit splats. A chosen container may quantize parameters and reduce SH degree.",
+        "zh": "显式 splat 参数；所选容器可能量化参数或降低 SH 阶数。"
+      },
+      "runtime": {
+        "en": "Decode → cull / project → evaluate RGB or SH → sort → rasterize and composite.",
+        "zh": "解码 → 剔除／投影 → RGB 或 SH 求值 → 排序 → 光栅化与合成。"
+      },
+      "contract": {
+        "en": "PLY is a container: inspect its fields, SH order, scale/opacity activations and quaternion order. Point-cloud PLY and STG PLY are not interchangeable with static 3DGS.",
+        "zh": "PLY 是容器：需检查字段、SH 顺序、尺度／透明度激活和四元数顺序。点云 PLY、STG PLY 与静态 3DGS 不能混用。"
+      },
+      "asset": {
+        "en": "The appearance workbench below links a trained SH model. Spark and PlayCanvas support standard 3DGS in their documented formats.",
+        "zh": "下方外观工作台提供训练好的 SH 模型入口。Spark 与 PlayCanvas 支持其文档中列出的标准 3DGS 格式。"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "labAppearance": "sh",
+      "equation": "\\mathbf c_i(\\mathbf d)=A\\!\\left(\\mathbf b_i+\\sum_k\\mathbf a_{ik}Y_k(\\mathbf d)\\right)",
+      "links": [
+        {
+          "label": "3DGS",
+          "url": "https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/"
+        },
+        {
+          "label": "Spark formats",
+          "url": "https://sparkjs.dev/docs/splat-mesh/"
+        },
+        {
+          "label": "PlayCanvas formats",
+          "url": "https://developer.playcanvas.com/user-manual/gaussian-splatting/formats/"
+        }
+      ]
+    },
+    {
+      "id": "2dgs",
+      "title": {
+        "en": "2DGS · oriented surfels",
+        "zh": "2DGS · 有方向的面元"
+      },
+      "group": "geometry",
+      "maturity": {
+        "en": "Established research baseline",
+        "zh": "成熟研究基线"
+      },
+      "availability": "web",
+      "geometry": {
+        "en": "2D elliptical disk in 3D space",
+        "zh": "三维空间中的二维椭圆盘"
+      },
+      "appearance": {
+        "en": "Usually SH",
+        "zh": "通常为 SH"
+      },
+      "time": {
+        "en": "Static",
+        "zh": "静态"
+      },
+      "summary": {
+        "en": "Surface elements with two in-plane scales and a normal. The scene is still three-dimensional.",
+        "zh": "用面内两轴尺度和法线描述表面元素；整个场景仍然是三维的。"
+      },
+      "parameters": {
+        "en": "3D center; orientation / tangent frame; two scales; opacity; appearance.",
+        "zh": "三维中心、朝向／切线坐标架、两个尺度、透明度和外观。"
+      },
+      "learn": {
+        "en": "Optimize surfels with image supervision and surface-oriented regularization.",
+        "zh": "通过图像监督和面向表面的正则项优化面元。"
+      },
+      "exported": {
+        "en": "Surfel parameters in the implementation’s schema. A mesh extracted afterward is a different asset.",
+        "zh": "按实现约定导出的面元参数。后续提取的 mesh 是另一种资产。"
+      },
+      "runtime": {
+        "en": "Perspective-correct ray–surfel evaluation → Gaussian weight → ordered compositing.",
+        "zh": "透视正确的射线／面元求值 → Gaussian 权重 → 有序合成。"
+      },
+      "contract": {
+        "en": "Use the 2D rendering mode. Adding a tiny third scale and using ordinary 3D projection is an approximation, not the reference 2DGS renderer.",
+        "zh": "使用二维面元渲染模式。补一个很小的第三轴尺度再做普通 3D 投影只是近似，并非参考 2DGS 渲染器。"
+      },
+      "asset": {
+        "en": "Official code links SIBR and GaussianSplats3D. The web viewer has a “2D scene” file option; bring a matching trained 2DGS file. A public bundled checkpoint has not been verified here.",
+        "zh": "官方列出了 SIBR 与 GaussianSplats3D。网页 viewer 的文件选项有“2D scene”，需要匹配的训练文件；此处尚未验证可直接下载的配套 checkpoint。"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "links": [
+        {
+          "label": "Official 2DGS",
+          "url": "https://github.com/hbb1/2d-gaussian-splatting"
+        },
+        {
+          "label": "Web viewer · bring a 2DGS file",
+          "url": "https://projects.markkellogg.org/threejs/demo_gaussian_splats_3d.php"
+        },
+        {
+          "label": "Surfel rasterizer",
+          "url": "https://github.com/hbb1/diff-surfel-rasterization"
+        }
+      ]
+    },
+    {
+      "group": "appearance",
+      "maturity": {
+        "en": "Research extension",
+        "zh": "研究扩展"
+      },
+      "availability": "web",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "time": {
+        "en": "Static",
+        "zh": "静态"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "asset": {
+        "en": "Author gallery lists SH, SV, NASG, NASGabor and Neural checkpoints for matching scenes. Use a separately trained file for each mode.",
+        "zh": "作者图库列出了同一批场景的 SH、SV、NASG、NASGabor 和 Neural checkpoint。每种模式使用各自训练的文件。"
+      },
+      "contract": {
+        "en": "Keep the trained direction convention, base/residual activations and output range. A .ngsplat file needs this renderer; a generic PLY loader cannot decode it.",
+        "zh": "保留训练时的方向约定、基础色／残差激活和输出范围。.ngsplat 需要对应渲染器，普通 PLY loader 无法解码。"
+      },
+      "id": "sv",
+      "title": {
+        "en": "Spherical Voronoi",
+        "zh": "球面 Voronoi"
+      },
+      "summary": {
+        "en": "Learned directional color sites, blended smoothly for the current view.",
+        "zh": "学习一组方向与颜色站点，按当前视角平滑混合。"
+      },
+      "appearance": {
+        "en": "Soft directional color mixture",
+        "zh": "柔和的方向颜色混合"
+      },
+      "parameters": {
+        "en": "Per-splat unit direction sites, temperatures and RGB values, plus base color.",
+        "zh": "每点的单位方向站点、温度参数、RGB 数值与基础色。"
+      },
+      "learn": {
+        "en": "Learn the sites, their sharpness and colors together with the splats.",
+        "zh": "与 splat 一起学习方向站点、过渡锐度和颜色。"
+      },
+      "exported": {
+        "en": "Normalized sites, activated temperatures / colors, stored in .ngsplat.",
+        "zh": "归一化站点及激活后的温度／颜色，存入 .ngsplat。"
+      },
+      "runtime": {
+        "en": "Direction → site distances → stable softmax → RGB → splatting.",
+        "zh": "方向 → 站点距离 → 稳定 softmax → RGB → splatting。"
+      },
+      "equation": "w_j={e^{-\\tau_j\\|\\mathbf s_j-\\mathbf d\\|}\\over\\sum_k e^{-\\tau_k\\|\\mathbf s_k-\\mathbf d\\|}},\\quad\\mathbf r=\\sum_j w_j\\mathbf c_j",
+      "labAppearance": "sv",
+      "links": [
+        {
+          "label": "Renderer + export",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/tree/main/viewer"
+        },
+        {
+          "label": "eval_sv.glsl",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/shaders/eval_sv.glsl"
+        },
+        {
+          "label": "Trained-model manifest",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/models.json"
+        }
+      ]
+    },
+    {
+      "group": "appearance",
+      "maturity": {
+        "en": "Research extension",
+        "zh": "研究扩展"
+      },
+      "availability": "web",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "time": {
+        "en": "Static",
+        "zh": "静态"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "asset": {
+        "en": "Author gallery lists SH, SV, NASG, NASGabor and Neural checkpoints for matching scenes. Use a separately trained file for each mode.",
+        "zh": "作者图库列出了同一批场景的 SH、SV、NASG、NASGabor 和 Neural checkpoint。每种模式使用各自训练的文件。"
+      },
+      "contract": {
+        "en": "Keep the trained direction convention, base/residual activations and output range. A .ngsplat file needs this renderer; a generic PLY loader cannot decode it.",
+        "zh": "保留训练时的方向约定、基础色／残差激活和输出范围。.ngsplat 需要对应渲染器，普通 PLY loader 无法解码。"
+      },
+      "id": "nasg",
+      "title": {
+        "en": "NASG · spherical lobes",
+        "zh": "NASG · 球面波瓣"
+      },
+      "summary": {
+        "en": "Learned anisotropic lobes concentrate appearance changes in chosen directions.",
+        "zh": "可学习的各向异性波瓣把外观变化集中在特定方向。"
+      },
+      "appearance": {
+        "en": "Normalized anisotropic spherical Gaussians",
+        "zh": "归一化各向异性球面 Gaussian"
+      },
+      "parameters": {
+        "en": "Lobe coordinate frames, concentration, anisotropy and RGB weights.",
+        "zh": "波瓣坐标架、集中程度、各向异性参数与 RGB 权重。"
+      },
+      "learn": {
+        "en": "Optimize lobe shape, orientation and contribution to each channel.",
+        "zh": "优化波瓣形状、朝向及其在各通道中的贡献。"
+      },
+      "exported": {
+        "en": "Precomputed frames, activated shape parameters, normalization and weights.",
+        "zh": "预计算坐标架、激活后的形状参数、归一化常量与权重。"
+      },
+      "runtime": {
+        "en": "Evaluate each lobe using dot products, pow and exp; combine to RGB before splatting.",
+        "zh": "用点积、pow 和 exp 对每个波瓣求值，先合成 RGB 再 splatting。"
+      },
+      "equation": "\\mathbf r_i(\\mathbf d)=\\sum_j\\mathbf w_{ij}L(\\mathbf d;\\boldsymbol\\theta_{ij})",
+      "labAppearance": "nasg",
+      "links": [
+        {
+          "label": "Renderer + export",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/tree/main/viewer"
+        },
+        {
+          "label": "eval_nasg.glsl",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/shaders/eval_nasg.glsl"
+        },
+        {
+          "label": "Trained-model manifest",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/models.json"
+        }
+      ]
+    },
+    {
+      "group": "appearance",
+      "maturity": {
+        "en": "Research extension",
+        "zh": "研究扩展"
+      },
+      "availability": "web",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "time": {
+        "en": "Static",
+        "zh": "静态"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "asset": {
+        "en": "Author gallery lists SH, SV, NASG, NASGabor and Neural checkpoints for matching scenes. Use a separately trained file for each mode.",
+        "zh": "作者图库列出了同一批场景的 SH、SV、NASG、NASGabor 和 Neural checkpoint。每种模式使用各自训练的文件。"
+      },
+      "contract": {
+        "en": "Keep the trained direction convention, base/residual activations and output range. A .ngsplat file needs this renderer; a generic PLY loader cannot decode it.",
+        "zh": "保留训练时的方向约定、基础色／残差激活和输出范围。.ngsplat 需要对应渲染器，普通 PLY loader 无法解码。"
+      },
+      "id": "nasgabor",
+      "title": {
+        "en": "NASGabor · oscillating lobes",
+        "zh": "NASGabor · 振荡波瓣"
+      },
+      "summary": {
+        "en": "Adds an angular oscillation to a lobe to represent finer directional variation.",
+        "zh": "在波瓣中加入角度振荡，表达更细的方向变化。"
+      },
+      "appearance": {
+        "en": "NASG with a Gabor term",
+        "zh": "NASG 与 Gabor 项"
+      },
+      "parameters": {
+        "en": "NASG parameters plus a learned oscillation frequency per lobe.",
+        "zh": "NASG 参数，以及每个波瓣学习到的振荡频率。"
+      },
+      "learn": {
+        "en": "Jointly fit the lobe parameters and oscillation frequency.",
+        "zh": "联合拟合波瓣参数与振荡频率。"
+      },
+      "exported": {
+        "en": "Baked lobe frames and constants, frequency and RGB weights.",
+        "zh": "烘焙的波瓣坐标架与常量、频率及 RGB 权重。"
+      },
+      "runtime": {
+        "en": "Directional lobe response × cosine modulation → weighted RGB → splatting.",
+        "zh": "方向波瓣响应 × 余弦调制 → 加权 RGB → splatting。"
+      },
+      "equation": "G(\\mathbf d)=\\tfrac12\\!\\left(1+\\cos(k\\,\\mathbf d\\cdot\\mathbf x)\\right)",
+      "labAppearance": "nasgabor",
+      "links": [
+        {
+          "label": "Renderer + export",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/tree/main/viewer"
+        },
+        {
+          "label": "eval_nasgabor.glsl",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/shaders/eval_nasgabor.glsl"
+        },
+        {
+          "label": "Trained-model manifest",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/models.json"
+        }
+      ]
+    },
+    {
+      "group": "appearance",
+      "maturity": {
+        "en": "Research extension",
+        "zh": "研究扩展"
+      },
+      "availability": "web",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "time": {
+        "en": "Static",
+        "zh": "静态"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "asset": {
+        "en": "Author gallery lists SH, SV, NASG, NASGabor and Neural checkpoints for matching scenes. Use a separately trained file for each mode.",
+        "zh": "作者图库列出了同一批场景的 SH、SV、NASG、NASGabor 和 Neural checkpoint。每种模式使用各自训练的文件。"
+      },
+      "contract": {
+        "en": "Keep the trained direction convention, base/residual activations and output range. A .ngsplat file needs this renderer; a generic PLY loader cannot decode it.",
+        "zh": "保留训练时的方向约定、基础色／残差激活和输出范围。.ngsplat 需要对应渲染器，普通 PLY loader 无法解码。"
+      },
+      "id": "neural",
+      "title": {
+        "en": "Neural appearance · per splat",
+        "zh": "神经外观 · 逐点解码"
+      },
+      "summary": {
+        "en": "A compact feature per Gaussian and a small decoder shared by the whole scene.",
+        "zh": "每个 Gaussian 保存紧凑特征，整个场景共享一个小解码器。"
+      },
+      "appearance": {
+        "en": "Features + shared residual MLP",
+        "zh": "特征 + 共享残差 MLP"
+      },
+      "parameters": {
+        "en": "Per-splat features / base color; shared weights; encoding and activation metadata.",
+        "zh": "每点特征／基础色，共享权重，编码和激活元数据。"
+      },
+      "learn": {
+        "en": "Optimize features and shared MLP weights with the Gaussian parameters.",
+        "zh": "与 Gaussian 参数一起优化特征和共享 MLP 权重。"
+      },
+      "exported": {
+        "en": "Features or baked first-layer static terms, plus remaining network weights.",
+        "zh": "特征或第一层烘焙后的静态项，以及其余网络权重。"
+      },
+      "runtime": {
+        "en": "Per-splat feature + view encoding → tiny MLP → cached RGB → splatting.",
+        "zh": "逐点特征 + 方向编码 → 小 MLP → RGB 缓存 → splatting。"
+      },
+      "equation": "\\mathbf h_i(\\mathbf d)=\\operatorname{ReLU}(\\underbrace{W_f\\mathbf f_i}_{\\text{baked}}+W_d E(\\mathbf d))",
+      "labAppearance": "neural",
+      "links": [
+        {
+          "label": "Renderer + export",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/tree/main/viewer"
+        },
+        {
+          "label": "eval_neural.glsl",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/shaders/eval_neural.glsl"
+        },
+        {
+          "label": "Trained-model manifest",
+          "url": "https://github.com/nerficg-project/efficient-gaussian-appearance/blob/main/viewer/models.json"
+        }
+      ]
+    },
+    {
+      "id": "stg-lite",
+      "title": {
+        "en": "STG-Lite · explicit motion",
+        "zh": "STG-Lite · 显式运动"
+      },
+      "group": "time",
+      "maturity": {
+        "en": "Integrated here",
+        "zh": "本站已接入"
+      },
+      "availability": "web",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "appearance": {
+        "en": "Base RGB",
+        "zh": "基础 RGB"
+      },
+      "time": {
+        "en": "Polynomial motion + temporal opacity",
+        "zh": "多项式运动 + 时间透明度"
+      },
+      "summary": {
+        "en": "A compact moving scene, evaluated directly from time. This is our working Rust/wgpu fixture.",
+        "zh": "直接输入时间求值的紧凑动态场景；这是本站已运行的 Rust/wgpu 真实模型。"
+      },
+      "parameters": {
+        "en": "Center, scales, quaternion, RGB, opacity; temporal center / scale; motion and rotation coefficients.",
+        "zh": "中心、尺度、四元数、RGB、透明度，时间中心／尺度，以及运动和旋转系数。"
+      },
+      "learn": {
+        "en": "Fit geometry, lifespan, motion and base color to synchronized multi-view video.",
+        "zh": "用同步多视角视频拟合几何、生命周期、运动和基础色。"
+      },
+      "exported": {
+        "en": "The checked STG-Lite PLY schema, or our time-addressed streaming chunks.",
+        "zh": "已核对的 STG-Lite PLY 字段，或本站支持时间寻址的 streaming 分块。"
+      },
+      "runtime": {
+        "en": "Time evaluation → GPU culling → depth sorting → indirect splat draw.",
+        "zh": "时间求值 → GPU 剔除 → 深度排序 → 间接 splat 绘制。"
+      },
+      "contract": {
+        "en": "Follow the model’s time normalization, quaternion evolution and opacity activation. These released fixtures cover 50 frames, not a long trained sequence.",
+        "zh": "遵循模型的时间归一化、四元数演化与透明度激活。当前发布模型覆盖 50 帧，不是已训练的长序列。"
+      },
+      "asset": {
+        "en": "Sear Steak: 108,317 Gaussians; Flames: 332,865. Research/evaluation assets; source notices are linked in the viewer.",
+        "zh": "Sear Steak：108,317 个 Gaussian；Flames：332,865 个。研究／评估资产，viewer 中附来源和许可。"
+      },
+      "support": {
+        "en": "Implemented · Rust / wgpu / WGSL",
+        "zh": "已实现 · Rust／wgpu／WGSL"
+      },
+      "equation": "\\boldsymbol\\mu_i(t)=\\sum_{k=0}^3\\mathbf b_{ik}(t-\\tau_i)^k",
+      "links": [
+        {
+          "label": "Play in our viewer",
+          "url": "/streaming/"
+        },
+        {
+          "label": "Inspect one Gaussian",
+          "url": "/?inspect=1#workbench"
+        },
+        {
+          "label": "Rendering contract",
+          "url": "https://github.com/pajama-studio/4dgaussian/blob/main/STG_LITE_FORMAT.md"
+        },
+        {
+          "label": "Official STG",
+          "url": "https://github.com/oppo-us-research/SpacetimeGaussians"
+        }
+      ]
+    },
+    {
+      "id": "stg-full",
+      "title": {
+        "en": "STG · feature splatting",
+        "zh": "STG · 特征合成"
+      },
+      "group": "time",
+      "maturity": {
+        "en": "Research baseline",
+        "zh": "研究基线"
+      },
+      "availability": "specialist",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "appearance": {
+        "en": "Feature buffer + per-pixel MLP",
+        "zh": "特征缓冲 + 逐像素 MLP"
+      },
+      "time": {
+        "en": "Polynomial motion + temporal features",
+        "zh": "多项式运动 + 时间特征"
+      },
+      "summary": {
+        "en": "Composite features first, then decode the image. It requires a different path from STG-Lite.",
+        "zh": "先合成特征，再解码图像；需要与 STG-Lite 不同的渲染路径。"
+      },
+      "parameters": {
+        "en": "STG motion / opacity plus base, direction and time features and a shared decoder.",
+        "zh": "STG 运动／透明度参数，加基础色、方向与时间特征，以及共享解码器。"
+      },
+      "learn": {
+        "en": "Jointly optimize spacetime Gaussians, features and the screen-space decoder.",
+        "zh": "联合优化时空 Gaussian、特征与屏幕空间解码器。"
+      },
+      "exported": {
+        "en": "Complete checkpoint including the MLP. Check the release variant before loading.",
+        "zh": "包含 MLP 的完整 checkpoint；加载前确认发布模型的变体。"
+      },
+      "runtime": {
+        "en": "Evaluate time → project / sort → composite features → decode each pixel.",
+        "zh": "时间求值 → 投影／排序 → 合成特征 → 逐像素解码。"
+      },
+      "contract": {
+        "en": "Decoding after blending is not equivalent to decoding each splat before blending. Dropping the full model’s decoder is not a faithful Lite conversion.",
+        "zh": "先混合后解码与每点先解码后混合并不等价。直接删掉完整模型的解码器不能得到等价的 Lite 模型。"
+      },
+      "asset": {
+        "en": "Official implementation and model/viewer links exist. This atlas does not yet provide a verified Full checkpoint in our engine.",
+        "zh": "官方提供实现及模型／viewer 入口；本目录尚未在自研引擎中验证 Full checkpoint。"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "equation": "\\mathbf C(p)=\\mathbf F^{base}(p)+D_\\theta(\\mathbf F^{dir}(p),\\mathbf F^{time}(p),\\mathbf r_p)",
+      "links": [
+        {
+          "label": "Official implementation",
+          "url": "https://github.com/oppo-us-research/SpacetimeGaussians"
+        },
+        {
+          "label": "Feature rendering · §4.2",
+          "url": "https://arxiv.org/html/2312.16812v2#S4.SS2"
+        }
+      ]
+    },
+    {
+      "id": "scaffold",
+      "title": {
+        "en": "Scaffold-GS · anchors",
+        "zh": "Scaffold-GS · 锚点"
+      },
+      "group": "structure",
+      "maturity": {
+        "en": "Research baseline",
+        "zh": "研究基线"
+      },
+      "availability": "specialist",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "appearance": {
+        "en": "View-conditioned neural attributes",
+        "zh": "按视角生成的神经属性"
+      },
+      "time": {
+        "en": "Static",
+        "zh": "静态"
+      },
+      "summary": {
+        "en": "Anchors and features generate local Gaussian attributes for the current view.",
+        "zh": "锚点与特征为当前视角生成局部 Gaussian 属性。"
+      },
+      "parameters": {
+        "en": "Anchors, offsets, scales and features; color, covariance and opacity networks.",
+        "zh": "锚点、偏移、尺度与特征，以及颜色、协方差和透明度网络。"
+      },
+      "learn": {
+        "en": "Learn the scaffold and shared networks from images.",
+        "zh": "通过图像学习锚点结构与共享网络。"
+      },
+      "exported": {
+        "en": "Anchor PLY plus color_mlp.pt, cov_mlp.pt, opacity_mlp.pt and configuration.",
+        "zh": "锚点 PLY、color_mlp.pt、cov_mlp.pt、opacity_mlp.pt 及配置。"
+      },
+      "runtime": {
+        "en": "Cull anchors → generate view-conditioned Gaussians → rasterize.",
+        "zh": "剔除锚点 → 生成依赖视角的 Gaussian → 光栅化。"
+      },
+      "contract": {
+        "en": "A PLY alone is insufficient. A single baked viewpoint does not retain the original view-adaptive representation.",
+        "zh": "单个 PLY 不足以还原模型。只烘焙一个视角不能保留原始的视角自适应表征。"
+      },
+      "asset": {
+        "en": "Official SIBR viewer and checkpoint layout are documented. A downloadable matching checkpoint is not verified here.",
+        "zh": "官方有 SIBR viewer 和 checkpoint 结构说明；此处尚未验证可下载的配套 checkpoint。"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "links": [
+        {
+          "label": "Scaffold-GS + viewer",
+          "url": "https://github.com/city-super/Scaffold-GS"
+        }
+      ]
+    },
+    {
+      "id": "deformation",
+      "title": {
+        "en": "4DGS · deformation field",
+        "zh": "4DGS · 形变场"
+      },
+      "group": "time",
+      "maturity": {
+        "en": "Research baseline",
+        "zh": "研究基线"
+      },
+      "availability": "specialist",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "appearance": {
+        "en": "Implementation-dependent Gaussian attributes",
+        "zh": "按实现定义的 Gaussian 属性"
+      },
+      "time": {
+        "en": "Canonical scene + learned deformation",
+        "zh": "标准空间场景 + 学习到的形变"
+      },
+      "summary": {
+        "en": "A canonical set of Gaussians is deformed to the requested timestamp.",
+        "zh": "将标准空间的一组 Gaussian 变形到指定时间。"
+      },
+      "parameters": {
+        "en": "Canonical Gaussian parameters; spatiotemporal feature planes and deformation decoder.",
+        "zh": "标准空间 Gaussian 参数、时空特征平面和形变解码器。"
+      },
+      "learn": {
+        "en": "Fit the canonical scene and time-conditioned deformation from video.",
+        "zh": "从视频拟合标准空间场景与依赖时间的形变。"
+      },
+      "exported": {
+        "en": "Canonical scene + field / network, or separately baked per-timestamp 3DGS files.",
+        "zh": "标准场景 + 场／网络，或单独烘焙的逐时刻 3DGS 文件。"
+      },
+      "runtime": {
+        "en": "Evaluate deformation at t → obtain 3D Gaussians → render using a compatible splatter.",
+        "zh": "在 t 时刻求形变 → 得到 3D Gaussian → 使用兼容的 splatter 渲染。"
+      },
+      "contract": {
+        "en": "Retaining the field and playing baked frames are different deployment modes. Baking trades inference for storage, sampling and delivery costs.",
+        "zh": "保留形变场与播放烘焙帧是两种部署方式。烘焙用存储、时间采样和传输开销换取更少的推理。"
+      },
+      "asset": {
+        "en": "HUST 4DGaussians documents a viewer and export_perframe_3DGS.py. Bring a trained checkpoint; no compatible fixture is included here.",
+        "zh": "HUST 4DGaussians 提供 viewer 和 export_perframe_3DGS.py。需要训练好的 checkpoint；本站尚无匹配示例。"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "links": [
+        {
+          "label": "HUST 4DGaussians",
+          "url": "https://github.com/hustvl/4DGaussians"
+        }
+      ]
+    },
+    {
+      "id": "native-4d",
+      "title": {
+        "en": "Native 4D Gaussians",
+        "zh": "原生四维 Gaussian"
+      },
+      "group": "time",
+      "maturity": {
+        "en": "Research baseline",
+        "zh": "研究基线"
+      },
+      "availability": "code",
+      "geometry": {
+        "en": "Joint space–time Gaussian primitive",
+        "zh": "联合空间与时间的 Gaussian primitive"
+      },
+      "appearance": {
+        "en": "Directional / temporal appearance",
+        "zh": "方向／时间外观"
+      },
+      "time": {
+        "en": "Native 4D covariance",
+        "zh": "原生四维协方差"
+      },
+      "summary": {
+        "en": "Space and time belong to the primitive itself, rather than an external deformation field.",
+        "zh": "空间和时间直接属于 primitive 本身，由四维参数共同表达。"
+      },
+      "parameters": {
+        "en": "4D mean / covariance parameterization, opacity and the method’s appearance coefficients.",
+        "zh": "四维均值／协方差参数化、透明度及该方法的外观系数。"
+      },
+      "learn": {
+        "en": "Optimize joint spacetime primitives from dynamic observations.",
+        "zh": "通过动态观测优化联合时空 primitive。"
+      },
+      "exported": {
+        "en": "The method’s complete 4D checkpoint, with its time and appearance conventions.",
+        "zh": "该方法完整的四维 checkpoint，以及时间和外观约定。"
+      },
+      "runtime": {
+        "en": "Condition / evaluate the 4D primitive at t → obtain spatial contributions → render.",
+        "zh": "在 t 时刻对四维 primitive 做条件化／求值 → 获得空间贡献 → 渲染。"
+      },
+      "contract": {
+        "en": "“4DGS” is used by several incompatible methods. Identify the paper and checkpoint schema, not just the name.",
+        "zh": "多个不兼容的方法都使用“4DGS”名称。必须识别论文与 checkpoint 结构，不能只看名字。"
+      },
+      "asset": {
+        "en": "Fudan’s official implementation is public. An immediately usable checkpoint / web viewer is not verified here.",
+        "zh": "Fudan 的官方实现已公开；此处尚未确认可直接使用的 checkpoint／网页 viewer。"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "links": [
+        {
+          "label": "Fudan native 4DGS",
+          "url": "https://github.com/fudan-zvg/4d-gaussian-splatting"
+        }
+      ]
+    },
+    {
+      "id": "nts",
+      "title": {
+        "en": "NTS · local RGBA fields",
+        "zh": "NTS · 局部 RGBA 场"
+      },
+      "group": "appearance",
+      "maturity": {
+        "en": "Research extension",
+        "zh": "研究扩展"
+      },
+      "availability": "code",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "appearance": {
+        "en": "Per-primitive local RGBA texture fields",
+        "zh": "每个 primitive 的局部 RGBA 纹理场"
+      },
+      "time": {
+        "en": "Static or time-conditioned",
+        "zh": "静态或依赖时间"
+      },
+      "summary": {
+        "en": "Different positions inside one splat can contribute different colors and opacities.",
+        "zh": "同一个 splat 内的不同位置可以贡献不同的颜色与透明度。"
+      },
+      "parameters": {
+        "en": "Gaussian attributes, global feature planes and shared local-texture decoders.",
+        "zh": "Gaussian 属性、全局特征平面和共享局部纹理解码器。"
+      },
+      "learn": {
+        "en": "Jointly optimize the splats and neural local texture representation.",
+        "zh": "联合优化 splat 与神经局部纹理表示。"
+      },
+      "exported": {
+        "en": "Gaussian parameters, global fields and decoders; preserve view/time dependencies.",
+        "zh": "Gaussian 参数、全局场与解码器，保留方向／时间依赖。"
+      },
+      "runtime": {
+        "en": "Generate local texture factors → find ray–Gaussian contribution point → sample RGBA → composite.",
+        "zh": "生成局部纹理因子 → 求射线／Gaussian 贡献位置 → 采样 RGBA → 合成。"
+      },
+      "contract": {
+        "en": "One RGB per splat cannot preserve this representation. It can augment the base Gaussian appearance rather than replace every SH term.",
+        "zh": "每点一个 RGB 无法保留这种表征。它可以扩展原有 Gaussian 外观，并不必然替换全部 SH。"
+      },
+      "asset": {
+        "en": "Official training/rendering code is public. No ready-to-load checkpoint or interactive web player has been verified for this atlas.",
+        "zh": "官方训练／渲染代码已公开。本目录尚未验证开箱即用的 checkpoint 或交互网页播放器。"
+      },
+      "support": {
+        "en": "Not implemented in our Rust viewer",
+        "zh": "尚未接入我们的 Rust viewer"
+      },
+      "links": [
+        {
+          "label": "NTS implementation",
+          "url": "https://github.com/19reborn/neural-texture-splatting"
+        },
+        {
+          "label": "NTS method",
+          "url": "https://arxiv.org/html/2511.18873v1"
+        }
+      ]
+    },
+    {
+      "id": "relightable",
+      "title": {
+        "en": "Relightable GS · materials",
+        "zh": "可重光照 GS · 材质"
+      },
+      "group": "material",
+      "maturity": {
+        "en": "Research family",
+        "zh": "研究方法家族"
+      },
+      "availability": "code",
+      "geometry": {
+        "en": "3D anisotropic ellipsoid",
+        "zh": "三维各向异性椭球"
+      },
+      "appearance": {
+        "en": "Material / lighting decomposition",
+        "zh": "材质／光照分解"
+      },
+      "time": {
+        "en": "Method-dependent",
+        "zh": "取决于具体方法"
+      },
+      "summary": {
+        "en": "Store enough information to recompute appearance under a changed light.",
+        "zh": "保存足够的信息，以便在更换光源后重新计算外观。"
+      },
+      "parameters": {
+        "en": "Geometry, normals / material attributes, learned features and any visibility / shading networks.",
+        "zh": "几何、法线／材质属性、学习特征，以及需要的可见性／着色网络。"
+      },
+      "learn": {
+        "en": "Recover geometry and lighting response with the method’s supervision. SSD-GS uses varying-light observations.",
+        "zh": "通过方法对应的监督恢复几何和光照响应。SSD-GS 使用变化光照下的观测。"
+      },
+      "exported": {
+        "en": "Material and network checkpoint, not only the RGB observed during training.",
+        "zh": "材质及网络 checkpoint，不能只保留训练时观测到的 RGB。"
+      },
+      "runtime": {
+        "en": "Current view + light → visibility / reflectance / scattering → Gaussian contributions → composite.",
+        "zh": "当前视角 + 光源 → 可见性／反射／散射 → Gaussian 贡献 → 合成。"
+      },
+      "contract": {
+        "en": "Different relighting papers have different contracts. A normal and a GGX shader alone do not reproduce a learned inverse-rendering model.",
+        "zh": "不同重光照论文有不同的约定。仅增加法线和 GGX shader 无法复现学习到的逆渲染模型。"
+      },
+      "asset": {
+        "en": "SSD-GS publishes training/rendering code. Our separate material lab uses synthetic surfels with known materials; it is not an SSD-GS reconstruction.",
+        "zh": "SSD-GS 公开了训练／渲染代码。本站独立材质实验使用已知材质的合成面元，并非 SSD-GS 重建结果。"
+      },
+      "support": {
+        "en": "Synthetic PBR lab only; research checkpoint not integrated",
+        "zh": "仅有合成 PBR 实验；尚未接入研究 checkpoint"
+      },
+      "links": [
+        {
+          "label": "SSD-GS implementation",
+          "url": "https://github.com/irisfreesiri/SSD-GS"
+        },
+        {
+          "label": "Our synthetic material lab",
+          "url": "/relight/lab/"
+        }
+      ]
+    }
+  ],
+  "groups": {
+    "geometry": {
+      "en": "Geometry",
+      "zh": "几何"
+    },
+    "appearance": {
+      "en": "Appearance",
+      "zh": "外观"
+    },
+    "time": {
+      "en": "Time",
+      "zh": "时间"
+    },
+    "structure": {
+      "en": "Structure",
+      "zh": "组织"
+    },
+    "material": {
+      "en": "Materials",
+      "zh": "材质"
+    }
+  },
+  "access": {
+    "web": {
+      "en": "Web viewer published",
+      "zh": "已有网页 viewer"
+    },
+    "specialist": {
+      "en": "Dedicated viewer / runtime",
+      "zh": "专用 viewer／运行时"
+    },
+    "code": {
+      "en": "Research code · asset needed",
+      "zh": "研究代码 · 需准备模型"
+    }
+  }
+}

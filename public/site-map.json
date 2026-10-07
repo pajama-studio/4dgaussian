@@ -1,5 +1,14 @@
 [
   {
+    "href": "/representations/",
+    "en": "GS Representation Atlas",
+    "zh": "GS 表征目录",
+    "detail": "Real models · geometry, appearance, time and rendering contracts",
+    "detailZh": "真实模型 · 几何、外观、时间与渲染约定",
+    "keywords": "2DGS 3DGS SH SV NASG NASGabor neural STG scaffold deformation representations 表征 神经 形变 模型",
+    "group": "reference"
+  },
+  {
     "href": "/build/renderer-internals/",
     "en": "Inside Spark & PlayCanvas",
     "zh": "读懂 Spark 与 PlayCanvas",

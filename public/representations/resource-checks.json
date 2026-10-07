@@ -1,0 +1,151 @@
+{
+  "checkedAt": "2026-10-07T22:19:00.919Z",
+  "method": "HTTP HEAD with redirects. No model bodies downloaded by this check.",
+  "scope": "Availability only. This does not prove valid model contents, image quality, browser compatibility, or performance.",
+  "resources": [
+    {
+      "url": "https://fhahlbohm.github.io/efficient-gaussian-appearance/viewer/",
+      "status": 200,
+      "ok": true,
+      "bytes": 1248,
+      "contentType": "text/html; charset=utf-8",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/sh/chair.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 16529580,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/sv/chair.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 37763232,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/nasg/chair.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 14170272,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/nasgabor/chair.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 14170272,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/neural/chair.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 14269696,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/sh/bonsai.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 72487028,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/sv/bonsai.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 164106344,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/nasg/bonsai.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 61739112,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/nasgabor/bonsai.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 62132328,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/neural/bonsai.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 63509704,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/sh/garden.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 270666488,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/sv/garden.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 621021932,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/nasg/garden.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 230623980,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/nasgabor/garden.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 230820588,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    },
+    {
+      "url": "https://huggingface.co/datasets/fhahlbohm/ngsplat/resolve/main/neural/garden.ngsplat",
+      "status": 200,
+      "ok": true,
+      "bytes": 234655564,
+      "contentType": "application/octet-stream",
+      "framing": null,
+      "csp": null
+    }
+  ]
+}

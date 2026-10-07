@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-07T22:27:00Z",
+  "environment": "Windows, Codex in-app Chromium browser, local Wrangler at http://127.0.0.1:8796",
+  "method": "Browser UI interaction, rendered DOM inspection and screenshots. Each appearance used its actual author-hosted chair.ngsplat file, not a dummy appearance override.",
+  "scope": "Functional smoke test, not a quality or performance comparison. No claim of Rust/wgpu support for the external appearance models.",
+  "rendered": [
+    { "appearance": "SH", "scene": "chair", "visibleImage": true },
+    { "appearance": "SV", "scene": "chair", "visibleImage": true },
+    { "appearance": "NASG", "scene": "chair", "visibleImage": true },
+    { "appearance": "NASGabor", "scene": "chair", "visibleImage": true },
+    { "appearance": "Neural", "scene": "chair", "visibleImage": true }
+  ],
+  "controlsVerified": [
+    "English default; English/Chinese switching preserves selections",
+    "Time filter: 4 entries; appearance plus web filter: 4 entries",
+    "No-match state; keyboard Enter on Reset restores 13 entries",
+    "Side-by-side contracts and card Compare action with focus transfer",
+    "Direct #neural link opens its details and clears incompatible filters",
+    "Changing appearance does not replace the active preview until Load",
+    "Unload removes the iframe; changing scene while unloaded does not create one",
+    "External viewer Test view control changes the Neural camera view",
+    "Garden/SV displays a 592.3 MiB download estimate without loading it",
+    "No horizontal page overflow at 390 px and 1440 px; mobile comparison inspected",
+    "No browser console errors captured during the five Chair preview checks"
+  ],
+  "notVerified": [
+    "Bonsai and Garden rendering: HTTP availability checked separately only",
+    "Other catalog research checkpoints in this engine",
+    "Metal, native mobile and other browser/backend combinations",
+    "Controlled quality, performance or cross-model camera comparisons"
+  ]
+}

@@ -29,6 +29,12 @@ The 200-second, 21-camera DeskGames Cube **training input** has been acquired an
 
 ## Build a viewer, from zero
 
+The bilingual [GS Representation Atlas](https://4dgaussian.pajama.studio/representations/) separates geometry, appearance, time and delivery across 13 rendering contracts. It includes search/filter controls, a two-model contract comparison, and an opt-in external WebGL preview for the author's real SH/SV/NASG/NASGabor/Neural models. Choosing a mode selects its actual trained `.ngsplat` file, never the author's dummy-parameter benchmark. Model geometry/counts may differ, so this is not a controlled quality/performance benchmark.
+
+STG-Lite links to our existing Rust/wgpu viewer; other representations are labeled as external implementations or research code requiring a matching checkpoint. The relighting lab is a synthetic known-material example. No new Gaussian backend or third-party model redistribution is implied. Curated content: `scripts/representations-content.mjs`; page generator: `scripts/build-representations.mjs`; checked-in HTTP metadata: `public/representations/resource-checks.json`. Run `npm run qa:representations` to validate the catalog, translations and generated HTML. Verify browser controls at `/representations/`: language switching, search/filter/reset, contract comparison, and explicit preview load/unload. Resource refresh is explicit: `node scripts/check-representation-resources.mjs`, followed by `node scripts/build-representations.mjs` to update displayed file sizes.
+
+The [browser verification record](public/representations/browser-checks.json) lists the five Chair models actually rendered and the controls exercised. Bonsai and Garden have separate HTTP availability checks; their rendering was not part of that smoke test.
+
 The bilingual [engineering series](https://4dgaussian.pajama.studio/build/) pairs 12 chapters with [8 live GPU milestones](https://4dgaussian.pajama.studio/build/lab/): clear, triangle, storage-backed quad, Gaussian falloff, alpha ordering, projected 3D covariance, time, and the real STG-Lite fixture.
 
 `src/workshop.rs` and `src/workshop.wgsl` contain the teaching pass. `src/workshop_surface.rs` shares presentation between the WASM host and `examples/workshop.rs` (winit). The existing `StgPass` remains the surface-independent engine integration boundary. Chapters link exact source snapshots and include commands, expected images and debugging exercises.

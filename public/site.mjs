@@ -25,14 +25,14 @@ function label(node, en, zh, attr) {
 }
 const withLanguage = href => {
   const url = new URL(href, location.href);
-  if (/^\/(math|learn|build|relight|streaming)\//.test(url.pathname)) url.searchParams.set('lang', document.documentElement.lang.startsWith('zh') ? 'zh' : 'en');
+  if (/^\/(math|learn|build|relight|streaming|representations)\//.test(url.pathname)) url.searchParams.set('lang', document.documentElement.lang.startsWith('zh') ? 'zh' : 'en');
   return url.pathname + url.search + url.hash;
 };
 
 if (main && header) {
   document.body.classList.add('site-ready');
   const section = location.pathname.split('/')[1] || 'viewer';
-  const names = { streaming:['Temporal streaming','时序流式加载'], math:['Math notebook','数学手册'], docs:['Rendering field guide','渲染指南'], learn:['Learn 4D Gaussian Splatting','学习 4D Gaussian Splatting'], build:['Build a viewer','构建 Viewer'], relight:['Gaussian relighting','Gaussian 重打光'], viewer:['Live viewer','实时 Viewer'] };
+  const names = { representations:['GS Representation Atlas','GS 表征目录'], streaming:['Temporal streaming','时序流式加载'], math:['Math notebook','数学手册'], docs:['Rendering field guide','渲染指南'], learn:['Learn 4D Gaussian Splatting','学习 4D Gaussian Splatting'], build:['Build a viewer','构建 Viewer'], relight:['Gaussian relighting','Gaussian 重打光'], viewer:['Live viewer','实时 Viewer'] };
   const explore = label(button('site-explore'), 'Explore', '目录');
   label(explore, 'Explore & search', '目录与搜索', 'aria-label');
   explore.setAttribute('aria-haspopup', 'dialog');
